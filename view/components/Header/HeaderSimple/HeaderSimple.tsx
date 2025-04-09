@@ -1,9 +1,10 @@
 "use client";
 
-import { useState } from 'react';
 import { Burger, Container, Group } from '@mantine/core';
 import { useDisclosure } from '@mantine/hooks';
 import { MantineLogo } from '@mantinex/mantine-logo';
+import { useState } from 'react';
+import { LightDarkToggle } from '../LightDarkToggle/LightDarkToggle';
 import classes from './HeaderSimple.module.css';
 
 const links = [
@@ -40,7 +41,10 @@ export function HeaderSimple() {
           {items}
         </Group>
 
-        <Burger opened={opened} onClick={toggle} hiddenFrom="xs" size="sm" />
+        <Group>
+          <LightDarkToggle />
+          <Burger opened={opened} onClick={toggle} hiddenFrom="xs" size="sm" />
+        </Group>
       </Container>
     </header>
   );
