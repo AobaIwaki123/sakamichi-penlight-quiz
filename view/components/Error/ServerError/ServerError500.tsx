@@ -1,3 +1,4 @@
+
 import { Button, Container, Group, Text, Title } from '@mantine/core';
 import classes from './ServerError500.module.css';
 
@@ -12,7 +13,11 @@ export function ServerError500() {
           already notified. Try refreshing the page.
         </Text>
         <Group justify="center">
-          <Button variant="white" size="md">
+          <Button variant="white" size="md" onClick={
+            () => {
+              window.location.reload();
+            }
+          }>
             Refresh the page
           </Button>
         </Group>
