@@ -1,4 +1,4 @@
-import { NotFoundImage } from "@/components/Error/NotFoundImage";
+import { NotFoundImage } from "@/components/Error/NotFound/NotFoundImage";
 
 export default function NotFound() {
   return (
