@@ -1,11 +1,12 @@
 "use client";
 
-import { Burger, Container, Group } from '@mantine/core';
+import { Container, Group } from '@mantine/core';
 import { useDisclosure } from '@mantine/hooks';
 import { MantineLogo } from '@mantinex/mantine-logo';
 import { useState } from 'react';
 import { LightDarkToggle } from '../LightDarkToggle/LightDarkToggle';
 import classes from './HeaderSimple.module.css';
+import { FilterButton } from '../FilterButton/FilterButton';
 
 const links = [
   { link: '/about', label: 'Features' },
@@ -39,6 +40,7 @@ export function HeaderSimple() {
         <MantineLogo size={28} />
 
         <Group>
+          <FilterButton />
           <LightDarkToggle />
         </Group>
       </Container>
