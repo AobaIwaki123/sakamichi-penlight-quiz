@@ -1,8 +1,6 @@
 "use client";
 
-import { Card, Container, Image, SimpleGrid, Skeleton } from '@mantine/core';
-
-const child = <Skeleton height={140} radius="md" animate={false} />;
+import { Card, Container, Image } from '@mantine/core';
 
 export function MemberImage() {
   return (
