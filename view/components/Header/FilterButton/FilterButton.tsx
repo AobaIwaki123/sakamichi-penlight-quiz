@@ -10,7 +10,7 @@ export function FilterButton() {
     <Group justify="center">
       <ActionIcon
         onClick={() => setIsPressed((prev) => !prev)}
-        variant="default"
+        variant="subtle"
         size="xl"
       >
         {isPressed ? (
