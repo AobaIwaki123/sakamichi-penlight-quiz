@@ -1,21 +1,17 @@
 "use client";
 
-import { Container, Grid, Skeleton } from '@mantine/core';
+import { Card, Container, Image, SimpleGrid, Skeleton } from '@mantine/core';
 
 const child = <Skeleton height={140} radius="md" animate={false} />;
 
 export function MemberImage() {
   return (
-    <Container my="md">
-      <Grid>
-        <Grid.Col span={{ base: 12, xs: 4 }}>{child}</Grid.Col>
-        <Grid.Col span={{ base: 12, xs: 8 }}>{child}</Grid.Col>
-        <Grid.Col span={{ base: 12, xs: 8 }}>{child}</Grid.Col>
-        <Grid.Col span={{ base: 12, xs: 4 }}>{child}</Grid.Col>
-        <Grid.Col span={{ base: 12, xs: 3 }}>{child}</Grid.Col>
-        <Grid.Col span={{ base: 12, xs: 3 }}>{child}</Grid.Col>
-        <Grid.Col span={{ base: 12, xs: 6 }}>{child}</Grid.Col>
-      </Grid>
+    <Container size="70%">
+      <Card radius="md" >
+        <Card.Section>
+          <Image src="https://cdn.hinatazaka46.com/images/14/fa2/dbc520dc2a261472c591987a0a3ae/1000_1000_102400.jpg" />
+        </Card.Section>
+      </Card>
     </Container>
   );
 }
