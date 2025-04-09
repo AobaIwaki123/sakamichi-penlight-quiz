@@ -1,10 +1,10 @@
-FROM node:22-alpine AS dev
+FROM node:23-slim AS dev
 
 ENV NODE_ENV=development
 
 WORKDIR /app
 
-COPY package.json pnpm-lock.yaml./
+COPY package.json pnpm-lock.yaml ./
 
 RUN npm install -g pnpm
 
