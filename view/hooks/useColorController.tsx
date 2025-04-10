@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { penlightColors, PenlightColor } from '@/consts/colors';
+import { penlightColors } from '@/consts/colors';
 
 export function useColorController() {
   const [index, setIndex] = useState(0);

@@ -15,7 +15,7 @@ export function Penlight() {
           <Box bg={color} w={50} className={classes.penlight_box} />
         </AspectRatio>
       </Card.Section>
-      <Text ta="center" mt="xs" mb="xs" size="md" c="dimmed">{nameJa}</Text>
+      <Text ta="center" mt="xs" mb="xs" size="md" c="dimmed" fw={700}>{nameJa}</Text>
 
       <Card.Section className={classes.button}>
         <ActionIcon variant="light" color="blue" size="xl" className={classes.icon} onClick={prev}>
