@@ -1,4 +1,5 @@
-import { Container, Grid, Group } from "@mantine/core";
+import { Center, Grid } from "@mantine/core";
+import { AnswerButton } from "./AnswerButton/AnswerButton";
 import { Penlight } from "./Penlight/Penlight";
 
 export function PenlightForm() {
@@ -9,6 +10,11 @@ export function PenlightForm() {
       </Grid.Col>
       <Grid.Col span={{ base: 6 }}>
         <Penlight />
+      </Grid.Col>
+      <Grid.Col span={{ base: 12 }}>
+        <Center>
+          <AnswerButton />
+        </Center>
       </Grid.Col>
     </Grid>
   )
