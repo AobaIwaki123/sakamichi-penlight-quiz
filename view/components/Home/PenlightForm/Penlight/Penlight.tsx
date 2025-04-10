@@ -6,7 +6,7 @@ import { IconCaretLeft, IconCaretRight } from '@tabler/icons-react';
 import classes from './Penlight.module.css';
 
 export function Penlight() {
-  const { color, key, next, prev } = useColorController();
+  const { color, nameJa, next, prev } = useColorController();
 
   return (
     <Card className={classes.base}>
@@ -14,8 +14,8 @@ export function Penlight() {
         <AspectRatio ratio={100 / 270}>
           <Box bg={color} w={50} className={classes.penlight_box} />
         </AspectRatio>
-        <Text ta="center" mt="xs" mb="xs" size="md" c="dimmed">{key}</Text>
       </Card.Section>
+      <Text ta="center" mt="xs" mb="xs" size="md" c="dimmed">{nameJa}</Text>
 
       <Card.Section className={classes.button}>
         <ActionIcon variant="light" color="blue" size="xl" className={classes.icon} onClick={prev}>

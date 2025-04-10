@@ -1,11 +1,15 @@
-import { Container, Group } from "@mantine/core";
+import { Container, Grid, Group } from "@mantine/core";
 import { Penlight } from "./Penlight/Penlight";
 
 export function PenlightForm() {
   return (
-    <Group justify="center" align="center" gap="xl" grow="1">
-      <Penlight />
-      <Penlight />
-    </Group>
+    <Grid>
+      <Grid.Col span={{ base: 6 }}>
+        <Penlight />
+      </Grid.Col>
+      <Grid.Col span={{ base: 6 }}>
+        <Penlight />
+      </Grid.Col>
+    </Grid>
   )
 }
