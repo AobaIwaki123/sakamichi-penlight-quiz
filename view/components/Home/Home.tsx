@@ -1,10 +1,8 @@
 "use client";
 
 import { Container, Grid } from '@mantine/core';
-import { MemberImage } from "./MemberImage/MemberImage";
-import { MemberInfoHeader } from "./MemberInfoHeader/MemberInfoHeader";
-import { PenlightForm } from "./PenlightForm/PenlightForm";
 import { MemberInfo } from "./MemberInfo/MemberInfo";
+import { PenlightForm } from "./PenlightForm/PenlightForm";
 
 export default function Home() {
   return (
