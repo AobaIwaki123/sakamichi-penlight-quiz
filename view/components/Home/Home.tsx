@@ -9,7 +9,7 @@ export default function Home() {
   return (
     <Container>
       <Grid>
-        <Grid.Col span={{ base: 12, xs: 6 }}>
+        <Grid.Col span={{ base: 12, xs: 6 }} key="aa">
           <MemberInfoHeader />
           <MemberImage />
         </Grid.Col>

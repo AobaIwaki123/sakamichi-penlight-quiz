@@ -2,37 +2,33 @@
 
 import { hinatazakaFilters } from '@/consts/hinatazakaFilters';
 import { ActionIcon, Checkbox, Menu, Stack } from '@mantine/core';
-import { useClickOutside } from '@mantine/hooks';
 import { IconFilter, IconFilterFilled } from '@tabler/icons-react';
 import { useEffect, useState } from "react";
+import { useFilterStore } from '@/stores/useFilterStore';
 
 export function FilterButton() {
   const [isOpened, setIsOpened] = useState(false);
-  const ref = useClickOutside(() => setIsOpened(false));
+  const setFilter = useFilterStore((state) => state.setFilter);
 
   // チェック状態をStateで管理
-  const [checkedFilters, setCheckedFilters] = useState(
-    () => hinatazakaFilters.reduce((acc, filter) => {
-      acc[filter.type] = filter.defaultChecked || false;
-      return acc;
-    }, {} as Record<string, boolean>)
-  );
-
+  const checkedFilters = useFilterStore((state) => state.checkedFilters);
   const handleCheckboxChange = (type: string, checked: boolean) => {
-    setCheckedFilters((prev) => ({
-      ...prev,
-      [type]: checked,
-    }));
+    setFilter(type, checked);
     console.log(`${type} is ${checked ? 'checked' : 'unchecked'}`);
   };
 
-  const selected = Object.entries(checkedFilters)
-    .filter(([, checked]) => checked)
-    .map(([type]) => type);
-    
   useEffect(() => {
+    for (const filter of hinatazakaFilters) {
+      useFilterStore.getState().setFilter(filter.type, filter.defaultChecked || false);
+    }
+  }, []);
+
+  useEffect(() => {
+    const selected = Object.entries(checkedFilters)
+      .filter(([, checked]) => checked)
+      .map(([type]) => type);
     console.log("選択中のフィルター:", selected);
-  }, [selected]);
+  }, [checkedFilters]);
 
   return (
     <Menu closeOnClickOutside={true} closeOnItemClick={false}>
