@@ -1,6 +1,6 @@
+import { penlightColors } from '@/consts/colors';
 // stores/colorStore.ts
 import { create } from 'zustand';
-import { penlightColors } from '@/consts/colors';
 
 type ColorInfo = {
   index: number;
