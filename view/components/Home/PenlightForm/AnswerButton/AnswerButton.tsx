@@ -4,8 +4,11 @@ import { penlightColors } from '@/consts/colors';
 import { useColorStore } from '@/stores/colorStore';
 import { Button, Text } from '@mantine/core';
 import { hinatazakaPenlightColors } from '@/consts/hinatazakaPenlightColors';
+import { useAnswerTriggerStore } from '@/stores/useAnswerTriggerStore'
 
 export function AnswerButton() {
+  const trigger = useAnswerTriggerStore((state) => state.trigger)
+
   const handleClick = () => {
     const state = useColorStore.getState();
 
@@ -39,6 +42,8 @@ export function AnswerButton() {
     } else {
       console.log('不一致：この組み合わせは正解ではありません');
     }
+
+    trigger();
   }
   
   return (
