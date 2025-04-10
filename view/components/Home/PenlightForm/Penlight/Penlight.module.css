@@ -1,0 +1,25 @@
+.base {
+	justify-content: center;
+	background-color: transparent;
+	padding: 0px;
+}
+
+.penlight {
+	margin: 0 auto;
+  padding: 0px;
+	align-items: center;
+	justify-content: center; /* 左右中央揃え */
+}
+
+.penlight_box {
+	border-radius: var(--mantine-radius-md);
+	justify-content: center; /* 左右中央揃え */
+}
+
+.button {
+  margin: 0 auto;
+}
+
+.icon {
+  margin: 0 5px;
+}
