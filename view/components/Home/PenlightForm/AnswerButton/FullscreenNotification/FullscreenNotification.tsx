@@ -31,7 +31,7 @@ export default function Demo() {
 
   return (
     <>
-      <button onClick={triggerEvent}>表示トリガー</button>
+      <button type="button" onClick={triggerEvent}>表示トリガー</button>
       <FullscreenNotification visible={visible} />
     </>
   );
