@@ -5,8 +5,8 @@ import { ActionIcon, AspectRatio, Box, Card, Text } from '@mantine/core';
 import { IconCaretLeft, IconCaretRight } from '@tabler/icons-react';
 import classes from './Penlight.module.css';
 
-export function Penlight() {
-  const { color, nameJa, next, prev } = useColorController();
+export function Penlight({ id }: { id: string }) {
+  const { color, nameJa, next, prev } = useColorController(id);
 
   return (
     <Card className={classes.base}>

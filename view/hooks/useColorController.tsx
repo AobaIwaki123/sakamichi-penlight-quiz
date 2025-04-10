@@ -1,19 +1,23 @@
-import { useState } from 'react';
+// hooks/useColorController.ts
+import { useColorStore } from '@/stores/colorStore';
 import { penlightColors } from '@/consts/colors';
 
-export function useColorController() {
-  const [index, setIndex] = useState(0);
+export function useColorController(id: string) {
+  const index = useColorStore((s) => s.colorMap[id]?.index ?? 0);
+  const setIndex = useColorStore((s) => s.setIndex);
 
-  const next = () => setIndex((prev) => (prev + 1) % penlightColors.length);
-  const prev = () => setIndex((prev) => (prev - 1 + penlightColors.length) % penlightColors.length);
+  const next = () =>
+    setIndex(id, (prev) => (prev + 1) % penlightColors.length);
+  const prev = () =>
+    setIndex(id, (prev) => (prev - 1 + penlightColors.length) % penlightColors.length);
 
   const current = penlightColors[index];
 
   return {
+    index,
     color: current.color,
     nameJa: current.name_ja,
     nameEn: current.name_en,
-    index,
     next,
     prev,
     allColors: penlightColors,
