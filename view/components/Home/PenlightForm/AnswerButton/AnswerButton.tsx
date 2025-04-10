@@ -12,7 +12,6 @@ export function AnswerButton() {
     const leftIndex = state.colorMap.left?.index ?? 0;
     const rightIndex = state.colorMap.right?.index ?? 0;
 
-
     const leftNameJa = penlightColors[leftIndex]?.name_ja ?? '不明';
     const rightNameJaB = penlightColors[rightIndex]?.name_ja ?? '不明';
 
@@ -41,6 +40,7 @@ export function AnswerButton() {
       console.log('不一致：この組み合わせは正解ではありません');
     }
   }
+  
   return (
     <Button variant="outline" radius="xl" onClick={handleClick}>
       <Text size="lg" fw={700}>
