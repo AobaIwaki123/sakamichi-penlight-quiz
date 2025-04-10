@@ -1,10 +1,10 @@
 "use client";
 
 import { hinatazakaFilters } from '@/consts/hinatazakaFilters';
+import { useFilterStore } from '@/stores/useFilterStore';
 import { ActionIcon, Checkbox, Menu, Stack } from '@mantine/core';
 import { IconFilter, IconFilterFilled } from '@tabler/icons-react';
 import { useEffect, useState } from "react";
-import { useFilterStore } from '@/stores/useFilterStore';
 
 export function FilterButton() {
   const [isOpened, setIsOpened] = useState(false);
@@ -31,7 +31,12 @@ export function FilterButton() {
   }, [checkedFilters]);
 
   return (
-    <Menu closeOnClickOutside={true} closeOnItemClick={false}>
+    <Menu
+      opened={isOpened}
+      onChange={setIsOpened}
+      closeOnClickOutside={true}
+      closeOnItemClick={false}
+    >
       <Menu.Target>
         <ActionIcon
           onClick={() => setIsOpened((prev) => !prev)}
@@ -59,5 +64,6 @@ export function FilterButton() {
         </Menu.Item>
       </Menu.Dropdown>
     </Menu>
+
   );
 }
