@@ -1,10 +1,13 @@
 "use client";
 
 import { penlightColors } from '@/consts/colors';
-import { useColorStore } from '@/stores/colorStore';
-import { Button, Text } from '@mantine/core';
 import { hinatazakaPenlightColors } from '@/consts/hinatazakaPenlightColors';
+import { useColorStore } from '@/stores/colorStore';
 import { useAnswerTriggerStore } from '@/stores/useAnswerTriggerStore'
+import { Button, Overlay, Text } from '@mantine/core';
+import { FullscreenNotification } from './FullscreenNotification/FullscreenNotification';
+
+import { useState } from 'react';
 
 export function AnswerButton() {
   const trigger = useAnswerTriggerStore((state) => state.trigger)
@@ -44,13 +47,24 @@ export function AnswerButton() {
     }
 
     trigger();
+    triggerEvent();
   }
-  
+
+  const [visible, setVisible] = useState(false);
+
+  const triggerEvent = () => {
+    setVisible(true);
+    setTimeout(() => setVisible(false), 1000); // 3秒で自動非表示
+  };
+
   return (
-    <Button variant="outline" radius="xl" onClick={handleClick}>
-      <Text size="lg" fw={700}>
-        回答
-      </Text>
-    </Button>
+    <>
+      <Button variant="outline" radius="xl" onClick={handleClick}>
+        <Text size="lg" fw={700}>
+          回答
+        </Text>
+      </Button>
+      <FullscreenNotification visible={visible} />
+    </>
   );
 }

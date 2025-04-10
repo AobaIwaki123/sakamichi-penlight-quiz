@@ -1,9 +1,9 @@
 import { HinatazakaMembers } from "@/consts/hinatazakaMembers";
 import type { Member } from "@/consts/hinatazakaMembers";
+import { useAnswerTriggerStore } from '@/stores/useAnswerTriggerStore'
 import { useFilterStore } from '@/stores/useFilterStore';
 import { MemberImage } from "../MemberImage/MemberImage";
 import { MemberInfoHeader } from "../MemberInfoHeader/MemberInfoHeader";
-import { useAnswerTriggerStore } from '@/stores/useAnswerTriggerStore'
 
 import { useEffect, useState } from "react";
 
@@ -32,7 +32,7 @@ export function MemberInfo() {
   return (
     <>
       <MemberInfoHeader name={selectedMember.name} emoji={selectedMember.emoji} />
-      <MemberImage image={selectedMember.image}/>
+      <MemberImage image={selectedMember.image} />
     </>
   );
 }
