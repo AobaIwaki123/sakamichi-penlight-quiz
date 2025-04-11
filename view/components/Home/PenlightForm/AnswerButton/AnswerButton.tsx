@@ -10,6 +10,7 @@ import { FullscreenNotification } from './FullscreenNotification/FullscreenNotif
 import { useState } from 'react';
 
 export function AnswerButton() {
+  const [message, setMessage] = useState(''); // メッセージを管理するステート
   const trigger = useAnswerTriggerStore((state) => state.trigger)
 
   const handleClick = () => {
@@ -42,8 +43,10 @@ export function AnswerButton() {
 
     if (isMatch) {
       console.log('一致：正解の組み合わせです');
+      setMessage('正解');
     } else {
       console.log('不一致：この組み合わせは正解ではありません');
+      setMessage('不正解');
     }
 
     trigger();
@@ -64,7 +67,7 @@ export function AnswerButton() {
           回答
         </Text>
       </Button>
-      <FullscreenNotification visible={visible} />
+      <FullscreenNotification visible={visible} message={message} />
     </>
   );
 }
