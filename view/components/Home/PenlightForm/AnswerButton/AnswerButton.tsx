@@ -1,7 +1,6 @@
 "use client";
 
-import { penlightColors } from '@/consts/colors';
-import { HinatazakaMembers } from '@/consts/hinatazakaMembers';
+import { hinatazakaPenlightColors } from '@/consts/colors';
 import { useColorStore } from '@/stores/colorStore';
 import { useAnswerTriggerStore } from '@/stores/useAnswerTriggerStore'
 import { useSelectedMemberStore } from '@/stores/useSelectedMemberStore';
@@ -17,6 +16,8 @@ export function AnswerButton() {
   const trigger = useAnswerTriggerStore((state) => state.trigger)
 
   const selectedMember = useSelectedMemberStore((state) => state.selectedMember);
+
+  const penlightColors = hinatazakaPenlightColors;
 
   const handleClick = () => {
     if (!selectedMember) {
