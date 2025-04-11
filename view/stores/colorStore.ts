@@ -1,4 +1,4 @@
-import { penlightColors } from '@/consts/colors';
+import { hinatazakaPenlightColors } from '@/consts/colors';
 // stores/colorStore.ts
 import { create } from 'zustand';
 
@@ -33,7 +33,7 @@ export const useColorStore = create<ColorState>((set, get) => ({
     }),
   getColorData: (id) => {
     const index = get().colorMap[id]?.index ?? 0;
-    const current = penlightColors[index];
+    const current = hinatazakaPenlightColors[index];
     return {
       index,
       nameJa: current.name_ja,
