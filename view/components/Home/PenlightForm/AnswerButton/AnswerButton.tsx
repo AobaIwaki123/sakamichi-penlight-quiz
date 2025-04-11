@@ -4,13 +4,16 @@ import { penlightColors } from '@/consts/colors';
 import { hinatazakaPenlightColors } from '@/consts/hinatazakaPenlightColors';
 import { useColorStore } from '@/stores/colorStore';
 import { useAnswerTriggerStore } from '@/stores/useAnswerTriggerStore'
-import { Button, Overlay, Text } from '@mantine/core';
+import { Button, Text } from '@mantine/core';
 import { FullscreenNotification } from './FullscreenNotification/FullscreenNotification';
+import { HinatazakaMembers } from '@/consts/hinatazakaMembers';
 
 import { useState } from 'react';
 
 export function AnswerButton() {
+  const [visible, setVisible] = useState(false);
   const [message, setMessage] = useState(''); // メッセージを管理するステート
+
   const trigger = useAnswerTriggerStore((state) => state.trigger)
 
   const handleClick = () => {
@@ -25,7 +28,7 @@ export function AnswerButton() {
     console.log('Button clicked', leftIndex, leftNameJa, rightIndex, rightNameJaB);
 
     // 比較対象のメンバーID
-    const targetMember = hinatazakaPenlightColors.find((m) => m.member_id === '22');
+    const targetMember = HinatazakaMembers.find((m) => m.id === 22);
     if (!targetMember) {
       console.log('指定されたメンバーが見つかりません');
       return;
@@ -38,9 +41,6 @@ export function AnswerButton() {
       selectedSet.size === memberSet.size &&
       Array.from(selectedSet).every((val) => memberSet.has(val));
 
-    console.log('Selected Set:', selectedSet);
-    console.log('Member Set:', memberSet);
-
     if (isMatch) {
       console.log('一致：正解の組み合わせです');
       setMessage('正解');
@@ -52,8 +52,6 @@ export function AnswerButton() {
     trigger();
     triggerEvent();
   }
-
-  const [visible, setVisible] = useState(false);
 
   const triggerEvent = () => {
     setVisible(true);

@@ -6,4 +6,5 @@ export type penlightColor = {
 
 export const hinatazakaPenlightColors: penlightColor[] = [
  { member_id: '22', color_id1: '7', color_id2: '12' },
+ { member_id: '22', color_id1: '7', color_id2: '12' },
 ]

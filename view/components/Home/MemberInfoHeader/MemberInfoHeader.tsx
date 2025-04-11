@@ -1,6 +1,7 @@
 "use client";
 
-import { Container, Group, Text } from '@mantine/core';
+import { useSelectedMemberStore } from '@/stores/useSelectedMemberStore';
+import { Container, Group, Text, Skeleton } from '@mantine/core';
 import classes from './MemberInfoHeader.module.css';
 
 export type MemberInfoHeaderProps = {
@@ -8,20 +9,26 @@ export type MemberInfoHeaderProps = {
   emoji: string;
 }
 
-export function MemberInfoHeader({ name , emoji　}: MemberInfoHeaderProps) {
+
+export function MemberInfoHeader() {
+  const selectedMember = useSelectedMemberStore((state) => state.selectedMember);
+
   return (
     <Container className={classes.header} size="100%">
       <Group justify="center">
         <Group justify="center" className={classes.name}>
-          <Text inherit>
-            {emoji}
-          </Text>
-          <Text inherit variant="gradient" component="span" gradient={{ from: 'pink', to: 'yellow' }}>
-            {name}
-          </Text>
-          <Text inherit/>
+          {selectedMember ? (
+            <>
+              <Text inherit>{selectedMember.emoji}</Text>
+              <Text inherit variant="gradient" component="span" gradient={{ from: 'pink', to: 'yellow' }}>
+                {selectedMember.name}
+              </Text>
+            </>
+          ) : (
+            <Skeleton height={30} width={200} radius="xl" />
+          )}
         </Group>
       </Group>
-    </Container >
+    </Container>
   );
 }

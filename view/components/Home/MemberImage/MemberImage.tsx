@@ -1,17 +1,21 @@
 "use client";
 
-import { Card, Container, Image } from '@mantine/core';
+import { useSelectedMemberStore } from '@/stores/useSelectedMemberStore';
+import { Card, Container, Image, Skeleton } from '@mantine/core';
 
-export type MemberImageProps = {
-  image: string;
-}
 
-export function MemberImage({ image }: MemberImageProps) {
+export function MemberImage() {
+  const selectedMember = useSelectedMemberStore((state) => state.selectedMember);
+
   return (
     <Container size="60%">
       <Card radius="md" >
         <Card.Section>
-          <Image src={image} />
+          {selectedMember ? (
+            <Image src={selectedMember.image} />
+          ) : (
+            <Skeleton height={240} width="100%" radius="md" />
+          )}
         </Card.Section>
       </Card>
     </Container>

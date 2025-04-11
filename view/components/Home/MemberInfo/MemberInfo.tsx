@@ -1,16 +1,21 @@
+"use client";
+
 import { HinatazakaMembers } from "@/consts/hinatazakaMembers";
-import type { Member } from "@/consts/hinatazakaMembers";
 import { useAnswerTriggerStore } from '@/stores/useAnswerTriggerStore'
 import { useFilterStore } from '@/stores/useFilterStore';
+import { useSelectedMemberStore } from '@/stores/useSelectedMemberStore';
+
 import { MemberImage } from "../MemberImage/MemberImage";
 import { MemberInfoHeader } from "../MemberInfoHeader/MemberInfoHeader";
 
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 
 export function MemberInfo() {
   const checkedFilters = useFilterStore((state) => state.checkedFilters);
-  const [selectedMember, setSelectedMember] = useState<Member | null>(null);
-  const triggerCount = useAnswerTriggerStore((state) => state.triggerCount)
+
+  const triggerCount = useAnswerTriggerStore((state) => state.triggerCount);
+
+  const setSelectedMember = useSelectedMemberStore((state) => state.setSelectedMember);
 
   useEffect(() => {
     const _ = triggerCount;
@@ -23,16 +28,12 @@ export function MemberInfo() {
       setSelectedMember(random);
       console.log("選ばれたメンバー:", random);
     }
-  }, [checkedFilters, triggerCount]);
-
-  if (!selectedMember) {
-    return null; // or a loading state
-  }
+  }, [triggerCount, checkedFilters, setSelectedMember]);
 
   return (
     <>
-      <MemberInfoHeader name={selectedMember.name} emoji={selectedMember.emoji} />
-      <MemberImage image={selectedMember.image} />
+      <MemberInfoHeader/>
+      <MemberImage/>
     </>
   );
 }

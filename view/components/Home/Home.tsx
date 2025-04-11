@@ -8,7 +8,7 @@ export default function Home() {
   return (
     <Container>
       <Grid>
-        <Grid.Col span={{ base: 12, xs: 6 }}>
+        <Grid.Col span={{ base: 12, xs: 6 }} style={{ minHeight: 315 }}>
           <MemberInfo />
         </Grid.Col>
         <Grid.Col span={{ base: 12, xs: 6 }}>
