@@ -5,8 +5,8 @@ import { useAnswerTriggerStore } from '@/stores/useAnswerTriggerStore'
 import { useFilterStore } from '@/stores/useFilterStore';
 import { useSelectedMemberStore } from '@/stores/useSelectedMemberStore';
 
-import { MemberImage } from "../MemberImage/MemberImage";
-import { MemberInfoHeader } from "../MemberInfoHeader/MemberInfoHeader";
+import { MemberImage } from "./MemberImage/MemberImage";
+import { MemberInfoHeader } from "./MemberInfoHeader/MemberInfoHeader";
 
 import { useEffect } from "react";
 
