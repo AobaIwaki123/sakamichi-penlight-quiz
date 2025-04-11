@@ -12,7 +12,7 @@ export function MemberImage() {
       <Card radius="md" >
         <Card.Section>
           {selectedMember ? (
-            <Image src={selectedMember.image} />
+            <Image src={selectedMember.url} />
           ) : (
             <Skeleton height={240} width="100%" radius="md" />
           )}

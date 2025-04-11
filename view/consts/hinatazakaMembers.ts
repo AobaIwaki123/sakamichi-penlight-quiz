@@ -1,13 +1,496 @@
+type MemberType = '5thHinatansai' | '13thSingle';
+
 export type Member = {
   id: number;
   name: string;
   emoji: string;
-  color_id1: number;
-  color_id2: number;
-  image: string;
+  gen: '1st' | '2nd' | '3rd' | '4th';
+  graduated: boolean;
+  penlight1_id: number;
+  penlight2_id: number;
+  type: MemberType;
+  url: string;
 };
 
-export const HinatazakaMembers: Member[] = [
-  { id: 22, name: '宮地すみれ', emoji: '🦥️', color_id1: 7, color_id2: 12, image: 'https://cdn.hinatazaka46.com/images/14/fa2/dbc520dc2a261472c591987a0a3ae/800_800_102400.jpg' },
-  { id: 32, name: '藤嶌果歩', emoji: '🐏', color_id1: 9, color_id2: 14, image: 'https://cdn.hinatazaka46.com/images/14/e39/7a5d6767ae33af1a7319529c461b5/800_800_102400.jpg' },
-];
+
+export const HinatazakaMembers: Member[] = [{
+  id: 2,
+  name: "加藤史帆",
+  emoji: "🐻",
+  gen: "1st",
+  graduated: true,
+  penlight1_id: 14,
+  penlight2_id: 14,
+  type: "5thHinatansai",
+  url: "https://storage-store.plusmember.jp/upload/images/240316_5thhinatan_towel_kobetsu_al3uhw_01_01.jpg"
+}, {
+  id: 8,
+  name: "齊藤京子",
+  emoji: "🍜",
+  gen: "1st",
+  graduated: true,
+  penlight1_id: 8,
+  penlight2_id: 8,
+  type: "5thHinatansai",
+  url: "https://storage-store.plusmember.jp/upload/images/240316_5thhinatan_towel_kobetsu_al3uhw_02.jpg"
+}, {
+  id: 0,
+  name: "佐々木久美",
+  emoji: "🦒",
+  gen: "1st",
+  graduated: true,
+  penlight1_id: 0,
+  penlight2_id: 13,
+  type: "5thHinatansai",
+  url: "https://storage-store.plusmember.jp/upload/images/240316_5thhinatan_towel_kobetsu_al3uhw_03.jpg"
+}, {
+  id: 1,
+  name: "佐々木美玲",
+  emoji: "🍞",
+  gen: "1st",
+  graduated: true,
+  penlight1_id: 5,
+  penlight2_id: 5,
+  type: "5thHinatansai",
+  url: "https://storage-store.plusmember.jp/upload/images/240316_5thhinatan_towel_kobetsu_al3uhw_04.jpg"
+}, {
+  id: 7,
+  name: "高瀬愛奈",
+  emoji: "🐶",
+  gen: "1st",
+  graduated: true,
+  penlight1_id: 8,
+  penlight2_id: 10,
+  type: "5thHinatansai",
+  url: "https://storage-store.plusmember.jp/upload/images/240316_5thhinatan_towel_kobetsu_al3uhw_05.jpg"
+}, {
+  id: 6,
+  name: "高本彩花",
+  emoji: "🍒",
+  gen: "1st",
+  graduated: true,
+  penlight1_id: 8,
+  penlight2_id: 1,
+  type: "5thHinatansai",
+  url: "https://storage-store.plusmember.jp/upload/images/240316_5thhinatan_towel_kobetsu_al3uhw_06.jpg"
+}, {
+  id: 4,
+  name: "東村芽依",
+  emoji: "🍓",
+  gen: "1st",
+  graduated: true,
+  penlight1_id: 5,
+  penlight2_id: 13,
+  type: "5thHinatansai",
+  url: "https://storage-store.plusmember.jp/upload/images/240316_5thhinatan_towel_kobetsu_al3uhw_07.jpg"
+}, {
+  id: 14,
+  name: "金村美玖",
+  emoji: "🍣",
+  gen: "2nd",
+  graduated: false,
+  penlight1_id: 0,
+  penlight2_id: 5,
+  type: "5thHinatansai",
+  url: "https://storage-store.plusmember.jp/upload/images/240316_5thhinatan_towel_kobetsu_al3uhw_08.jpg"
+}, {
+  id: 12,
+  name: "河田陽菜",
+  emoji: "🐼",
+  gen: "2nd",
+  graduated: false,
+  penlight1_id: 5,
+  penlight2_id: 9,
+  type: "5thHinatansai",
+  url: "https://storage-store.plusmember.jp/upload/images/240316_5thhinatan_towel_kobetsu_al3uhw_09.jpg"
+}, {
+  id: 10,
+  name: "小坂菜緒",
+  emoji: "🦕",
+  gen: "2nd",
+  graduated: false,
+  penlight1_id: 8,
+  penlight2_id: 12,
+  type: "5thHinatansai",
+  url: "https://storage-store.plusmember.jp/upload/images/240316_5thhinatan_towel_kobetsu_al3uhw_10_01.jpg"
+}, {
+  id: 9,
+  name: "富田鈴花",
+  emoji: "🎸",
+  gen: "2nd",
+  graduated: false,
+  penlight1_id: 13,
+  penlight2_id: 13,
+  type: "5thHinatansai",
+  url: "https://storage-store.plusmember.jp/upload/images/240316_5thhinatan_towel_kobetsu_al3uhw_11.jpg"
+}, {
+  id: 15,
+  name: "丹生明里",
+  emoji: "🐸",
+  gen: "2nd",
+  graduated: true,
+  penlight1_id: 6,
+  penlight2_id: 6,
+  type: "5thHinatansai",
+  url: "https://storage-store.plusmember.jp/upload/images/240316_5thhinatan_towel_kobetsu_al3uhw_12.jpg"
+}, {
+  id: 17,
+  name: "濱岸ひより",
+  emoji: "🐣",
+  gen: "2nd",
+  graduated: true,
+  penlight1_id: 8,
+  penlight2_id: 6,
+  type: "5thHinatansai",
+  url: "https://storage-store.plusmember.jp/upload/images/240316_5thhinatan_towel_kobetsu_al3uhw_13.jpg"
+}, {
+  id: 11,
+  name: "松田好花",
+  emoji: "🐙",
+  gen: "2nd",
+  graduated: false,
+  penlight1_id: 3,
+  penlight2_id: 9,
+  type: "5thHinatansai",
+  url: "https://storage-store.plusmember.jp/upload/images/240316_5thhinatan_towel_kobetsu_al3uhw_14.jpg"
+}, {
+  id: 18,
+  name: "上村ひなの",
+  emoji: "●🔻●",
+  gen: "3rd",
+  graduated: false,
+  penlight1_id: 1,
+  penlight2_id: 7,
+  type: "5thHinatansai",
+  url: "https://storage-store.plusmember.jp/upload/images/240316_5thhinatan_towel_kobetsu_al3uhw_15.jpg"
+}, {
+  id: 21,
+  name: "髙橋未来虹",
+  emoji: "🌈",
+  gen: "3rd",
+  graduated: false,
+  penlight1_id: 2,
+  penlight2_id: 13,
+  type: "5thHinatansai",
+  url: "https://storage-store.plusmember.jp/upload/images/240316_5thhinatan_towel_kobetsu_al3uhw_16.jpg"
+}, {
+  id: 20,
+  name: "森本茉莉",
+  emoji: "🐨",
+  gen: "3rd",
+  graduated: false,
+  penlight1_id: 6,
+  penlight2_id: 14,
+  type: "5thHinatansai",
+  url: "https://storage-store.plusmember.jp/upload/images/240316_5thhinatan_towel_kobetsu_al3uhw_17.jpg"
+}, {
+  id: 19,
+  name: "山口陽世",
+  emoji: "🐨",
+  gen: "3rd",
+  graduated: false,
+  penlight1_id: 3,
+  penlight2_id: 5,
+  type: "5thHinatansai",
+  url: "https://storage-store.plusmember.jp/upload/images/240316_5thhinatan_towel_kobetsu_al3uhw_18.jpg"
+}, {
+  id: 30,
+  name: "石塚瑶季",
+  emoji: "💎",
+  gen: "4th",
+  graduated: false,
+  penlight1_id: 9,
+  penlight2_id: 6,
+  type: "5thHinatansai",
+  url: "https://storage-store.plusmember.jp/upload/images/240316_5thhinatan_towel_kobetsu_al3uhw_19.jpg"
+}, {
+  id: 23,
+  name: "小西夏菜実",
+  emoji: "🐺",
+  gen: "4th",
+  graduated: false,
+  penlight1_id: 13,
+  penlight2_id: 14,
+  type: "5thHinatansai",
+  url: "https://storage-store.plusmember.jp/upload/images/240316_5thhinatan_towel_kobetsu_al3uhw_20.jpg"
+}, {
+  id: 28,
+  name: "清水理央",
+  emoji: "🫶",
+  gen: "4th",
+  graduated: false,
+  penlight1_id: 0,
+  penlight2_id: 10,
+  type: "5thHinatansai",
+  url: "https://storage-store.plusmember.jp/upload/images/240316_5thhinatan_towel_kobetsu_al3uhw_21.jpg"
+}, {
+  id: 27,
+  name: "正源司陽子",
+  emoji: "🍫",
+  gen: "4th",
+  graduated: false,
+  penlight1_id: 6,
+  penlight2_id: 7,
+  type: "5thHinatansai",
+  url: "https://storage-store.plusmember.jp/upload/images/240316_5thhinatan_towel_kobetsu_al3uhw_22_01.jpg"
+}, {
+  id: 31,
+  name: "竹内希来里",
+  emoji: "✨",
+  gen: "4th",
+  graduated: false,
+  penlight1_id: 5,
+  penlight2_id: 7,
+  type: "5thHinatansai",
+  url: "https://storage-store.plusmember.jp/upload/images/240316_5thhinatan_towel_kobetsu_al3uhw_23.jpg"
+}, {
+  id: 25,
+  name: "平尾帆夏",
+  emoji: "🐫",
+  gen: "4th",
+  graduated: false,
+  penlight1_id: 0,
+  penlight2_id: 6,
+  type: "5thHinatansai",
+  url: "https://storage-store.plusmember.jp/upload/images/240316_5thhinatan_towel_kobetsu_al3uhw_24.jpg"
+}, {
+  id: 26,
+  name: "平岡海月",
+  emoji: "🪼",
+  gen: "4th",
+  graduated: false,
+  penlight1_id: 14,
+  penlight2_id: 5,
+  type: "5thHinatansai",
+  url: "https://storage-store.plusmember.jp/upload/images/240316_5thhinatan_towel_kobetsu_al3uhw_25.jpg"
+}, {
+  id: 22,
+  name: "宮地すみれ",
+  emoji: "🦥️",
+  gen: "4th",
+  graduated: false,
+  penlight1_id: 12,
+  penlight2_id: 7,
+  type: "5thHinatansai",
+  url: "https://storage-store.plusmember.jp/upload/images/240316_5thhinatan_towel_kobetsu_al3uhw_27.jpg"
+}, {
+  id: 24,
+  name: "山下葉留花",
+  emoji: "🌿",
+  gen: "4th",
+  graduated: false,
+  penlight1_id: 8,
+  penlight2_id: 1,
+  type: "5thHinatansai",
+  url: "https://storage-store.plusmember.jp/upload/images/240316_5thhinatan_towel_kobetsu_al3uhw_28.jpg"
+}, {
+  id: 22,
+  name: "宮地すみれ",
+  emoji: "🦥️",
+  gen: "4th",
+  graduated: false,
+  penlight1_id: 12,
+  penlight2_id: 7,
+  type: "13thSingle",
+  url: "https://cdn.hinatazaka46.com/images/14/fa2/dbc520dc2a261472c591987a0a3ae/800_800_102400.jpg"
+}, {
+  id: 30,
+  name: "石塚瑶季",
+  emoji: "💎",
+  gen: "4th",
+  graduated: false,
+  penlight1_id: 9,
+  penlight2_id: 6,
+  type: "13thSingle",
+  url: "https://cdn.hinatazaka46.com/images/14/b56/49ce8fef3670b03d97ed6b4212486/800_800_102400.jpg"
+}, {
+  id: 23,
+  name: "小西夏菜実",
+  emoji: "🐺",
+  gen: "4th",
+  graduated: false,
+  penlight1_id: 13,
+  penlight2_id: 14,
+  type: "13thSingle",
+  url: "https://cdn.hinatazaka46.com/images/14/7af/4b0f4d4f5c906d391afea8edc8d25/800_800_102400.jpg"
+}, {
+  id: 28,
+  name: "清水理央",
+  emoji: "🫶",
+  gen: "4th",
+  graduated: false,
+  penlight1_id: 0,
+  penlight2_id: 10,
+  type: "13thSingle",
+  url: "https://cdn.hinatazaka46.com/images/14/b00/62d7047d19b84cc1b2922e011e2bf/800_800_102400.jpg"
+}, {
+  id: 31,
+  name: "竹内希来里",
+  emoji: "✨",
+  gen: "4th",
+  graduated: false,
+  penlight1_id: 5,
+  penlight2_id: 7,
+  type: "13thSingle",
+  url: "https://cdn.hinatazaka46.com/images/14/66d/c4f27cba509510a6f48c23a9ece1c/800_800_102400.jpg"
+}, {
+  id: 25,
+  name: "平尾帆夏",
+  emoji: "🐫",
+  gen: "4th",
+  graduated: false,
+  penlight1_id: 0,
+  penlight2_id: 6,
+  type: "13thSingle",
+  url: "https://cdn.hinatazaka46.com/images/14/1de/576523c0628298356025a2193ecb0/800_800_102400.jpg"
+}, {
+  id: 26,
+  name: "平岡海月",
+  emoji: "🪼",
+  gen: "4th",
+  graduated: false,
+  penlight1_id: 14,
+  penlight2_id: 5,
+  type: "13thSingle",
+  url: "https://cdn.hinatazaka46.com/images/14/c86/d4f17e3172581f7855fd835f89f90/800_800_102400.jpg"
+}, {
+  id: 32,
+  name: "藤嶌果歩",
+  emoji: "🐏",
+  gen: "4th",
+  graduated: false,
+  penlight1_id: 9,
+  penlight2_id: 14,
+  type: "13thSingle",
+  url: "https://cdn.hinatazaka46.com/images/14/e39/7a5d6767ae33af1a7319529c461b5/800_800_102400.jpg"
+}, {
+  id: 24,
+  name: "山下葉留花",
+  emoji: "🌿",
+  gen: "4th",
+  graduated: false,
+  penlight1_id: 8,
+  penlight2_id: 1,
+  type: "13thSingle",
+  url: "https://cdn.hinatazaka46.com/images/14/f25/16be8f588b8407199f992e5721915/800_800_102400.jpg"
+}, {
+  id: 29,
+  name: "渡辺莉奈",
+  emoji: "🎀",
+  gen: "4th",
+  graduated: false,
+  penlight1_id: 14,
+  penlight2_id: 8,
+  type: "13thSingle",
+  url: "https://cdn.hinatazaka46.com/images/14/249/c9216245dc6e1bb429ca60ef175bb/800_800_102400.jpg"
+}, {
+  id: 18,
+  name: "上村ひなの",
+  emoji: "●🔻●",
+  gen: "3rd",
+  graduated: false,
+  penlight1_id: 1,
+  penlight2_id: 7,
+  type: "13thSingle",
+  url: "https://cdn.hinatazaka46.com/images/14/9de/8d4bfed193adf56953f7aa3625760/400_320_102400.jpg"
+}, {
+  id: 20,
+  name: "森本茉莉",
+  emoji: "🐨",
+  gen: "3rd",
+  graduated: false,
+  penlight1_id: 6,
+  penlight2_id: 14,
+  type: "13thSingle",
+  url: "https://cdn.hinatazaka46.com/images/14/65f/6ca2ac061bcda8026fb0a5aa9c804/400_320_102400.jpg"
+}, {
+  id: 19,
+  name: "山口陽世",
+  emoji: "🐨",
+  gen: "3rd",
+  graduated: false,
+  penlight1_id: 3,
+  penlight2_id: 5,
+  type: "13thSingle",
+  url: "https://cdn.hinatazaka46.com/images/14/ebc/846dca80d22fbdb2dbf42f24ff5d9/400_320_102400.jpg"
+}, {
+  id: 14,
+  name: "金村美玖",
+  emoji: "🍣",
+  gen: "2nd",
+  graduated: false,
+  penlight1_id: 0,
+  penlight2_id: 5,
+  type: "13thSingle",
+  url: "https://cdn.hinatazaka46.com/images/14/e3d/10e0ec44b93be391c4ab7f7e3cf0b/800_800_102400.jpg"
+}, {
+  id: 12,
+  name: "河田陽菜",
+  emoji: "🐼",
+  gen: "2nd",
+  graduated: false,
+  penlight1_id: 5,
+  penlight2_id: 9,
+  type: "13thSingle",
+  url: "https://cdn.hinatazaka46.com/images/14/45b/c47ef916e2e0bf5e49a0144179153/800_800_102400.jpg"
+}, {
+  id: 10,
+  name: "小坂菜緒",
+  emoji: "/🦕",
+  gen: "2nd",
+  graduated: false,
+  penlight1_id: 8,
+  penlight2_id: 12,
+  type: "13thSingle",
+  url: "https://cdn.hinatazaka46.com/images/14/985/072c23fa8e0ac974f353d51d6d566/800_800_102400.jpg"
+}, {
+  id: 9,
+  name: "富田鈴花",
+  emoji: "🎸",
+  gen: "2nd",
+  graduated: false,
+  penlight1_id: 13,
+  penlight2_id: 13,
+  type: "13thSingle",
+  url: "https://cdn.hinatazaka46.com/images/14/42f/2e3b0b500456d48a46514eceb343d/800_800_102400.jpg"
+}, {
+  id: 11,
+  name: "松田好花",
+  emoji: "🐙",
+  gen: "2nd",
+  graduated: false,
+  penlight1_id: 3,
+  penlight2_id: 9,
+  type: "13thSingle",
+  url: "https://cdn.hinatazaka46.com/images/14/9c5/87d50e7853595aaefc3d14ab80749/800_800_102400.jpg"
+}, {
+  id: 0,
+  name: "佐々木久美",
+  emoji: "🦒",
+  gen: "1st",
+  graduated: true,
+  penlight1_id: 0,
+  penlight2_id: 13,
+  type: "13thSingle",
+  url: "https://cdn.hinatazaka46.com/images/14/4f1/2d700f34ba47f7c556c4f9b0080b5/800_800_102400.jpg"
+}, {
+  id: 1,
+  name: "佐々木美玲",
+  emoji: "🍞",
+  gen: "1st",
+  graduated: true,
+  penlight1_id: 5,
+  penlight2_id: 5,
+  type: "13thSingle",
+  url: "https://cdn.hinatazaka46.com/images/14/0df/18fcfe112bdc514260a599f15ca6d/800_800_102400.jpg"
+}, {
+  id: 7,
+  name: "高瀬愛奈",
+  emoji: "🐶",
+  gen: "1st",
+  graduated: true,
+  penlight1_id: 8,
+  penlight2_id: 10,
+  type: "13thSingle",
+  url: "https://cdn.hinatazaka46.com/images/14/ccb/7cc864c9f0c54e8d7cc27c88cd6a1/800_800_102400.jpg"
+}];

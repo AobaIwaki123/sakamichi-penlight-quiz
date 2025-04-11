@@ -36,7 +36,7 @@ export function AnswerButton() {
     console.log('Button clicked', leftIndex, leftNameJa, rightIndex, rightNameJaB);
 
     const selectedSet = new Set([leftIndex, rightIndex]);
-    const memberSet = new Set([selectedMember.color_id1, selectedMember.color_id2]);
+    const memberSet = new Set([selectedMember.penlight1_id, selectedMember.penlight2_id]);
 
     const isMatch =
       selectedSet.size === memberSet.size &&
