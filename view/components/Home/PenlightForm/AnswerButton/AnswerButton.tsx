@@ -1,12 +1,12 @@
 "use client";
 
 import { penlightColors } from '@/consts/colors';
-import { hinatazakaPenlightColors } from '@/consts/hinatazakaPenlightColors';
+import { HinatazakaMembers } from '@/consts/hinatazakaMembers';
 import { useColorStore } from '@/stores/colorStore';
 import { useAnswerTriggerStore } from '@/stores/useAnswerTriggerStore'
+import { useSelectedMemberStore } from '@/stores/useSelectedMemberStore';
 import { Button, Text } from '@mantine/core';
 import { FullscreenNotification } from './FullscreenNotification/FullscreenNotification';
-import { HinatazakaMembers } from '@/consts/hinatazakaMembers';
 
 import { useState } from 'react';
 
@@ -16,7 +16,14 @@ export function AnswerButton() {
 
   const trigger = useAnswerTriggerStore((state) => state.trigger)
 
+  const selectedMember = useSelectedMemberStore((state) => state.selectedMember);
+
   const handleClick = () => {
+    if (!selectedMember) {
+      console.error('メンバーが選択されていません');
+      return;
+    }
+
     const state = useColorStore.getState();
 
     const leftIndex = state.colorMap.left?.index ?? 0;
@@ -27,15 +34,8 @@ export function AnswerButton() {
 
     console.log('Button clicked', leftIndex, leftNameJa, rightIndex, rightNameJaB);
 
-    // 比較対象のメンバーID
-    const targetMember = HinatazakaMembers.find((m) => m.id === 22);
-    if (!targetMember) {
-      console.log('指定されたメンバーが見つかりません');
-      return;
-    }
-
-    const selectedSet = new Set([leftIndex.toString(), rightIndex.toString()]);
-    const memberSet = new Set([targetMember.color_id1, targetMember.color_id2]);
+    const selectedSet = new Set([leftIndex, rightIndex]);
+    const memberSet = new Set([selectedMember.color_id1, selectedMember.color_id2]);
 
     const isMatch =
       selectedSet.size === memberSet.size &&
