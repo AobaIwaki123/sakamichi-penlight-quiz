@@ -5,7 +5,7 @@ export type PenlightColor = {
   color: string;
 };
 
-export const penlightColors: PenlightColor[] = [
+export const hinatazakaPenlightColors: PenlightColor[] = [
   { id: 0, name_ja: 'パステルブルー', name_en: 'pastel_blue', color: '#09b8ff' },
   { id: 1, name_ja: 'エメラルドグリーン', name_en: 'emerald_green', color: '#7aea9f' },
   { id: 2, name_ja: 'グリーン', name_en: 'green', color: '#2bdd6' },

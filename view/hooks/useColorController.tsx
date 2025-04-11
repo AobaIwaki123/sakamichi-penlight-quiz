@@ -1,10 +1,12 @@
 // hooks/useColorController.ts
 import { useColorStore } from '@/stores/colorStore';
-import { penlightColors } from '@/consts/colors';
+import { hinatazakaPenlightColors } from '@/consts/colors';
 
 export function useColorController(id: string) {
   const index = useColorStore((s) => s.colorMap[id]?.index ?? 0);
   const setIndex = useColorStore((s) => s.setIndex);
+
+  const penlightColors = hinatazakaPenlightColors
 
   const next = () =>
     setIndex(id, (prev) => (prev + 1) % penlightColors.length);
