@@ -55,7 +55,7 @@ export function AnswerButton() {
 
   const triggerEvent = () => {
     setVisible(true);
-    setTimeout(() => setVisible(false), 1000); // 3秒で自動非表示
+    setTimeout(() => setVisible(false), 100); // 3秒で自動非表示
   };
 
   return (
