@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { Overlay, Text, Transition, Portal } from '@mantine/core';
+import classes from './FullscreenNotification.module.css';
 
 export type FullscreenNotificationProps = {
   visible: boolean;
@@ -22,28 +23,12 @@ export function FullscreenNotification({ visible, message }: FullscreenNotificat
             blur={2}
             color="#000"
           >
-            <Text c="white" size="xl" ta="center" mt="40vh">
+            <Text c="white" size="xl" ta="center" mt="40vh" className={classes.text}>
               {message}
             </Text>
           </Overlay>
         )}
       </Transition>
     </Portal>
-  );
-}
-
-export default function Demo() {
-  const [visible, setVisible] = useState(false);
-
-  const triggerEvent = () => {
-    setVisible(true);
-    setTimeout(() => setVisible(false), 3000);
-  };
-
-  return (
-    <div style={{ height: '200vh' }}> {/* スクロールできるように高さを確保 */}
-      <button type="button" onClick={triggerEvent}>表示トリガー</button>
-      <FullscreenNotification visible={visible} />
-    </div>
   );
 }
