@@ -1,7 +1,7 @@
 "use client";
 
 import { HinatazakaMembers } from "@/consts/hinatazakaMembers";
-import { useAnswerTriggerStore } from '@/stores/useAnswerTriggerStore'
+import { useAnswerCloseTriggerStore } from '@/stores/useAnswerCloseTriggerStore'
 import { useFilterStore } from '@/stores/useFilterStore';
 import { useSelectedMemberStore } from '@/stores/useSelectedMemberStore';
 
@@ -13,7 +13,7 @@ import { useEffect } from "react";
 export function MemberInfo() {
   const checkedFilters = useFilterStore((state) => state.checkedFilters);
 
-  const triggerCount = useAnswerTriggerStore((state) => state.triggerCount);
+  const triggerCount = useAnswerCloseTriggerStore((state) => state.triggerCount);
 
   const setSelectedMember = useSelectedMemberStore((state) => state.setSelectedMember);
 

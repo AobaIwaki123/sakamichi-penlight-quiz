@@ -1,9 +1,9 @@
 import { hinatazakaPenlightColors } from '@/consts/colors';
+import { useAnswerCloseTriggerStore } from '@/stores/useAnswerCloseTriggerStore';
 import { useAnswerTriggerStore } from '@/stores/useAnswerTriggerStore'
-import { useColorStore } from '@/stores/useColorStore';
 import { useSelectedMemberStore } from '@/stores/useSelectedMemberStore';
-import { Group, Overlay, Portal, Text, Transition } from '@mantine/core';
-import { useEffect, useState } from 'react';
+import { Overlay, Portal, Text, Transition } from '@mantine/core';
+import { useEffect, useRef, useState } from 'react';
 import classes from './FullscreenNotification.module.css';
 
 export type FullscreenNotificationProps = {
@@ -15,35 +15,42 @@ export function FullscreenNotification({ message }: FullscreenNotificationProps)
   const [penlight1, setPenlight1] = useState<string | null>(null);
   const [penlight2, setPenlight2] = useState<string | null>(null);
 
-  const triggerCount = useAnswerTriggerStore((state) => state.triggerCount);
+  const answerTriggerCount = useAnswerTriggerStore((state) => state.triggerCount);
+  const answerCloseTrigger = useAnswerCloseTriggerStore((state) => state.trigger);
   const selectedMember = useSelectedMemberStore((state) => state.selectedMember);
-
+  const selectedMemberRef = useRef<typeof selectedMember>(null);
+  
   useEffect(() => {
-    if (triggerCount > 0) {
-      setVisible(true);
-      // setTimeout(() => {
-      //   setVisible(false);
-      // }, 500);
-    }
-  }, [triggerCount]);
-
-  useEffect(() => {
-    if (selectedMember) {
-      const penlight1Index = selectedMember.penlight1_id;
-      const penlight2Index = selectedMember.penlight2_id;
-      const penlight1Info = hinatazakaPenlightColors[penlight1Index] ?? "null";
-      const penlight2Info = hinatazakaPenlightColors[penlight2Index] ?? "null";
-      setPenlight1(penlight1Info.name_ja);
-      setPenlight2(penlight2Info.name_ja);
-    }
+    selectedMemberRef.current = selectedMember;
   }, [selectedMember]);
+
+  useEffect(() => {
+    if (answerTriggerCount > 0) {
+      setVisible(true);
+
+      const current = selectedMemberRef.current;
+      if (current) {
+        const penlight1Index = current.penlight1_id;
+        const penlight2Index = current.penlight2_id;
+        const penlight1Info = hinatazakaPenlightColors[penlight1Index];
+        const penlight2Info = hinatazakaPenlightColors[penlight2Index];
+        setPenlight1(penlight1Info.name_ja);
+        setPenlight2(penlight2Info.name_ja);
+      }
+    }
+  }, [answerTriggerCount]); // ✅ これでselectedMemberは依存に含めなくてOK＆警告なし
+
+  const onClose = () => {
+    setVisible(false);
+    answerCloseTrigger();
+  };
 
   return (
     <Portal> {/* 👈 Portal を使うことで body 直下に描画される */}
       <Transition mounted={visible} transition="fade" duration={0} timingFunction="ease">
         {(styles) => (
           <Overlay
-            onClick={() => { setVisible(false) }}
+            onClick={onClose}
             style={{
               ...styles,
               position: 'fixed', // 👈 スクロールに追従しないように固定
