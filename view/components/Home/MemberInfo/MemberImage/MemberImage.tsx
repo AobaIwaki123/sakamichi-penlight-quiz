@@ -9,16 +9,16 @@ export function MemberImage() {
   return (
     <Container size="60%">
       <Card radius="md">
-        <Card.Section style={{ height: 240, overflow: 'hidden' }}>
+        <Card.Section style={{ height: 220, overflow: 'hidden' }}>
           {selectedMember ? (
             <Image
               src={selectedMember.url}
-              height={240}
+              height={220}
               width="100%"
               fit="cover" // アスペクト比を無視して埋める
             />
           ) : (
-            <Skeleton height={240} width="100%" radius="md" />
+            <Skeleton height={220} width="100%" radius="md" />
           )}
         </Card.Section>
       </Card>

@@ -13,7 +13,7 @@ export default function Home() {
     <Container>
       <Notification />
       <Grid>
-        <Grid.Col span={{ base: 12, xs: 6 }} style={{ minHeight: 315 }}>
+        <Grid.Col span={{ base: 12, xs: 6 }} style={{ minHeight: 300 }}>
           <MemberInfo />
         </Grid.Col>
         <Grid.Col span={{ base: 12, xs: 6 }}>
