@@ -1,6 +1,6 @@
+import { hinatazakaPenlightColors } from '@/consts/hinatazakaColors';
 // hooks/useColorController.ts
 import { useColorStore } from '@/stores/useColorStore';
-import { hinatazakaPenlightColors } from '@/consts/colors';
 
 export function useColorController(id: string) {
   const index = useColorStore((s) => s.colorMap[id]?.index ?? 0);

@@ -1,4 +1,4 @@
-import { hinatazakaPenlightColors } from '@/consts/colors';
+import { hinatazakaPenlightColors } from '@/consts/hinatazakaColors';
 import { useAnswerCloseTriggerStore } from '@/stores/useAnswerCloseTriggerStore';
 import { useAnswerTriggerStore } from '@/stores/useAnswerTriggerStore'
 import { useSelectedMemberStore } from '@/stores/useSelectedMemberStore';
@@ -19,7 +19,7 @@ export function FullscreenNotification({ message }: FullscreenNotificationProps)
   const answerCloseTrigger = useAnswerCloseTriggerStore((state) => state.trigger);
   const selectedMember = useSelectedMemberStore((state) => state.selectedMember);
   const selectedMemberRef = useRef<typeof selectedMember>(null);
-  
+
   useEffect(() => {
     selectedMemberRef.current = selectedMember;
   }, [selectedMember]);

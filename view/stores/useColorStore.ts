@@ -1,4 +1,4 @@
-import { hinatazakaPenlightColors } from '@/consts/colors';
+import { hinatazakaPenlightColors } from '@/consts/hinatazakaColors';
 // stores/colorStore.ts
 import { create } from 'zustand';
 
