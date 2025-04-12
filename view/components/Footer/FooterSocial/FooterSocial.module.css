@@ -17,6 +17,6 @@
 
 .links {
   @media (max-width: $mantine-breakpoint-xs) {
-    margin-top: var(--mantine-spacing-md);
+    margin-top: 10px;
   }
 }
