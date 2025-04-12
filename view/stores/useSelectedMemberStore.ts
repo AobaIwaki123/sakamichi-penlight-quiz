@@ -7,11 +7,12 @@ export type Group = 'nogizaka' | 'sakurazaka' | 'hinatazaka'
 
 type State = {
   selectedGroup: Group
+  hasInvalidFilter: boolean
   allMembers: Member[]
   filters: {
-  gen?: Generation[] // ← 単一ではなく複数
-  graduated?: boolean
-} // フィルタ可能な属性を絞る
+    gen?: Generation[] // ← 単一ではなく複数
+    graduated?: boolean
+  } // フィルタ可能な属性を絞る
   filteredMembers: Member[]
   selectedMember?: Member
   isLoading: boolean
@@ -31,6 +32,7 @@ export const useSelectedMemberStore = create<State>((set, get) => ({
   filteredMembers: [],
   selectedMember: undefined,
   isLoading: false,
+  hasInvalidFilter: false,
 
   setGroup: (group) => {
     set({ isLoading: true, selectedGroup: group })
@@ -47,29 +49,28 @@ export const useSelectedMemberStore = create<State>((set, get) => ({
   },
 
   setFilters: (filters) => {
-    const allMembers = get().allMembers
     set({ filters })
     get().applyFilters()
   },
 
-applyFilters: () => {
-  const { allMembers, filters } = get();
+  applyFilters: () => {
+    const { allMembers, filters } = get();
 
-  const filtered = allMembers.filter((member) => {
-    const matchGen = filters.gen
-      ? filters.gen.includes(member.gen)
-      : true;
+    const hasValidFilter = filters.gen?.length !== 0 || filters.graduated !== undefined;
 
-    const matchGraduated =
-      filters.graduated !== undefined
+    const filtered = allMembers.filter((member) => {
+      const matchGen = filters.gen ? filters.gen.includes(member.gen) : true;
+      const matchGraduated = filters.graduated !== undefined
         ? member.graduated === filters.graduated
         : true;
+      return matchGen && matchGraduated;
+    });
 
-    return matchGen && matchGraduated;
-  });
-
-  set({ filteredMembers: filtered });
-},
+    set({
+      filteredMembers: filtered,
+      hasInvalidFilter: hasValidFilter && filtered.length === 0
+    });
+  },
 
 
   pickRandomMember: () => {

@@ -12,7 +12,7 @@ import { useEffect, useState } from "react";
 export function FilterButton() {
   const [isOpened, setIsOpened] = useState(false);
 
-  // チェック状態をStateで管理
+  // チェック状態aをStateで管理
   const checkedFilters = useFilterStore((state) => state.checkedFilters);
   const setFilter = useFilterStore((state) => state.setFilter);
 
@@ -71,7 +71,7 @@ export function FilterButton() {
     <Menu
       opened={isOpened}
       onChange={setIsOpened}
-      closeOnClickOutside={true}
+      closeOnClickOutside={false}
       closeOnItemClick={false}
     >
       <Menu.Target>

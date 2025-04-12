@@ -10,7 +10,6 @@ export function NotImplemented() {
 
   const current = useLogoStore((state) => state.current);
 
-
   useEffect(() => {
     if (current.name === 'sakurazaka' || current.name === 'nogizaka') {
       setOpened(true);
