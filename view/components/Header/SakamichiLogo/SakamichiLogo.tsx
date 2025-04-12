@@ -11,6 +11,7 @@ export function SakamichiLogo() {
     setGroup(currentLogo.name)
     useLogoStore.getState().next()
   }
+  
   return (
     <>
       <ActionIcon variant="subtle" size="lg" onClick={onClick}>
