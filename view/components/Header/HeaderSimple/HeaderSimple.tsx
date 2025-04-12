@@ -7,6 +7,7 @@ import { useState } from 'react';
 import { LightDarkToggle } from '../LightDarkToggle/LightDarkToggle';
 import classes from './HeaderSimple.module.css';
 import { FilterButton } from '../FilterButton/FilterButton';
+import { SakamichiLogo } from '../SakamichiLogo/SakamichiLogo';
 
 const links = [
   { link: '/about', label: 'Features' },
@@ -40,6 +41,7 @@ export function HeaderSimple() {
         <MantineLogo size={28} />
 
         <Group>
+          <SakamichiLogo />
           <FilterButton />
           <LightDarkToggle />
         </Group>
