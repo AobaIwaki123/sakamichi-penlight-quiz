@@ -7,8 +7,8 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding-top: var(--mantine-spacing-xl);
-  padding-bottom: var(--mantine-spacing-xl);
+  padding-top: 0;
+  padding-bottom: 0;
 
   @media (max-width: $mantine-breakpoint-xs) {
     flex-direction: column;
