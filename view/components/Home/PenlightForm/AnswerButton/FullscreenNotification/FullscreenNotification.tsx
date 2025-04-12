@@ -1,6 +1,8 @@
+import { hinatazakaPenlightColors } from '@/consts/colors';
 import { useAnswerTriggerStore } from '@/stores/useAnswerTriggerStore'
+import { useColorStore } from '@/stores/useColorStore';
 import { useSelectedMemberStore } from '@/stores/useSelectedMemberStore';
-import { Center, Group, Overlay, Portal, Text, Transition } from '@mantine/core';
+import { Group, Overlay, Portal, Text, Transition } from '@mantine/core';
 import { useEffect, useState } from 'react';
 import classes from './FullscreenNotification.module.css';
 
@@ -10,8 +12,8 @@ export type FullscreenNotificationProps = {
 
 export function FullscreenNotification({ message }: FullscreenNotificationProps) {
   const [visible, setVisible] = useState(false);
-  const [penlight1ID, setPenlight1ID] = useState<number | null>(null);
-  const [penlight2ID, setPenlight2ID] = useState<number | null>(null);
+  const [penlight1, setPenlight1] = useState<string | null>(null);
+  const [penlight2, setPenlight2] = useState<string | null>(null);
 
   const triggerCount = useAnswerTriggerStore((state) => state.triggerCount);
   const selectedMember = useSelectedMemberStore((state) => state.selectedMember);
@@ -27,8 +29,12 @@ export function FullscreenNotification({ message }: FullscreenNotificationProps)
 
   useEffect(() => {
     if (selectedMember) {
-      setPenlight1ID(selectedMember.penlight1_id);
-      setPenlight2ID(selectedMember.penlight2_id);
+      const penlight1Index = selectedMember.penlight1_id;
+      const penlight2Index = selectedMember.penlight2_id;
+      const penlight1Info = hinatazakaPenlightColors[penlight1Index] ?? "null";
+      const penlight2Info = hinatazakaPenlightColors[penlight2Index] ?? "null";
+      setPenlight1(penlight1Info.name_ja);
+      setPenlight2(penlight2Info.name_ja);
     }
   }, [selectedMember]);
 
@@ -51,14 +57,12 @@ export function FullscreenNotification({ message }: FullscreenNotificationProps)
             <Text c="white" size="xl" ta="center" mt="30vh" className={classes.message}>
               {message}
             </Text>
-            <Group justify="center">
-              <Text c="white" size="xl" ta="center" className={classes.message}>
-                {penlight1ID}
-              </Text>
-              <Text c="white" size="xl" ta="center" className={classes.message}>
-                {penlight2ID}
-              </Text>
-            </Group>
+            <Text c="white" size="xl" ta="center" className={classes.penlight}>
+              {penlight1}
+            </Text>
+            <Text c="white" size="xl" ta="center" className={classes.penlight}>
+              {penlight2}
+            </Text>
           </Overlay>
         )}
       </Transition>
