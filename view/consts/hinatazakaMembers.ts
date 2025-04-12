@@ -4,7 +4,7 @@ export type Member = {
   id: number;
   name: string;
   emoji: string;
-  gen: '1st' | '2nd' | '3rd' | '4th';
+  gen: '1st' | '2nd' | '3rd' | '4th' | '5th';
   graduated: boolean;
   penlight1_id: number;
   penlight2_id: number;

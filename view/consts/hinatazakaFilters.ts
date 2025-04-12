@@ -12,20 +12,16 @@ export const hinatazakaFilters: Filter[] = [
   { type: '卒業生', defaultChecked: false },
 ]
 
-enum Generation {
-  First = "1st",
-  Second = "2nd",
-  Third = "3rd",
-  Fourth = "4th",
-  Fifth = "5th",
-  Graduated = "graduated",
-}
+// Generation.ts
+export type Generation = "1st" | "2nd" | "3rd" | "4th" | "5th" | "graduated";
+
 
 export const GenerationMap: { [key: string]: Generation } = {
-  "1期生": Generation.First,
-  "2期生": Generation.Second,
-  "3期生": Generation.Third,
-  "4期生": Generation.Fourth,
-  "5期生": Generation.Fifth,
-  "卒業生": Generation.Graduated,
+  "1期生": "1st",
+  "2期生": "2nd",
+  "3期生": "3rd",
+  "4期生": "4th",
+  "5期生": "5th",
+  "卒業生": "graduated",
 };
+

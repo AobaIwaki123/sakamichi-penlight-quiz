@@ -1,18 +1,25 @@
+import type { Generation } from "@/consts/hinatazakaFilters";
 import type { Member } from '@/consts/hinatazakaMembers';
-import { create } from 'zustand'
 import { HinatazakaMembers } from '@/consts/hinatazakaMembers'
+import { create } from 'zustand'
 
 export type Group = 'nogizaka' | 'sakurazaka' | 'hinatazaka'
 
 type State = {
   selectedGroup: Group
   allMembers: Member[]
-  filters: Partial<Pick<Member, 'gen' | 'graduated' | 'type'>> // フィルタ可能な属性を絞る
+  filters: {
+  gen?: Generation[] // ← 単一ではなく複数
+  graduated?: boolean
+} // フィルタ可能な属性を絞る
   filteredMembers: Member[]
   selectedMember?: Member
   isLoading: boolean
   setGroup: (group: Group) => void
-  setFilters: (filters: Partial<Pick<Member, 'gen' | 'graduated' | 'type'>>) => void
+  setFilters: (filters: {
+  gen?: Generation[] // ← 単一ではなく複数
+  graduated?: boolean
+}) => void
   applyFilters: () => void
   pickRandomMember: () => void
 }
@@ -44,15 +51,25 @@ export const useSelectedMemberStore = create<State>((set, get) => ({
     get().applyFilters()
   },
 
-  applyFilters: () => {
-    const { allMembers, filters } = get()
-    const filtered = allMembers.filter((member) => {
-      return Object.entries(filters).every(([key, value]) => {
-        return member[key as keyof Member] === value
-      })
-    })
-    set({ filteredMembers: filtered })
-  },
+applyFilters: () => {
+  const { allMembers, filters } = get();
+
+  const filtered = allMembers.filter((member) => {
+    const matchGen = filters.gen
+      ? filters.gen.includes(member.gen)
+      : true;
+
+    const matchGraduated =
+      filters.graduated !== undefined
+        ? member.graduated === filters.graduated
+        : true;
+
+    return matchGen && matchGraduated;
+  });
+
+  set({ filteredMembers: filtered });
+},
+
 
   pickRandomMember: () => {
     const { filteredMembers } = get()
@@ -68,5 +85,7 @@ function getGroupMembers(group: Group): Member[] {
   if (group === 'hinatazaka') {
     return HinatazakaMembers
   }
-  return []
+
+  throw new Error(`未対応のグループ: ${group}`)
 }
+

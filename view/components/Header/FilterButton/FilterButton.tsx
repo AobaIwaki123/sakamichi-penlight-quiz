@@ -1,34 +1,74 @@
 "use client";
 
 import { hinatazakaFilters } from '@/consts/hinatazakaFilters';
+import type { Generation } from "@/consts/hinatazakaFilters";
+import { GenerationMap } from "@/consts/hinatazakaFilters";
 import { useFilterStore } from '@/stores/useFilterStore';
+import { useSelectedMemberStore } from "@/stores/useSelectedMemberStore";
 import { ActionIcon, Checkbox, Menu, Stack } from '@mantine/core';
 import { IconFilter, IconFilterFilled } from '@tabler/icons-react';
 import { useEffect, useState } from "react";
 
 export function FilterButton() {
   const [isOpened, setIsOpened] = useState(false);
-  const setFilter = useFilterStore((state) => state.setFilter);
 
   // チェック状態をStateで管理
   const checkedFilters = useFilterStore((state) => state.checkedFilters);
-  const handleCheckboxChange = (type: string, checked: boolean) => {
-    setFilter(type, checked);
-    console.log(`${type} is ${checked ? 'checked' : 'unchecked'}`);
-  };
+  const setFilter = useFilterStore((state) => state.setFilter);
 
+  const setMemberFilters = useSelectedMemberStore((state) => state.setFilters);
+
+  // ✅ 初期化（マウント時にフィルター状態を設定）
   useEffect(() => {
     for (const filter of hinatazakaFilters) {
       useFilterStore.getState().setFilter(filter.type, filter.defaultChecked || false);
     }
   }, []);
 
+  // ✅ チェックボックス変更時
+  const handleCheckboxChange = (type: string, checked: boolean) => {
+    setFilter(type, checked);
+    console.log(`${type} is ${checked ? 'checked' : 'unchecked'}`);
+  };
+
+
+  // ✅ checkedFilters → Generation[] に変換してzustandに反映
   useEffect(() => {
-    const selected = Object.entries(checkedFilters)
+    const selectedLabels = Object.entries(checkedFilters)
       .filter(([, checked]) => checked)
-      .map(([type]) => type);
-    console.log("選択中のフィルター:", selected);
-  }, [checkedFilters]);
+      .map(([label]) => label);
+
+    const selectedGenerations: Generation[] = []
+    let graduatedFilter: boolean | undefined = undefined
+
+    for (const label of selectedLabels) {
+      const mapped = GenerationMap[label]
+      if (!mapped) continue
+
+      if (mapped === 'graduated') {
+        graduatedFilter = true
+      } else {
+        selectedGenerations.push(mapped)
+      }
+    }
+
+    const filterObj: {
+      gen?: Generation[];
+      graduated?: boolean;
+    } = {}
+
+    if (selectedGenerations.length > 0) {
+      filterObj.gen = selectedGenerations
+    }
+
+    if (graduatedFilter !== undefined) {
+      filterObj.graduated = graduatedFilter
+    }
+
+    useSelectedMemberStore.getState().setFilters(filterObj)
+  }, [checkedFilters])
+
+
 
   return (
     <Menu
