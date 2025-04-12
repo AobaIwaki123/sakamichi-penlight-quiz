@@ -79,8 +79,8 @@ export const HinatazakaMembers: Member[] = [{
   emoji: "🍓",
   gen: "1st",
   graduated: true,
-  penlight1_id: 5,
-  penlight2_id: 13,
+  penlight1_id: 9,
+  penlight2_id: 9,
   type: "5thHinatansai",
   url: "https://storage-store.plusmember.jp/upload/images/240316_5thhinatan_towel_kobetsu_al3uhw_07.jpg"
 }, {
