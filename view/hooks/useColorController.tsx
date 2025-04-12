@@ -1,5 +1,5 @@
 // hooks/useColorController.ts
-import { useColorStore } from '@/stores/colorStore';
+import { useColorStore } from '@/stores/useColorStore';
 import { hinatazakaPenlightColors } from '@/consts/colors';
 
 export function useColorController(id: string) {
