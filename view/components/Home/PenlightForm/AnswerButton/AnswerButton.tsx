@@ -2,12 +2,12 @@
 
 import { hinatazakaPenlightColors } from '@/consts/colors';
 import type { Member } from '@/consts/hinatazakaMembers';
-import { useColorStore } from '@/stores/colorStore';
 import { useAnswerTriggerStore } from '@/stores/useAnswerTriggerStore'
 import { useSelectedMemberStore } from '@/stores/useSelectedMemberStore';
 import { Button, Text } from '@mantine/core';
 import { useState } from 'react';
 import { FullscreenNotification } from './FullscreenNotification/FullscreenNotification';
+import { useColorController } from '@/hooks/useColorController';
 
 export function AnswerButton() {
   const [message, setMessage] = useState(''); // メッセージを管理するステート
@@ -15,6 +15,9 @@ export function AnswerButton() {
   const trigger = useAnswerTriggerStore((state) => state.trigger)
 
   const selectedMember = useSelectedMemberStore((state) => state.selectedMember);
+
+  const { index: leftIndex, nameJa: leftNameJa } = useColorController("left");
+  const { index: rightIndex, nameJa: rightNameJa } = useColorController("right");
 
   const penlightColors = hinatazakaPenlightColors; // TODO: グローバルに管理する
 
@@ -40,15 +43,7 @@ export function AnswerButton() {
   }
 
   const getSelectedMemberSet = () => {
-    const state = useColorStore.getState();
-
-    const leftIndex = state.colorMap.left?.index ?? 0;
-    const rightIndex = state.colorMap.right?.index ?? 0;
-
-    const leftNameJa = penlightColors[leftIndex]?.name_ja ?? '不明';
-    const rightNameJaB = penlightColors[rightIndex]?.name_ja ?? '不明';
-
-    console.log('Button clicked', leftIndex, leftNameJa, rightIndex, rightNameJaB);
+    console.log('Button clicked', leftIndex, leftNameJa, rightIndex, rightNameJa);
 
     return new Set([leftIndex, rightIndex]);
   }
