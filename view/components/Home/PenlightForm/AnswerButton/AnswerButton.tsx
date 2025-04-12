@@ -1,13 +1,13 @@
 "use client";
 
 import { hinatazakaPenlightColors } from '@/consts/colors';
+import type { Member } from '@/consts/hinatazakaMembers';
 import { useColorStore } from '@/stores/colorStore';
 import { useAnswerTriggerStore } from '@/stores/useAnswerTriggerStore'
 import { useSelectedMemberStore } from '@/stores/useSelectedMemberStore';
 import { Button, Text } from '@mantine/core';
-import { FullscreenNotification } from './FullscreenNotification/FullscreenNotification';
-
 import { useState } from 'react';
+import { FullscreenNotification } from './FullscreenNotification/FullscreenNotification';
 
 export function AnswerButton() {
   const [visible, setVisible] = useState(false);
@@ -25,22 +25,10 @@ export function AnswerButton() {
       return;
     }
 
-    const state = useColorStore.getState();
+    const selectedPenlightSet = getSelectedMemberSet();
+    const answerPenlightSet = getAnswerPenlightSet(selectedMember);
 
-    const leftIndex = state.colorMap.left?.index ?? 0;
-    const rightIndex = state.colorMap.right?.index ?? 0;
-
-    const leftNameJa = penlightColors[leftIndex]?.name_ja ?? '不明';
-    const rightNameJaB = penlightColors[rightIndex]?.name_ja ?? '不明';
-
-    console.log('Button clicked', leftIndex, leftNameJa, rightIndex, rightNameJaB);
-
-    const selectedSet = new Set([leftIndex, rightIndex]);
-    const memberSet = new Set([selectedMember.penlight1_id, selectedMember.penlight2_id]);
-
-    const isMatch =
-      selectedSet.size === memberSet.size &&
-      Array.from(selectedSet).every((val) => memberSet.has(val));
+    const isMatch = isPenlightMatch(selectedPenlightSet, answerPenlightSet);
 
     if (isMatch) {
       console.log('一致：正解の組み合わせです');
@@ -51,22 +39,44 @@ export function AnswerButton() {
     }
 
     trigger();
-    triggerEvent();
   }
 
-  const triggerEvent = () => {
-    setVisible(true);
-    // setTimeout(() => setVisible(false), 100); // 3秒で自動非表示
-  };
+  const getSelectedMemberSet = () => {
+    const state = useColorStore.getState();
 
-  return (
+    const leftIndex = state.colorMap.left?.index ?? 0;
+    const rightIndex = state.colorMap.right?.index ?? 0;
+
+    const leftNameJa = penlightColors[leftIndex]?.name_ja ?? '不明';
+    const rightNameJaB = penlightColors[rightIndex]?.name_ja ?? '不明';
+
+    console.log('Button clicked', leftIndex, leftNameJa, rightIndex, rightNameJaB);
+
+    return new Set([leftIndex, rightIndex]);
+  }
+
+  const getAnswerPenlightSet = (selectedMember: Member) => {
+    return new Set([selectedMember.penlight1_id, selectedMember.penlight2_id]);
+  }
+
+  const isPenlightMatch = (
+    selectedPenlightSet: Set<number>,
+    answerPenlightSet: Set<number>
+  ): boolean => {
+    return (
+      selectedPenlightSet.size === answerPenlightSet.size &&
+      Array.from(selectedPenlightSet).every((val) => answerPenlightSet.has(val))
+    );
+  }
+
+      return (
     <>
       <Button variant="outline" radius="xl" onClick={handleClick}>
         <Text size="lg" fw={700}>
           回答
         </Text>
       </Button>
-      <FullscreenNotification visible={visible} message={message} onClose={() => { setVisible(false) }} />
+      <FullscreenNotification message={message} />
     </>
   );
 }
