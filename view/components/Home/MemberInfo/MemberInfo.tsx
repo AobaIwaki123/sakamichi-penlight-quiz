@@ -15,7 +15,7 @@ export function MemberInfo() {
 
   const triggerCount = useAnswerCloseTriggerStore((state) => state.triggerCount);
 
-  const setSelectedMember = useSelectedMemberStore((state) => state.setSelectedMember);
+  const pickRandomMember = useSelectedMemberStore((state) => state.pickRandomMember);
 
   useEffect(() => {
     const _ = triggerCount;
@@ -24,11 +24,10 @@ export function MemberInfo() {
       .map(([type]) => type);
 
     if (selected.length > 0) {
-      const random = HinatazakaMembers[Math.floor(Math.random() * HinatazakaMembers.length)];
-      setSelectedMember(random);
+      const random = pickRandomMember() 
       console.log("選ばれたメンバー:", random);
     }
-  }, [triggerCount, checkedFilters, setSelectedMember]);
+  }, [triggerCount, checkedFilters, pickRandomMember]);
 
   return (
     <>
