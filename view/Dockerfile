@@ -23,3 +23,7 @@ RUN npm install -g pnpm
 RUN pnpm config set global-bin-dir /usr/local/bin
 
 RUN pnpm install
+
+COPY . .
+
+RUN pnpm run build
