@@ -14,7 +14,7 @@ export function SakamichiLogo() {
   
   return (
     <>
-      <ActionIcon variant="subtle" size="xl" onClick={onClick}>
+      <ActionIcon variant="light" size="xl" onClick={onClick}>
         <img
           src={currentLogo.url}
           alt={group}

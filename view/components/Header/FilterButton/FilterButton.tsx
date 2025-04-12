@@ -77,7 +77,7 @@ export function FilterButton() {
       <Menu.Target>
         <ActionIcon
           onClick={() => setIsOpened((prev) => !prev)}
-          variant="subtle"
+          variant="light"
           size="xl"
         >
           {isOpened ? <IconFilterFilled stroke={1.5} /> : <IconFilter stroke={1.5} />}

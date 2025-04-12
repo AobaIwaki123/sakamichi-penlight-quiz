@@ -13,7 +13,7 @@ export function LightDarkToggle() {
     <Group justify="center">
       <ActionIcon
         onClick={() => setColorScheme(computedColorScheme === 'light' ? 'dark' : 'light')}
-        variant="subtle"
+        variant="light"
         size="xl"
       >
         <IconSun className={cx(classes.icon, classes.light)} stroke={1.5} />

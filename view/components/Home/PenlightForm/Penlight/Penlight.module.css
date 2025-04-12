@@ -14,7 +14,11 @@
 .penlight_box {
 	border-radius: var(--mantine-radius-md);
 	justify-content: center; /* 左右中央揃え */
+	border-width: 1px;
+	border-style: solid;
+	border-color: light-dark(#ccc, var(#575757)); /* お好みの色に変更可 */
 }
+
 
 .button {
   margin: 0 auto;
