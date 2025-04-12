@@ -1,13 +1,12 @@
 "use client";
 
-import { hinatazakaPenlightColors } from '@/consts/colors';
 import type { Member } from '@/consts/hinatazakaMembers';
+import { useColorController } from '@/hooks/useColorController';
 import { useAnswerTriggerStore } from '@/stores/useAnswerTriggerStore'
 import { useSelectedMemberStore } from '@/stores/useSelectedMemberStore';
 import { Button, Text } from '@mantine/core';
 import { useState } from 'react';
 import { FullscreenNotification } from './FullscreenNotification/FullscreenNotification';
-import { useColorController } from '@/hooks/useColorController';
 
 export function AnswerButton() {
   const [message, setMessage] = useState(''); // メッセージを管理するステート
@@ -18,8 +17,6 @@ export function AnswerButton() {
 
   const { index: leftIndex, nameJa: leftNameJa } = useColorController("left");
   const { index: rightIndex, nameJa: rightNameJa } = useColorController("right");
-
-  const penlightColors = hinatazakaPenlightColors; // TODO: グローバルに管理する
 
   const handleClick = () => {
     if (!selectedMember) {
@@ -62,7 +59,7 @@ export function AnswerButton() {
     );
   }
 
-      return (
+  return (
     <>
       <Button variant="outline" radius="xl" onClick={handleClick}>
         <Text size="lg" fw={700}>

@@ -17,6 +17,9 @@ export function FullscreenNotification({ message }: FullscreenNotificationProps)
   useEffect(() => {
     if (triggerCount > 0) {
       setVisible(true);
+      setTimeout(() => {
+        setVisible(false);
+      }, 500);
     }
   }, [triggerCount]);
 
