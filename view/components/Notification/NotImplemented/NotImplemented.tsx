@@ -28,7 +28,8 @@ export function NotImplemented() {
         <Overlay mt="10vh" backgroundOpacity={0}>
           <Notification style={styles}
             title={<Text className={classes.title}>未実装のグループです</Text>}
-            onClose={onClose} className={classes.base}>
+            onClose={onClose} className={classes.base}
+            withCloseButton={false}>
             <Text className={classes.content}>今後のアップデートで追加されます</Text>
           </Notification>
         </Overlay>

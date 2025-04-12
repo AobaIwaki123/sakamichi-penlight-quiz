@@ -22,7 +22,7 @@ export function EmptyFilteredMember() {
   return (
     <Transition mounted={opened} transition="fade-left">
       {(styles) => (
-        <Overlay mt="50vh" backgroundOpacity={0}>
+        <Overlay mt="90vh" backgroundOpacity={0}>
           <Notification style={styles}
             title="フィルターが無効です"
             onClose={() => setOpened(false)}
