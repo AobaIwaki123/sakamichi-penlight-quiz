@@ -1,4 +1,5 @@
 import { useAnswerTriggerStore } from '@/stores/useAnswerTriggerStore'
+import { useSelectedMemberStore } from '@/stores/useSelectedMemberStore';
 import { Overlay, Portal, Text, Transition } from '@mantine/core';
 import { useEffect, useState } from 'react';
 import classes from './FullscreenNotification.module.css';
@@ -8,8 +9,10 @@ export type FullscreenNotificationProps = {
 };
 
 export function FullscreenNotification({ message }: FullscreenNotificationProps) {
-  const triggerCount = useAnswerTriggerStore((state) => state.triggerCount);
   const [visible, setVisible] = useState(false);
+
+  const triggerCount = useAnswerTriggerStore((state) => state.triggerCount);
+  const selectedMember = useSelectedMemberStore((state) => state.selectedMember);
 
   useEffect(() => {
     if (triggerCount > 0) {

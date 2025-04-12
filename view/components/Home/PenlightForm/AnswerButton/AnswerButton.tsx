@@ -10,14 +10,13 @@ import { useState } from 'react';
 import { FullscreenNotification } from './FullscreenNotification/FullscreenNotification';
 
 export function AnswerButton() {
-  const [visible, setVisible] = useState(false);
   const [message, setMessage] = useState(''); // メッセージを管理するステート
 
   const trigger = useAnswerTriggerStore((state) => state.trigger)
 
   const selectedMember = useSelectedMemberStore((state) => state.selectedMember);
 
-  const penlightColors = hinatazakaPenlightColors;
+  const penlightColors = hinatazakaPenlightColors; // TODO: グローバルに管理する
 
   const handleClick = () => {
     if (!selectedMember) {
@@ -27,7 +26,6 @@ export function AnswerButton() {
 
     const selectedPenlightSet = getSelectedMemberSet();
     const answerPenlightSet = getAnswerPenlightSet(selectedMember);
-
     const isMatch = isPenlightMatch(selectedPenlightSet, answerPenlightSet);
 
     if (isMatch) {
