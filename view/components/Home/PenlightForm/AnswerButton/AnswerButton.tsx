@@ -56,7 +56,7 @@ export function AnswerButton() {
 
   const triggerEvent = () => {
     setVisible(true);
-    setTimeout(() => setVisible(false), 100); // 3秒で自動非表示
+    // setTimeout(() => setVisible(false), 100); // 3秒で自動非表示
   };
 
   return (
@@ -66,7 +66,7 @@ export function AnswerButton() {
           回答
         </Text>
       </Button>
-      <FullscreenNotification visible={visible} message={message} />
+      <FullscreenNotification visible={visible} message={message} onClose={() => { setVisible(false) }} />
     </>
   );
 }
