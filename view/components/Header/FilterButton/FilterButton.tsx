@@ -38,8 +38,9 @@ export function FilterButton() {
       .filter(([, checked]) => checked)
       .map(([label]) => label);
 
+
     const selectedGenerations: Generation[] = []
-    let graduatedFilter: boolean | undefined = undefined
+    let graduatedFilter = false
 
     for (const label of selectedLabels) {
       const mapped = GenerationMap[label]
@@ -61,9 +62,7 @@ export function FilterButton() {
       filterObj.gen = selectedGenerations
     }
 
-    if (graduatedFilter !== undefined) {
-      filterObj.graduated = graduatedFilter
-    }
+    filterObj.graduated = graduatedFilter
 
     useSelectedMemberStore.getState().setFilters(filterObj)
   }, [checkedFilters])
