@@ -47,6 +47,7 @@ export const useSelectedMemberStore = create<State>((set, get) => ({
   },
 
   setFilters: (filters) => {
+    const allMembers = get().allMembers
     set({ filters })
     get().applyFilters()
   },

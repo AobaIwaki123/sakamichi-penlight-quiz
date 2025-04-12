@@ -16,8 +16,6 @@ export function FilterButton() {
   const checkedFilters = useFilterStore((state) => state.checkedFilters);
   const setFilter = useFilterStore((state) => state.setFilter);
 
-  const setMemberFilters = useSelectedMemberStore((state) => state.setFilters);
-
   // ✅ 初期化（マウント時にフィルター状態を設定）
   useEffect(() => {
     for (const filter of hinatazakaFilters) {

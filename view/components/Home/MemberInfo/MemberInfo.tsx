@@ -15,7 +15,7 @@ export function MemberInfo() {
 
   const triggerCount = useAnswerCloseTriggerStore((state) => state.triggerCount);
 
-  const pickRandomMember = useSelectedMemberStore((state) => state.pickRandomMember);
+  const pickRandomMember = useSelectedMemberStore((state) => state.pickRandomMember) as () => string | null;
 
   useEffect(() => {
     const _ = triggerCount;
@@ -24,7 +24,12 @@ export function MemberInfo() {
       .map(([type]) => type);
 
     if (selected.length > 0) {
-      const random = pickRandomMember() 
+      const random = pickRandomMember()
+      
+      if (random === undefined) {
+        alert("メンバーが選ばれませんでした。フィルターを確認してください。");
+        return;
+      }
       console.log("選ばれたメンバー:", random);
     }
   }, [triggerCount, checkedFilters, pickRandomMember]);
