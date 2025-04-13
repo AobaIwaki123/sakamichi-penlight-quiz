@@ -2,8 +2,6 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: penlight
-  labels:
-    app: penlight
 spec:
   replicas: 1
   selector:
@@ -14,8 +12,10 @@ spec:
       labels:
         app: penlight
     spec:
+      imagePullSecrets:
+        - name: harbor-pull-secret
       containers:
         - name: penlight
-          image: harbor.aooba.net/penlight/prod-view-penlight:local
+          image: harbor.aooba.net/your-project/penlight:latest
           ports:
             - containerPort: 3000
