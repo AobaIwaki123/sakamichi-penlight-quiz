@@ -20,6 +20,7 @@ const nextConfig = {
 	experimental: {
 		optimizePackageImports: ["@mantine/core", "@mantine/hooks"],
 	},
+	output: "standalone",
 };
 
 // `withPWA` と `withBundleAnalyzer` を組み合わせる
