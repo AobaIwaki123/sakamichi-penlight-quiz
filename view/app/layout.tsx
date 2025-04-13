@@ -8,8 +8,8 @@ import {
 import { theme } from "../theme";
 
 export const metadata = {
-  title: "Mantine Next.js template",
-  description: "I am using Mantine with Next.js!",
+  title: "Sakamichi Penlight Quiz",
+  description: "坂道グループのペンライトクイズ",
 };
 
 export default function RootLayout({ children }: { children: any }) {
