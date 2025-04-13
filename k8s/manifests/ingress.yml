@@ -7,10 +7,6 @@ metadata:
     cert-manager.io/cluster-issuer: letsencrypt-cloudflare
 spec:
   ingressClassName: "cloudflare-tunnel"
-  tls:
-    - hosts:
-        - penlight.aooba.net
-      secretName: penlight-tls
   rules:
     - host: penlight.aooba.net
       http:
