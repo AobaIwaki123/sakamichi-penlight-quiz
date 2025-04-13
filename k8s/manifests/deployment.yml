@@ -1,0 +1,21 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: penlight
+  labels:
+    app: penlight
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: penlight
+  template:
+    metadata:
+      labels:
+        app: penlight
+    spec:
+      containers:
+        - name: penlight
+          image: harbor.aooba.net/penlight/prod-view-penlight:local
+          ports:
+            - containerPort: 3000
