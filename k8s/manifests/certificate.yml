@@ -7,5 +7,6 @@ spec:
   issuerRef:
     name: letsencrypt-cloudflare
     kind: ClusterIssuer
+  commonName: penlight.aooba.net
   dnsNames:
     - penlight.aooba.net
