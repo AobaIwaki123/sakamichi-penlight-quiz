@@ -20,6 +20,8 @@ export default function RootLayout({ children }: { children: any }) {
         <link rel="shortcut icon" href="/icon512_rounded.svg" />
         <link rel="manifest" href="/manifest.json" />
         <link rel="apple-touch-icon" href="/icon512_rounded.png" />
+        <link rel="icon" type="image/png" sizes="32x32" href="/icon512_rounded.png" />
+        <link rel="icon" type="image/png" sizes="16x16" href="/icon512_rounded.png" />
         <meta
           name="viewport"
           content="minimum-scale=1, initial-scale=1, width=device-width, user-scalable=no"
