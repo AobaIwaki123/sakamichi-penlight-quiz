@@ -32,3 +32,4 @@ jobs:
           target: prod
           push: true
           tags: ${{ env.HARBOR_REGISTRY }}/${{ env.IMAGE_NAME }}:${{ env.IMAGE_TAG }}
+          provenance: false
