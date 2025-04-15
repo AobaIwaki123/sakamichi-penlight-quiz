@@ -30,6 +30,5 @@ jobs:
           context: ./view
           file: ./view/Dockerfile
           target: prod
-          push: true
+          push: false
           tags: ${{ env.HARBOR_REGISTRY }}/${{ env.IMAGE_NAME }}:${{ env.IMAGE_TAG }}
-          provenance: false
