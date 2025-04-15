@@ -16,6 +16,6 @@ spec:
         - name: harbor-pull-secret
       containers:
         - name: penlight
-          image: harbor.aooba.net/penlight/prod-view-penlight:local-tmp-2
+          image: harbor.aooba.net/penlight/prod-view-penlight:local-tmp-3
           ports:
             - containerPort: 3000
