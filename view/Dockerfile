@@ -46,15 +46,15 @@ ENV NODE_ENV=production
 WORKDIR /app
 
 # 必要最低限のファイルのみをコピー（standaloneモード + public/static）
-COPY --from=builder --chown=65532:65532 /app/.next/standalone /app/
-COPY --from=builder --chown=65532:65532 /app/.next/static /app/.next/static
-COPY --from=builder --chown=65532:65532 /app/public /app/public
-
-# 環境変数とポート定義
-ARG PORT=3000
-ENV HOSTNAME=0.0.0.0
-ENV PORT=${PORT}
-EXPOSE ${PORT}
-
-# 起動エントリーポイント（Next.jsのstandaloneサーバ）
-ENTRYPOINT [ "/nodejs/bin/node", "server.js" ]
+# COPY --from=builder --chown=65532:65532 /app/.next/standalone /app/
+# COPY --from=builder --chown=65532:65532 /app/.next/static /app/.next/static
+# COPY --from=builder --chown=65532:65532 /app/public /app/public
+# 
+# # 環境変数とポート定義
+# ARG PORT=3000
+# ENV HOSTNAME=0.0.0.0
+# ENV PORT=${PORT}
+# EXPOSE ${PORT}
+# 
+# # 起動エントリーポイント（Next.jsのstandaloneサーバ）
+# ENTRYPOINT [ "/nodejs/bin/node", "server.js" ]
