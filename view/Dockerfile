@@ -37,7 +37,7 @@ COPY . .
 RUN pnpm run build
 
 # --- 本番ステージ（軽量かつ安全なDistrolessイメージ） ---
-FROM node:${NODE_VERSION}-slim AS prod
+FROM gcr.io/distroless/nodejs22-debian12:nonroot AS prod
 
 # 本番環境変数
 ENV NODE_ENV=production
@@ -57,4 +57,4 @@ ENV PORT=${PORT}
 EXPOSE ${PORT}
 
 # 起動エントリーポイント（Next.jsのstandaloneサーバ）
-CMD [ "/nodejs/bin/node", "server.js" ]
+ENTRYPOINT [ "/nodejs/bin/node", "server.js" ]
