@@ -6,10 +6,10 @@ build:
 	@docker build --target prod -t prod-view-penlight ./view
 
 tag:
-	@docker tag prod-view-penlight:latest harbor.aooba.net/penlight/prod-view-penlight:local-tmp-3
+	@docker tag prod-view-penlight:latest harbor.aooba.net/penlight/prod-view-penlight:local-tmp-4
 
 push:
-	@docker -D push harbor.aooba.net/penlight/prod-view-penlight:local-tmp-3
+	@docker -D push harbor.aooba.net/penlight/prod-view-penlight:local-tmp-4
 
 run:
 	@docker run -d \
