@@ -22,7 +22,7 @@ export function NotFoundImage() {
             Get back to home page
           </Button>
         </div>
-        <Image src="/not-found.jpg" className={classes.desktopImage} />
+        <Image src="/not-found.jpeg" className={classes.desktopImage} />
       </SimpleGrid>
     </Container>
   );
