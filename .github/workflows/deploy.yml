@@ -1,0 +1,32 @@
+name: Deploy Sakamichi Penlight Quiz
+run-name: Deploy Sakamichi Penlight Quiz
+
+on:
+  workflow_dispatch:
+
+env:
+  HARBOR_REGISTRY: harbor.aooba.net
+  IMAGE_NAME: penlight/prod-view-penlight
+  IMAGE_TAG: local-tmp-5
+
+jobs:
+  docker-build-and-push-to-harbor:
+    timeout-minutes: 5  # 通常30秒〜1分で終わる想定。無限ビルドを防止。
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Login to Harbor
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.HARBOR_REGISTRY }}
+          username: robot$github-action-penlight
+          password: ${{ secrets.HARBOR_TOKEN }}
+
+      - name: Build and Push Docker image
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          push: true
+          tags: ${{ env.HARBOR_REGISTRY }}/${{ env.IMAGE_NAME }}:${{ env.IMAGE_TAG }}
