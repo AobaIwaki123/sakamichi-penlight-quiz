@@ -2,7 +2,7 @@
 
 import { BigQuery } from '@google-cloud/bigquery';
 
-async function queryBigQuery() {
+export async function queryBigQuery() {
   const bigquery = new BigQuery();
 
   const query = `
@@ -26,6 +26,6 @@ async function queryBigQuery() {
   for (const row of rows) {
     console.log(row);
   }
-}
 
-queryBigQuery().catch(console.error);
+  return rows;
+}
