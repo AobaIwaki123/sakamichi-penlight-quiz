@@ -19,3 +19,8 @@ run:
 
 cd: build tag push
 	@echo "Build, tag, and push completed."
+
+sync:
+	@curl -X POST https://argocd.aooba.net/api/v1/applications/penlight/sync \
+	 -H "Authorization: Bearer $(TOKEN)" \
+	 -H "Content-Type: application/json"
