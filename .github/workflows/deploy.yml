@@ -19,34 +19,39 @@ env:
   DEPLOYMENT_FILE_PATH: k8s/manifests/deployment.yml
 
 jobs:
-  docker-build-and-push-to-harbor:
+  determine-image-tag:
     runs-on: ubuntu-latest
-    timeout-minutes: 5
     outputs:
       image_tag: ${{ steps.set-tag.outputs.image_tag }}
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # タグ取得のため必須
 
       - name: Determine Docker image tag
         id: set-tag
-        env:
-          EVENT_NAME: ${{ github.event_name }}
-          IMAGE_TAG: ${{ github.event.inputs.image_tag }}
         run: |
-          if [[ "${EVENT_NAME}" == "workflow_dispatch" ]]; then
-            echo "image_tag=${IMAGE_TAG}" >> "$GITHUB_OUTPUT"
+          if [[ "${{ github.event_name }}" == "workflow_dispatch" ]]; then
+            echo "image_tag=${{ github.event.inputs.image_tag }}" >> "$GITHUB_OUTPUT"
           else
-            echo "image_tag=${GITHUB_REF#refs/tags/}" >> "$GITHUB_OUTPUT"
+            latest_tag=$(git describe --tags --abbrev=0)
+            echo "Using latest tag: $latest_tag"
+            echo "image_tag=$latest_tag" >> "$GITHUB_OUTPUT"
           fi
+
+  docker-build-and-push-to-harbor:
+    runs-on: ubuntu-latest
+    needs: determine-image-tag
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
 
       - name: Login to Harbor registry
         uses: docker/login-action@v3
-        env:
-          HARBOR_REGISTRY: ${{ env.HARBOR_REGISTRY }}
         with:
           registry: ${{ env.HARBOR_REGISTRY }}
           username: robot$github-action-penlight
@@ -54,20 +59,16 @@ jobs:
 
       - name: Build and Push Docker image to Harbor
         uses: docker/build-push-action@v6
-        env:
-          HARBOR_REGISTRY: ${{ env.HARBOR_REGISTRY }}
-          IMAGE_NAME: ${{ env.IMAGE_NAME }}
-          IMAGE_TAG: ${{ steps.set-tag.outputs.image_tag }}
         with:
           context: ./view
           file: ./view/Dockerfile
           target: prod
           push: true
-          tags: ${{ env.HARBOR_REGISTRY }}/${{ env.IMAGE_NAME }}:${{ env.IMAGE_TAG }}
+          tags: ${{ env.HARBOR_REGISTRY }}/${{ env.IMAGE_NAME }}:${{ needs.determine-image-tag.outputs.image_tag }}
 
   update-deployment-manifest:
     runs-on: ubuntu-latest
-    needs: docker-build-and-push-to-harbor
+    needs: determine-image-tag
     permissions:
       contents: write
     steps:
@@ -78,24 +79,16 @@ jobs:
         uses: mikefarah/yq@v4
 
       - name: Update deployment YAML with new image tag
-        env:
-          DEPLOYMENT_FILE_PATH: ${{ env.DEPLOYMENT_FILE_PATH }}
-          HARBOR_REGISTRY: ${{ env.HARBOR_REGISTRY }}
-          IMAGE_NAME: ${{ env.IMAGE_NAME }}
-          IMAGE_TAG: ${{ needs.docker-build-and-push-to-harbor.outputs.image_tag }}
         run: |
-          yq -i '.spec.template.spec.containers[0].image = "${HARBOR_REGISTRY}/${IMAGE_NAME}:${IMAGE_TAG}"' "${DEPLOYMENT_FILE_PATH}"
-          echo "Updated image in ${DEPLOYMENT_FILE_PATH}"
+          yq -i '.spec.template.spec.containers[0].image = "${{ env.HARBOR_REGISTRY }}/${{ env.IMAGE_NAME }}:${{ needs.determine-image-tag.outputs.image_tag }}"' "${{ env.DEPLOYMENT_FILE_PATH }}"
+          echo "Updated image in ${{ env.DEPLOYMENT_FILE_PATH }}"
 
       - name: Commit and push deployment update
-        env:
-          DEPLOYMENT_FILE_PATH: ${{ env.DEPLOYMENT_FILE_PATH }}
-          IMAGE_TAG: ${{ needs.docker-build-and-push-to-harbor.outputs.image_tag }}
         run: |
           git config user.name github-actions
           git config user.email github-actions@github.com
-          git add "${DEPLOYMENT_FILE_PATH}"
-          git commit -m "Update image tag to ${IMAGE_TAG}"
+          git add "${{ env.DEPLOYMENT_FILE_PATH }}"
+          git commit -m "Update image tag to ${{ needs.determine-image-tag.outputs.image_tag }}"
           git push
 
   sync:
