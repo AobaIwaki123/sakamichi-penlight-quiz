@@ -29,9 +29,12 @@ jobs:
 
       - name: Determine Docker image tag
         id: set-tag
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+          IMAGE_TAG: ${{ github.event.inputs.image_tag }}
         run: |
-          if [[ "${{ github.event_name }}" == "workflow_dispatch" ]]; then
-            echo "image_tag=${{ github.event.inputs.image_tag }}" >> "$GITHUB_OUTPUT"
+          if [[ "${EVENT_NAME}" == "workflow_dispatch" ]]; then
+            echo "image_tag=${IMAGE_TAG}" >> "$GITHUB_OUTPUT"
           else
             echo "image_tag=${GITHUB_REF#refs/tags/}" >> "$GITHUB_OUTPUT"
           fi
