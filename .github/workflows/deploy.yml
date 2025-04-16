@@ -8,9 +8,10 @@ on:
         description: "Docker image tag (e.g. tmp-1)"
         required: true
         default: tmp
-  push:
-    tags:
-      - '*'  # 任意のタグ push に反応
+  workflow_run:
+    workflows: ["release-action"]
+    types:
+      - completed
 
 env:
   HARBOR_REGISTRY: harbor.aooba.net

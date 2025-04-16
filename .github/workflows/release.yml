@@ -1,4 +1,4 @@
-name: Release action
+name: release-action
 run-name: Release action
 
 on:
