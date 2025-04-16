@@ -1,0 +1,31 @@
+ "use server";
+
+import { BigQuery } from '@google-cloud/bigquery';
+
+async function queryBigQuery() {
+  const bigquery = new BigQuery();
+
+  const query = `
+   SELECT
+     *
+   FROM
+     sakamichipenlightquiz.hinatazaka.member_master
+  `;
+
+  const options = {
+    query: query,
+    location: 'US', // 必要に応じて適切なロケーションに変更
+  };
+
+  const [job] = await bigquery.createQueryJob(options);
+  console.log(`Job ${job.id} started.`);
+
+  const [rows] = await job.getQueryResults();
+
+  console.log('Rows:');
+  for (const row of rows) {
+    console.log(row);
+  }
+}
+
+queryBigQuery().catch(console.error);
