@@ -1,5 +1,9 @@
 # 坂道グループペンライトクイズ
 
+<div style="display: flex; justify-content: center; gap: 10px;">
+  <img src="imgs/v1.png" alt="alt text" width="300">
+</div>
+
 ## 注意
 
 レスポンシブ対応が苦手すぎて、横画面のレイアウトはかなり崩れています。
