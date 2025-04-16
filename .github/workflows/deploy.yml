@@ -75,14 +75,13 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Set up yq (YAML processor)
+      - name: Update deployment YAML with new image tag
         uses: mikefarah/yq@v4
         with:
-          cmd: install
+          cmd: yq -i '.spec.template.spec.containers[0].image = "${{ env.HARBOR_REGISTRY }}/${{ env.IMAGE_NAME }}:${{ needs.determine-image-tag.outputs.image_tag }}"' "${{ env.DEPLOYMENT_FILE_PATH }}"        
 
-      - name: Update deployment YAML with new image tag
+      - name: Check updated deployment file
         run: |
-          yq -i '.spec.template.spec.containers[0].image = "${{ env.HARBOR_REGISTRY }}/${{ env.IMAGE_NAME }}:${{ needs.determine-image-tag.outputs.image_tag }}"' "${{ env.DEPLOYMENT_FILE_PATH }}"
           echo "Updated image in ${{ env.DEPLOYMENT_FILE_PATH }}"
 
       - name: Commit and push deployment update
