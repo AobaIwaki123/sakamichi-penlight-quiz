@@ -1,7 +1,7 @@
 const [DATABASE_NAME, DATASET_NAME, TABLE_NAME] = [
 	"sakamichipenlightquiz_hinatazaka",
 	"hinatazaka",
-	"member_info",
+	"penlight",
 ];
 
 declare({
