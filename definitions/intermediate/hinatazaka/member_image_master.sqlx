@@ -4,7 +4,8 @@ config {
   description: "メンバー画像マスタ",
 }
 
+---
 SELECT
   *
 FROM
-  $(ref("hinatazaka", "member_image_5th_hinatansai"))
+  ${ref("member_image_5th_hinatansai")}
