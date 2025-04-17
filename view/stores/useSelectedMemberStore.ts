@@ -1,9 +1,9 @@
-import type { Generation } from "@/consts/hinatazakaFilters";
-import type { Member } from "@/types/member";
-import { create } from 'zustand'
 import { getHinatazakaMember } from "@/api/bq/get_hinatazaka_member";
+import { create } from 'zustand'
 
-export type Group = 'nogizaka' | 'sakurazaka' | 'hinatazaka'
+import type { Generation } from "@/consts/hinatazakaFilters";
+import type { Group } from "@/types/Group";
+import type { Member } from "@/types/Member";
 
 type State = {
   selectedGroup: Group

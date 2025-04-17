@@ -2,7 +2,7 @@
 
 import { BigQuery } from '@google-cloud/bigquery';
 
-import type { Member } from '@/types/member';
+import type { Member } from '@/types/Member';
 
 export async function getHinatazakaMember(): Promise<Member[]> {
   const bigquery = new BigQuery();

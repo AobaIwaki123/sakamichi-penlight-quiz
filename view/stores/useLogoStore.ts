@@ -1,7 +1,9 @@
 import { create } from 'zustand'
 
+import type { Group } from "@/types/Group";
+
 type Logo = {
-  name: string
+  name: Group
   url: string
 }
 
@@ -14,7 +16,7 @@ const logos: Logo[] = [
 type LogoStore = {
   index: number
   current: Logo
-  next: () => void
+  next: () => Logo
   reset: () => void
 }
 
@@ -24,6 +26,7 @@ export const useLogoStore = create<LogoStore>((set, get) => ({
   next: () => {
     const nextIndex = (get().index + 1) % logos.length
     set({ index: nextIndex, current: logos[nextIndex] })
+    return logos[nextIndex]
   },
   reset: () => set({ index: 0, current: logos[0] }),
 }))
