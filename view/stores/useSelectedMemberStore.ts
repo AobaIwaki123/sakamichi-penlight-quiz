@@ -42,6 +42,8 @@ export const useSelectedMemberStore = create<State>((set, get) => ({
       set({ allMembers: members })
       get().applyFilters()
       console.log(`Loaded ${members.length} members from ${group}`)
+      // Pick Random Member
+      get().pickRandomMember()
     } catch (err) {
       console.error(`Error loading ${group}:`, err)
     } finally {

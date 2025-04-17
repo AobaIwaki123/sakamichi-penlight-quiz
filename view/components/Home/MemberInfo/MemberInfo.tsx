@@ -1,6 +1,5 @@
 "use client";
 
-import { HinatazakaMembers } from "@/consts/hinatazakaMembers";
 import { useAnswerCloseTriggerStore } from '@/stores/useAnswerCloseTriggerStore'
 import { useFilterStore } from '@/stores/useFilterStore';
 import { useSelectedMemberStore } from '@/stores/useSelectedMemberStore';
