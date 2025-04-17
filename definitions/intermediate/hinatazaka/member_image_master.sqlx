@@ -8,3 +8,13 @@ SELECT
   *
 FROM
   ${ref("hinatazaka", "member_image_5th_hinatansai")}
+UNION ALL
+SELECT
+  *
+FROM
+  ${ref("hinatazaka", "member_image_5th_member")}
+UNION ALL
+SELECT
+  *
+FROM
+  ${ref("hinatazaka", "member_image_13th_single")}
