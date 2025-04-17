@@ -1,15 +1,15 @@
 import { ActionIcon } from "@mantine/core"
 import { useLogoStore } from "@/stores/useLogoStore"
-
-import { useState } from "react"
+import { useSelectedMemberStore } from "@/stores/useSelectedMemberStore"
 
 export function SakamichiLogo() {
-  const [group, setGroup] = useState('hinatazaka') // This should be dynamic based on the selected group
+  const setGroup = useSelectedMemberStore((state) => state.setGroup);
   const currentLogo = useLogoStore((state) => state.current)
 
   const onClick = () => {
-    setGroup(currentLogo.name)
-    useLogoStore.getState().next()
+    const nextLogo = useLogoStore.getState().next()
+    console.log("nextLogo", nextLogo.name)
+    setGroup(nextLogo.name)
   }
   
   return (
@@ -17,7 +17,7 @@ export function SakamichiLogo() {
       <ActionIcon variant="light" size="xl" onClick={onClick}>
         <img
           src={currentLogo.url}
-          alt={group}
+          alt={currentLogo.name}
           style={{ width: '100%', height: '100%' }}
         />
       </ActionIcon>

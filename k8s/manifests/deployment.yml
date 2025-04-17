@@ -16,6 +16,17 @@ spec:
         - name: harbor-pull-secret
       containers:
         - name: penlight
-          image: harbor.aooba.net/penlight/prod-view-penlight:v1.0.0
+          image: harbor.aooba.net/penlight/prod-view-penlight:tmp-bq
+          volumeMounts:
+            - name: gcp-sa-volume
+              mountPath: /app/secret
+              readOnly: true
+          env:
+            - name: GOOGLE_APPLICATION_CREDENTIALS
+              value: /app/secret/key.json
           ports:
             - containerPort: 3000
+      volumes:
+        - name: gcp-sa-volume
+          secret:
+            secretName: gcp-sa-key

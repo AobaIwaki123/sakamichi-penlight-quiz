@@ -1,9 +1,9 @@
 "use client";
 
-import type { Member } from '@/consts/hinatazakaMembers';
 import { useColorController } from '@/hooks/useColorController';
 import { useAnswerTriggerStore } from '@/stores/useAnswerTriggerStore'
 import { useSelectedMemberStore } from '@/stores/useSelectedMemberStore';
+import type { Member } from '@/types/Member';
 import { Button, Text } from '@mantine/core';
 import { useState } from 'react';
 import { FullscreenNotification } from './FullscreenNotification/FullscreenNotification';

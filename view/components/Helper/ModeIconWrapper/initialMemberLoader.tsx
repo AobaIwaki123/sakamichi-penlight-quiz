@@ -1,16 +1,19 @@
 "use client";
 
+import { useEffect } from 'react';
 import { useSelectedMemberStore } from '@/stores/useSelectedMemberStore';
-import type { Group } from '@/stores/useSelectedMemberStore';
-import { useEffect } from 'react'
 
 export const InitialLoader = () => {
-  const selectedGroup = useSelectedMemberStore((s: { selectedGroup: Group }) => s.selectedGroup)
-  const setGroup = useSelectedMemberStore((s: { setGroup: (group: Group) => void }) => s.setGroup)
+  const selectedGroup = useSelectedMemberStore((state) => state.selectedGroup);
+  const allMembers = useSelectedMemberStore((state) => state.allMembers);
+  const setGroup = useSelectedMemberStore((state) => state.setGroup);
 
   useEffect(() => {
-    setGroup(selectedGroup) // 初回マウント時にロード
-  }, [setGroup, selectedGroup])
+    if (allMembers.length === 0) {
+      // 初回のみデータロード
+      setGroup(selectedGroup);
+    }
+  }, [allMembers.length, selectedGroup, setGroup]);
 
-  return null
-}
+  return null;
+};

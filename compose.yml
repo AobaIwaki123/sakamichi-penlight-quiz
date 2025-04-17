@@ -10,3 +10,5 @@ services:
       - ./view:/app
     ports:
       - "3000:3000"
+    environment:
+      GOOGLE_APPLICATION_CREDENTIALS: /app/secret/credentials.json

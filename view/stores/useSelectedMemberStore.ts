@@ -1,9 +1,9 @@
-import type { Generation } from "@/consts/hinatazakaFilters";
-import type { Member } from '@/consts/hinatazakaMembers';
-import { HinatazakaMembers } from '@/consts/hinatazakaMembers'
+import { getHinatazakaMember } from "@/api/bq/get_hinatazaka_member";
 import { create } from 'zustand'
 
-export type Group = 'nogizaka' | 'sakurazaka' | 'hinatazaka'
+import type { Generation } from "@/consts/hinatazakaFilters";
+import type { Group } from "@/types/Group";
+import type { Member } from "@/types/Member";
 
 type State = {
   selectedGroup: Group
@@ -34,13 +34,16 @@ export const useSelectedMemberStore = create<State>((set, get) => ({
   isLoading: false,
   hasInvalidFilter: false,
 
-  setGroup: (group) => {
+  setGroup: async (group) => {
     set({ isLoading: true, selectedGroup: group })
     try {
-      const members = getGroupMembers(group)
+      const members = await getGroupMembers(group)
+      console.log("members", members)
       set({ allMembers: members })
       get().applyFilters()
       console.log(`Loaded ${members.length} members from ${group}`)
+      // Pick Random Member
+      get().pickRandomMember()
     } catch (err) {
       console.error(`Error loading ${group}:`, err)
     } finally {
@@ -83,9 +86,9 @@ export const useSelectedMemberStore = create<State>((set, get) => ({
   }
 }))
 
-function getGroupMembers(group: Group): Member[] {
+async function getGroupMembers(group: Group): Promise<Member[]> {
   if (group === 'hinatazaka') {
-    return HinatazakaMembers
+    return getHinatazakaMember()
   }
 
   throw new Error(`未対応のグループ: ${group}`)
