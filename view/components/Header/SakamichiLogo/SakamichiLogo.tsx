@@ -7,9 +7,7 @@ export function SakamichiLogo() {
   const currentLogo = useLogoStore((state) => state.current)
 
   const onClick = () => {
-    console.log("nextLogo", currentLogo.name)
     const nextLogo = useLogoStore.getState().next()
-    console.log("nextLogo", currentLogo.name)
     console.log("nextLogo", nextLogo.name)
     setGroup(nextLogo.name)
   }

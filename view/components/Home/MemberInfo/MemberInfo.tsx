@@ -7,6 +7,7 @@ import { useSelectedMemberStore } from '@/stores/useSelectedMemberStore';
 import { MemberImage } from "./MemberImage/MemberImage";
 import { MemberInfoHeader } from "./MemberInfoHeader/MemberInfoHeader";
 
+import { init } from 'next/dist/compiled/webpack/webpack';
 import { useEffect } from "react";
 
 export function MemberInfo() {
@@ -24,7 +25,7 @@ export function MemberInfo() {
 
     if (selected.length > 0) {
       const random = pickRandomMember()
-      
+
       // if (random === undefined) {
       //   alert("メンバーが選ばれませんでした。フィルターを確認してください。");
       //   return;
@@ -35,8 +36,8 @@ export function MemberInfo() {
 
   return (
     <>
-      <MemberInfoHeader/>
-      <MemberImage/>
+      <MemberInfoHeader />
+      <MemberImage />
     </>
   );
 }

@@ -1,16 +1,15 @@
 "use client";
-
 import { InitialLoader } from '@/components/Helper/ModeIconWrapper/initialMemberLoader';
+
+import { Notification } from '@/components/Notification/Notification';
 import { Container, Grid } from '@mantine/core';
 import { MemberInfo } from "./MemberInfo/MemberInfo";
 import { PenlightForm } from "./PenlightForm/PenlightForm";
-import { Notification } from '@/components/Notification/Notification';
 
 export default function Home() {
-  InitialLoader();
-
   return (
     <Container>
+      <InitialLoader />
       <Notification />
       <Grid>
         <Grid.Col span={{ base: 12, xs: 6 }} style={{ minHeight: 300 }}>
