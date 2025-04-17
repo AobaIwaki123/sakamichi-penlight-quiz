@@ -4,7 +4,6 @@ config {
   description: "メンバー画像マスタ",
 }
 
----
 SELECT
   *
 FROM
