@@ -1,14 +1,14 @@
 // types/member.ts
 
 export interface Member {
-  id: string;
+  id: number;
   name: string;
   nickname: string;
   emoji: string;
   gen: string;
-  graduated: string;
-  penlight1_id: string;
-  penlight2_id: string;
+  graduated: boolean;
+  penlight1_id: number;
+  penlight2_id: number;
   type: string;
   url: string;
 }

@@ -1,6 +1,6 @@
 "use client";
 
-import type { Member } from '@/consts/hinatazakaMembers';
+import type { Member } from '@/types/member';
 import { useColorController } from '@/hooks/useColorController';
 import { useAnswerTriggerStore } from '@/stores/useAnswerTriggerStore'
 import { useSelectedMemberStore } from '@/stores/useSelectedMemberStore';

@@ -1,5 +1,5 @@
 import type { Generation } from "@/consts/hinatazakaFilters";
-import type { Member } from '@/consts/hinatazakaMembers';
+import type { Member } from "@/types/member";
 import { HinatazakaMembers } from '@/consts/hinatazakaMembers'
 import { create } from 'zustand'
 
