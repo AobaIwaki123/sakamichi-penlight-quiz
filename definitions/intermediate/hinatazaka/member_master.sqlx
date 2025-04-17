@@ -1,0 +1,29 @@
+config {
+  type: "table",
+  schema: "hinatazaka",
+  name: "member_master",
+  description: "メンバー情報のマスター",
+}
+
+SELECT
+  info.id,
+  info.name,
+  info.nickname,
+  info.emoji,
+  info.gen,
+  info.graduated,
+  penlight1.id AS penlight1_id,
+  penlight2.id AS penlight2_id,
+  info.type,
+  info.url
+FROM
+  $(ref("member_with_image")) info
+JOIN
+  ${ref("penlight")} penlight1
+ON
+  info.penlight1 = penlight1.name_ja
+JOIN
+  ${ref("penlight")} penlight2
+ON
+  info.penlight2 = penlight2.name_ja
+
