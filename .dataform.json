@@ -1,6 +1,0 @@
-{
-  "warehouse": "bigquery",
-  "defaultDatabase": "sakamichipenlightquiz",
-  "defaultSchema": "hinatazaka",
-  "defaultLocation": "US"
-}

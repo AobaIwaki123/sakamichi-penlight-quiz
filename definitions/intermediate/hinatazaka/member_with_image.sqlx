@@ -20,3 +20,5 @@ FROM
   ${ref("member_info")} info
 JOIN
   ${ref("member_image_master")} img
+ON
+  info.name = img.name
