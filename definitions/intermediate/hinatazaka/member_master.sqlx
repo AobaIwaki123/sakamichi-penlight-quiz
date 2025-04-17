@@ -17,7 +17,7 @@ SELECT
   info.type,
   info.url
 FROM
-  $(ref("member_with_image")) info
+  ${ref("member_with_image")} info
 JOIN
   ${ref("penlight")} penlight1
 ON
