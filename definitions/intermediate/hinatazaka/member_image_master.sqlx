@@ -1,6 +1,7 @@
 config {
   type: "table",
   schema: "hinatazaka",
+  name: "member_image_master",
   description: "メンバー画像マスタ",
 }
 
