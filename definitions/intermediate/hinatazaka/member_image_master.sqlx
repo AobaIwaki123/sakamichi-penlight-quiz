@@ -7,4 +7,4 @@ config {
 SELECT
   *
 FROM
-  ${ref("member_image_5th_hinatansai")}
+  ${ref("hinatazaka", "member_image_5th_hinatansai")}
