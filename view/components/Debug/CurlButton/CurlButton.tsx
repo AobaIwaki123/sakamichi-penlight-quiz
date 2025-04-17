@@ -2,12 +2,12 @@
 
 import { Button } from "@mantine/core";
 
-import { queryBigQuery } from "@/api/bq/get_hinatazaka_member";
+import { getHinatazakaMember } from "@/api/bq/get_hinatazaka_member";
 
 export function CurlButton() {
   const onClick = async () => {
     console.log("curl");
-    const res = await queryBigQuery();
+    const res = await getHinatazakaMember();
     console.log("res", res);
   };
 

@@ -4,7 +4,7 @@ import { BigQuery } from '@google-cloud/bigquery';
 
 import type { Member } from '@/types/member';
 
-export async function queryBigQuery(): Promise<Member[]> {
+export async function getHinatazakaMember(): Promise<Member[]> {
   const bigquery = new BigQuery();
 
   const query = `

@@ -1,7 +1,7 @@
 import type { Generation } from "@/consts/hinatazakaFilters";
 import type { Member } from "@/types/member";
-import { HinatazakaMembers } from '@/consts/hinatazakaMembers'
 import { create } from 'zustand'
+import { getHinatazakaMember } from "@/api/bq/get_hinatazaka_member";
 
 export type Group = 'nogizaka' | 'sakurazaka' | 'hinatazaka'
 
@@ -34,10 +34,11 @@ export const useSelectedMemberStore = create<State>((set, get) => ({
   isLoading: false,
   hasInvalidFilter: false,
 
-  setGroup: (group) => {
+  setGroup: async (group) => {
     set({ isLoading: true, selectedGroup: group })
     try {
-      const members = getGroupMembers(group)
+      const members = await getGroupMembers(group)
+      console.log("members", members)
       set({ allMembers: members })
       get().applyFilters()
       console.log(`Loaded ${members.length} members from ${group}`)
@@ -83,9 +84,9 @@ export const useSelectedMemberStore = create<State>((set, get) => ({
   }
 }))
 
-function getGroupMembers(group: Group): Member[] {
+async function getGroupMembers(group: Group): Promise<Member[]> {
   if (group === 'hinatazaka') {
-    return HinatazakaMembers
+    return getHinatazakaMember()
   }
 
   throw new Error(`未対応のグループ: ${group}`)
