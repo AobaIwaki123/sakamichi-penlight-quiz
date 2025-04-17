@@ -2,7 +2,9 @@
 
 import { BigQuery } from '@google-cloud/bigquery';
 
-export async function queryBigQuery() {
+import type { Member } from '@/types/member';
+
+export async function queryBigQuery(): Promise<Member[]> {
   const bigquery = new BigQuery();
 
   const query = `
@@ -27,5 +29,5 @@ export async function queryBigQuery() {
     console.log(row);
   }
 
-  return rows;
+  return rows as Member[];
 }

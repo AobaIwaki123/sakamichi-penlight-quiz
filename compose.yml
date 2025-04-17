@@ -8,8 +8,6 @@ services:
     command: pnpm dev
     volumes:
       - ./view:/app
-      - /app/.next
-      - /app/.pnpm-store
     ports:
       - "3000:3000"
     environment:

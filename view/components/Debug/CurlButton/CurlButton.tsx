@@ -6,8 +6,9 @@ import { queryBigQuery } from "@/api/bq/get_hinatazaka_member";
 
 export function CurlButton() {
   const onClick = async () => {
-    const res = await queryBigQuery();
     console.log("curl");
+    const res = await queryBigQuery();
+    console.log("res", res);
   };
 
   return (
