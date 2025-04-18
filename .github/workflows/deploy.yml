@@ -93,12 +93,11 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: 22
-          cache: 'npm'
 
       - name: Bump version in package.json
         run: |
           cd view
-          pnpm version --no-git-tag-version "${{ needs.determine-image-tag.outputs.image_tag }}" 
+          npm version --no-git-tag-version "${{ needs.determine-image-tag.outputs.image_tag }}" 
           cd ..
 
       - name: Commit and push deployment update
