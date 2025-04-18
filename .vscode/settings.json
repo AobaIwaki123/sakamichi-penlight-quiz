@@ -1,11 +1,6 @@
 {
   "editor.formatOnSave": true,
   //   コマンドをいちいち実行しなくても常に lint/format が素早く実行される状態にする
-  "[javascript]": {
-    "editor.tabSize": 1,
-    "editor.formatOnSave": true,
-    "editor.defaultFormatter": "biomejs.biome"
-  },
   "[typescript]": {
     "editor.tabSize": 1,
     "editor.formatOnSave": true,
