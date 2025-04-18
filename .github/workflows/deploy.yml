@@ -18,6 +18,10 @@ env:
   IMAGE_NAME: penlight/prod-view-penlight
   DEPLOYMENT_FILE_PATH: k8s/manifests/deployment.yml
 
+defaults:
+  run:
+    shell: bash
+    
 jobs:
   determine-image-tag:
     runs-on: ubuntu-latest
