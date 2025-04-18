@@ -1,0 +1,20 @@
+config {
+  type: "table",
+  schema: "sakamichi",
+  name: "hinatazaka_member_master",
+  description: "日向坂46メンバー情報のマスター",
+}
+
+SELECT
+  id,
+  name,
+  nickname,
+  emoji,
+  gen,
+  graduated,
+  penlight1_id,
+  penlight2_id,
+  type,
+  url
+FROM
+  ${ref("hinatazaka", "member_master")}

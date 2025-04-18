@@ -1,0 +1,5 @@
+defaultProject: sakamichipenlightquiz
+defaultLocation: US
+defaultDataset: hinatazaka
+defaultAssertionDataset: dataform_assertions
+dataformCoreVersion: 3.0.0
