@@ -96,14 +96,17 @@ jobs:
           cache: 'pnpm'
 
       - name: Bump version in package.json
-        run: pnpm version --no-git-tag-version "${{ needs.determine-image-tag.outputs.image_tag }}" 
-        
+        run: |
+          cd view
+          pnpm version --no-git-tag-version "${{ needs.determine-image-tag.outputs.image_tag }}" 
+          cd ..
+
       - name: Commit and push deployment update
         run: |
           git config user.name github-actions
           git config user.email github-actions@github.com
           git add "${{ env.DEPLOYMENT_FILE_PATH }}"
-          git commit -m "Update image tag to ${{ needs.determine-image-tag.outputs.image_tag }}"
+          git commit -m "Update version to ${{ needs.determine-image-tag.outputs.image_tag }}"
           git push
 
   sync:
