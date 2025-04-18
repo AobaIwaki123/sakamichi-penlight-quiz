@@ -11,7 +11,7 @@ export async function getHinatazakaMember(): Promise<Member[]> {
    SELECT
      *
    FROM
-     sakamichipenlightquiz.hinatazaka.member_master
+     sakamichipenlightquiz.sakamichi.hinatazaka_member_master
   `;
 
   const options = {
