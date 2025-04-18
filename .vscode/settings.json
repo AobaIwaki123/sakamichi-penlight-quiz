@@ -26,5 +26,7 @@
   "[typescriptreact]": {
     "editor.defaultFormatter": "vscode.typescript-language-features"
   },
-  "vscode-dataform-tools.gcpProjectId": "sakamichipenlightquiz"
+  "vscode-dataform-tools.gcpProjectId": "sakamichipenlightquiz",
+  "vscode-dataform-tools.formattingCli": "dataform",
+  "vscode-dataform-tools.showCompiledQueryInVerticalSplitOnSave": false
 }

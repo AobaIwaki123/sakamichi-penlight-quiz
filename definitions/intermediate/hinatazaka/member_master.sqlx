@@ -26,4 +26,3 @@ JOIN
   ${ref("penlight")} penlight2
 ON
   info.penlight2 = penlight2.name_ja
-
