@@ -6,7 +6,6 @@ import { CurlButton } from '@/components/Debug/CurlButton/CurlButton';
 export default function HomePage() {
   return (
     <>
-      <CurlButton />
       <Header />
       <Home />
       <Footer />
