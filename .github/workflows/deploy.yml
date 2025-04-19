@@ -68,11 +68,12 @@ jobs:
         run: |
           if [[ "${{ github.event_name }}" == "workflow_dispatch" ]]; then
             echo "image_tag=${{ github.event.inputs.image_tag }}" >> "$GITHUB_OUTPUT"
+          elif [[ "${{ github.event_name }}" == "push" && "${{ github.ref }}" == "refs/heads/dev" ]]; then
+            echo "image_tag=dev" >> "$GITHUB_OUTPUT"
           else
-            latest_tag=$(git tag | tail -n 1)
+            latest_tag=$(git tag | sort -V | tail -n 1)
             echo "Using latest tag: $latest_tag"
             echo "image_tag=$latest_tag" >> "$GITHUB_OUTPUT"
-          fi
 
   docker-build-and-push-to-harbor:
     runs-on: ubuntu-latest
