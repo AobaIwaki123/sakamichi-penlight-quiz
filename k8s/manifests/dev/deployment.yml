@@ -1,21 +1,21 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: penlight-dev
+  name: penlight
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: penlight-dev
+      app: penlight
   template:
     metadata:
       labels:
-        app: penlight-dev
+        app: penlight
     spec:
       imagePullSecrets:
         - name: harbor-pull-secret
       containers:
-        - name: penlight-dev
+        - name: penlight
           image: harbor.aooba.net/penlight/prod-view-penlight:dev
           volumeMounts:
             - name: gcp-sa-volume
