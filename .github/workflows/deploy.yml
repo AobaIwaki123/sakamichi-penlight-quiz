@@ -32,7 +32,7 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
         with:
-          ref: ${{ github.event.inputs.image_tag}}
+          fetch-depth: 0  # タグ取得のため必須
 
       - name: Determine Docker image tag
         id: set-tag
@@ -53,6 +53,9 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
+        with:
+          ref:
+            ${{ github.event.inputs.image_tag }}
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
