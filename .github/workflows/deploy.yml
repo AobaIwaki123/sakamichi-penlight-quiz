@@ -113,13 +113,14 @@ jobs:
     - determine-image-tag
     permissions:
       contents: write
-    if: ${{ needs.determine-path.outputs.release != 'dev' }}
     steps:
       - name: Checkout repository
+        if: ${{ needs.determine-path.outputs.release != 'dev' }}
         uses: actions/checkout@v4
 
       - name: Update deployment YAML with new image tag
         uses: mikefarah/yq@v4
+        if: ${{ needs.determine-path.outputs.release != 'dev' }}
         with:
           cmd: yq -i '.spec.template.spec.containers[0].image = "${{ env.HARBOR_REGISTRY }}/${{ env.IMAGE_NAME }}:${{ needs.determine-image-tag.outputs.image_tag }}"' "${{ needs.determine-path.outputs.deployment_file_path }}"        
 
@@ -129,16 +130,19 @@ jobs:
 
       - name: Set up Node.js
         uses: actions/setup-node@v4
+        if: ${{ needs.determine-path.outputs.release != 'dev' }}
         with:
           node-version: 22
 
       - name: Bump version in package.json
+        if: ${{ needs.determine-path.outputs.release != 'dev' }}
         run: |
           cd view
           npm version --no-git-tag-version "${{ needs.determine-image-tag.outputs.image_tag }}" 
           cd ..
 
       - name: Commit and push deployment update
+        if: ${{ needs.determine-path.outputs.release != 'dev' }}
         run: |
           git config user.name github-actions
           git config user.email github-actions@github.com
