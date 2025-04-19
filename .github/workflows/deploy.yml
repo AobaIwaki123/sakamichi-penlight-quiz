@@ -69,7 +69,8 @@ jobs:
           if [[ "${{ github.event_name }}" == "workflow_dispatch" ]]; then
             echo "image_tag=${{ github.event.inputs.image_tag }}" >> "$GITHUB_OUTPUT"
           elif [[ "${{ github.event_name }}" == "push" && "${{ github.ref }}" == "refs/heads/dev" ]]; then
-            echo "image_tag=dev" >> "$GITHUB_OUTPUT"
+            short_sha=$(git rev-parse --short=8 HEAD)
+            echo "image_tag=dev-${short_sha}" >> "$GITHUB_OUTPUT"
           else
             latest_tag=$(git tag | sort -V | tail -n 1)
             echo "Using latest tag: $latest_tag"

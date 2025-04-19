@@ -17,7 +17,6 @@ spec:
       containers:
         - name: penlight
           image: harbor.aooba.net/penlight/prod-view-penlight:dev
-          imagePullPolicy: Always
           volumeMounts:
             - name: gcp-sa-volume
               mountPath: /app/secret
