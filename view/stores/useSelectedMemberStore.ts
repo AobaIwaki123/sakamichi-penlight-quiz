@@ -1,4 +1,4 @@
-import { getHinatazakaMember } from "@/api/bq/get_hinatazaka_member";
+import { getHinatazakaMember } from "@/api/bq/getHinatazakaMember";
 import { create } from 'zustand'
 
 import type { Generation } from "@/consts/hinatazakaFilters";

@@ -2,7 +2,7 @@
 
 import { Button } from "@mantine/core";
 
-import { getHinatazakaMember } from "@/api/bq/get_hinatazaka_member";
+import { getHinatazakaMember } from "@/api/bq/getHinatazakaMember";
 
 export function CurlButton() {
   const onClick = async () => {
