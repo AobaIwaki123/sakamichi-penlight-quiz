@@ -116,12 +116,10 @@ jobs:
       contents: write
     steps:
       - name: Checkout repository
-        if: ${{ needs.determine-path.outputs.release != 'dev' }}
         uses: actions/checkout@v4
 
       - name: Update deployment YAML with new image tag
         uses: mikefarah/yq@v4
-        if: ${{ needs.determine-path.outputs.release != 'dev' }}
         with:
           cmd: yq -i '.spec.template.spec.containers[0].image = "${{ env.HARBOR_REGISTRY }}/${{ env.IMAGE_NAME }}:${{ needs.determine-image-tag.outputs.image_tag }}"' "${{ needs.determine-path.outputs.deployment_file_path }}"        
 
@@ -143,7 +141,6 @@ jobs:
           cd ..
 
       - name: Commit and push deployment update
-        if: ${{ needs.determine-path.outputs.release != 'dev' }}
         run: |
           git config user.name github-actions
           git config user.email github-actions@github.com
