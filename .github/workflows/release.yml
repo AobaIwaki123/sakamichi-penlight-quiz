@@ -10,6 +10,10 @@ on:
         required: true
         description: Bump to patch or minor or major version
 
+defaults:
+  run:
+    shell: bash
+    
 jobs:
   release:
       timeout-minutes: 5

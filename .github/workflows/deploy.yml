@@ -17,6 +17,11 @@ env:
   HARBOR_REGISTRY: harbor.aooba.net
   IMAGE_NAME: penlight/prod-view-penlight
   DEPLOYMENT_FILE_PATH: k8s/manifests/deployment.yml
+  PACKAGE_JSON_PATH: view/package.json
+
+defaults:
+  run:
+    shell: bash
 
 jobs:
   determine-image-tag:
@@ -84,12 +89,23 @@ jobs:
         run: |
           echo "Updated image in ${{ env.DEPLOYMENT_FILE_PATH }}"
 
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Bump version in package.json
+        run: |
+          cd view
+          npm version --no-git-tag-version "${{ needs.determine-image-tag.outputs.image_tag }}" 
+          cd ..
+
       - name: Commit and push deployment update
         run: |
           git config user.name github-actions
           git config user.email github-actions@github.com
-          git add "${{ env.DEPLOYMENT_FILE_PATH }}"
-          git commit -m "Update image tag to ${{ needs.determine-image-tag.outputs.image_tag }}"
+          git add .
+          git commit -m "Update version to ${{ needs.determine-image-tag.outputs.image_tag }}"
           git push
 
   sync:
