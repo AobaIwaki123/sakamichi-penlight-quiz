@@ -17,5 +17,5 @@ $ kubectl create secret docker-registry harbor-pull-secret \
 
 ```sh
 kubectl create secret generic gcp-sa-key \
-  --from-file=key.json=path/to/your-service-account-key.json
+  --from-file=key.json=path/to/your-service-account-key.json -n penlight
 ```

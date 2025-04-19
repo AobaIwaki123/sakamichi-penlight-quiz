@@ -8,7 +8,7 @@ metadata:
 spec:
   ingressClassName: "cloudflare-tunnel"
   rules:
-    - host: penlight-dev.aooba.net
+    - host: penlight.aooba.net
       http:
         paths:
           - path: /
