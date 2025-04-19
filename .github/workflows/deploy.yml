@@ -94,13 +94,13 @@ jobs:
           echo "Updated image in ${{ env.DEPLOYMENT_FILE_PATH }}"
 
       - name: Set up Node.js
-        if: needs.determine-image-tag.outputs.image_tag != 'dev'
+        if: ${{ needs.determine-image-tag.outputs.image_tag != 'dev' }}
         uses: actions/setup-node@v4
         with:
           node-version: 22
 
       - name: Bump version in package.json
-        if: needs.determine-image-tag.outputs.image_tag != 'dev'
+        if: ${{ needs.determine-image-tag.outputs.image_tag != 'dev' }}
         run: |
           cd view
           npm version --no-git-tag-version "${{ needs.determine-image-tag.outputs.image_tag }}" 
