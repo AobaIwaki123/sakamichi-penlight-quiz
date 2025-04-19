@@ -15,5 +15,6 @@
   "vscode-dataform-tools.gcpProjectId": "sakamichipenlightquiz",
   "vscode-dataform-tools.formattingCli": "dataform",
   "vscode-dataform-tools.showCompiledQueryInVerticalSplitOnSave": false,
-  "git.replaceTagsWhenPull": true
+  "git.replaceTagsWhenPull": true,
+  "githubIssues.alwaysPromptForNewIssueRepo": true
 }
