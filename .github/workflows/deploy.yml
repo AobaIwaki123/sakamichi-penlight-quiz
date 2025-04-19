@@ -5,9 +5,9 @@ on:
   workflow_dispatch:
     inputs:
       image_tag:
-        description: "Docker image tag (e.g. tmp-1)"
+        description: "Docker image tag (e.g. latest, dev, v1.0.0)"
         required: true
-        default: tmp
+        default: dev
       releaes:
         description: "Release Type (e.g. main, dev)"
         required: true
@@ -112,13 +112,8 @@ jobs:
 
       - name: Update deployment YAML with new image tag
         uses: mikefarah/yq@v4
-        env:
-          HARBOR_REGISTRY: ${{ env.HARBOR_REGISTRY }}
-          IMAGE_NAME: ${{ env.IMAGE_NAME }}
-          IMAGE_TAG: ${{ needs.determine-image-tag.outputs.image_tag }}
-          FILE_PATH: ${{ needs.determine-path.outputs.deployment_file_path }}
         with:
-          cmd: yq -i '.spec.template.spec.containers[0].image = "${HARBOR_REGISTRY}/${IMAGE_NAME}:${IMAGE_TAG}"' "${FILE_PATH}"        
+          cmd: yq -i '.spec.template.spec.containers[0].image = "${{ env.HARBOR_REGISTRY }}/${{ env.IMAGE_NAME }}:${{ needs.determine-image-tag.outputs.image_tag }}"' "${{ needs.determine-path.outputs.deployment_file_path }}"        
 
       - name: Check updated deployment file
         run: |
