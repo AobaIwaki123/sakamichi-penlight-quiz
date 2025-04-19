@@ -113,6 +113,7 @@ jobs:
     - determine-image-tag
     permissions:
       contents: write
+    if: ${{ needs.determine-path.outputs.release != 'dev' }}
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -127,13 +128,11 @@ jobs:
           echo "Updated image in ${{ needs.determine-path.outputs.deployment_file_path }}"
 
       - name: Set up Node.js
-        if: ${{ needs.determine-path.outputs.release != 'dev' }}
         uses: actions/setup-node@v4
         with:
           node-version: 22
 
       - name: Bump version in package.json
-        if: ${{ needs.determine-path.outputs.release != 'dev' }}
         run: |
           cd view
           npm version --no-git-tag-version "${{ needs.determine-image-tag.outputs.image_tag }}" 
