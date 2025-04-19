@@ -32,7 +32,7 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
         with:
-          fetch-depth: 0  # タグ取得のため必須
+          ref: ${{ github.event.inputs.image_tag}}
 
       - name: Determine Docker image tag
         id: set-tag
