@@ -16,6 +16,9 @@ on:
     workflows: ["release-action"]
     types:
       - completed
+  push:
+    branches:
+      - dev
 
 env:
   HARBOR_REGISTRY: harbor.aooba.net
@@ -39,6 +42,8 @@ jobs:
         run: |
           if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
             echo "release=${{ github.event.inputs.release }}" >> $GITHUB_OUTPUT
+          elif [ "${{ github.event_name }}" = "push" ]; then
+            echo "release=${GITHUB_REF##*/}" >> $GITHUB_OUTPUT
           else
             echo "release=main" >> $GITHUB_OUTPUT
           fi
