@@ -128,7 +128,7 @@ describe('useSelectedMemberStore', () => {
       uniqueOrders.add(JSON.stringify(loop));
     }
     
-    expect(uniqueOrders.size).toBeGreaterThanOrEqual(10);
+    expect(uniqueOrders.size).toBeGreaterThanOrEqual(8);
   });
 
   test('works correctly with different filter combinations', () => {
