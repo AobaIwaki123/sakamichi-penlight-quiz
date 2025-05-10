@@ -8,7 +8,7 @@ on:
       - synchronize
       - opened
       - reopened
-  label: 
+  label:
     types:
       - created
       - edited
@@ -25,7 +25,7 @@ jobs:
       - name: Check labels
         id: check-labels
         run: |
-          labels=("${{ github.event.pull_request.labels.*.name }}")
+          labels=$(gh pr view ${{ github.event.pull_request.number }} --json labels --jq '.labels[].name')
           major_count=0
           minor_count=0
           patch_count=0
