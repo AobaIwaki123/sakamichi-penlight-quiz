@@ -21,6 +21,8 @@ defaults:
 jobs:
   check-label:
     runs-on: ubuntu-latest
+    env:
+      GH_TOKEN: ${{ github.token }}
     steps:
       - name: Check labels
         id: check-labels
