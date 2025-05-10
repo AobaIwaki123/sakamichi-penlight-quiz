@@ -8,11 +8,8 @@ on:
       - opened
       - reopened
       - synchronize
-  label: 
-    types:
-      - created
-      - edited
-      - deleted
+      - labeled
+      - unlabeled
 
 defaults: 
   run:
@@ -23,8 +20,12 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: docker://agilepathway/pull-request-label-checker:latest
+        id: label
         with:
           one_of: major,minor,patch
           repo_token: ${{ secrets.GITHUB_TOKEN }}
 
+      - name: Echo label
+        run: |
+          echo "label: ${{ steps.label.outputs.label_check }}"
       
