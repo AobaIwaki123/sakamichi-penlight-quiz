@@ -1,5 +1,7 @@
 # 坂道グループペンライトクイズ
 
+Deep Wiki: https://deepwiki.com/AobaIwaki123/sakamichi-penlight-quiz
+
 <div style="display: flex; justify-content: center; gap: 10px;">
   <img src="imgs/v1.png" alt="alt text" width="300">
 </div>
