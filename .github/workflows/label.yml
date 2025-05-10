@@ -1,38 +1,36 @@
 name: label
-run-name: Lint Label
-description: major, minor, patchいずれかのラベルが1つだけついているかどうかを判定する
+run-name: Check Labels
+description: Check if PR has a specific label
 
 on:
   pull_request:
     types:
-      - synchronize
       - opened
       - reopened
-  label:
-    types:
-      - created
-      - edited
-      - deleted
+      - synchronize
+      - labeled
+      - unlabeled
 
-defaults:
+defaults: 
   run:
     shell: bash
 
 jobs:
-  check-label:
+  pr:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-
-      - name: Set up Python
-        uses: actions/setup-python@v5
+      - name: Check Labels
+        uses: mheap/github-action-required-labels@v5
+        id: check-labels
         with:
-          python-version: '3.11'
+          mode: exactly
+          count: 1
+          labels: |
+            patch
+            minor
+            major
 
-      - name: Check PR labels
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          PR_NUMBER: ${{ github.event.pull_request.number }}
+      - name: Echo label
         run: |
-          pip install --quiet requests
-          python .github/scripts/is_valid_label.py
+          echo "label: ${{ steps.check-labels.outputs.labels }}"
+      
