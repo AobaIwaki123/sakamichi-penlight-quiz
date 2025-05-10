@@ -21,47 +21,18 @@ defaults:
 jobs:
   check-label:
     runs-on: ubuntu-latest
-    env:
-      GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
     steps:
-      - name: Set up GitHub CLI auth
-        run: gh auth status
-      
-      - name: Check out the repository
-        uses: actions/checkout@v4
-        
-      - name: Check labels
-        id: check-labels
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Check PR labels
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
         run: |
-          mapfile -t labels < <(gh pr view 23 --json labels --jq '.labels[].name')
-
-          major_count=0
-          minor_count=0
-          patch_count=0
-
-          for label in "${labels[@]}"; do
-            case "$label" in
-              major) ((major_count++)) ;;
-              minor) ((minor_count++)) ;;
-              patch) ((patch_count++)) ;;
-            esac
-          done
-
-          if [[ $major_count -gt 1 || $minor_count -gt 1 || $patch_count -gt 1 ]]; then
-            echo "error: too many labels"
-            exit 1
-          fi
-
-          if [[ ($major_count -eq 1 && $minor_count -eq 1) || \
-                ($major_count -eq 1 && $patch_count -eq 1) || \
-                ($minor_count -eq 1 && $patch_count -eq 1) ]]; then
-            echo "error: conflicting labels"
-            exit 1
-          fi
-
-          if [[ $major_count -eq 0 && $minor_count -eq 0 && $patch_count -eq 0 ]]; then
-            echo "error: no valid labels"
-            exit 1
-          fi
-
-          echo "Valid labels found."
+          pip install --quiet requests
+          python check_labels.py
