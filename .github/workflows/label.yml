@@ -35,4 +35,4 @@ jobs:
           PR_NUMBER: ${{ github.event.pull_request.number }}
         run: |
           pip install --quiet requests
-          python .github/scripts/check_labels.py
+          python .github/scripts/is_valid_label.py
