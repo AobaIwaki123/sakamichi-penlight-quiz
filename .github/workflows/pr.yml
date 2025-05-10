@@ -8,6 +8,11 @@ on:
       - opened
       - reopened
       - synchronize
+  label: 
+    types:
+      - created
+      - edited
+      - deleted
 
 defaults: 
   run:
@@ -17,8 +22,9 @@ jobs:
   pr:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout Label
-        run: |
-          echo ${{ github.event.pull_request.labels.*.name}}
+      - uses: docker://agilepathway/pull-request-label-checker:latest
+        with:
+          one_of: major,minor,patch
+          repo_token: ${{ secrets.GITHUB_TOKEN }}
 
       
