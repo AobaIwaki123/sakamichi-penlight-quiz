@@ -1,0 +1,56 @@
+name: label
+run-name: Lint Label
+description: major, minor, patchいずれかのラベルが1つだけついているかどうかを判定する
+
+on:
+  pull_request:
+    types:
+      - synchronize
+      - opened
+      - reopened
+  label: 
+    types:
+      - created
+      - edited
+      - deleted
+
+defaults:
+  run:
+    shell: bash
+
+jobs:
+  check-label:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check labels
+        id: check-labels
+        run: |
+          labels=("${{ github.event.pull_request.labels.*.name }}")
+          major_count=0
+          minor_count=0
+          patch_count=0
+
+          for label in "${labels[@]}"; do
+            case "$label" in
+              major) ((major_count++)) ;;
+              minor) ((minor_count++)) ;;
+              patch) ((patch_count++)) ;;
+            esac
+          done
+
+          if [[ $major_count -gt 1 || $minor_count -gt 1 || $patch_count -gt 1 ]]; then
+            echo "error: too many labels"
+            exit 1
+          fi
+
+          if [[ $major_count -eq 1 && $minor_count -eq 1 ]] || [[ $major_count -eq 1 && $patch_count -eq 1 ]] || [[ $minor_count -eq 1 && $patch_count -eq 1 ]]; then
+            echo "error: conflicting labels"
+            exit 1
+          fi
+
+          if [[ $major_count -eq 0 && $minor_count -eq 0 && $patch_count -eq 0 ]]; then
+            echo "error: no valid labels"
+            exit 1
+          fi
+
+          echo "Valid labels found."
