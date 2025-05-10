@@ -21,10 +21,10 @@ defaults:
 jobs:
   check-label:
     runs-on: ubuntu-latest
+    env:
+      GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
     steps:
       - name: Set up GitHub CLI auth
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: gh auth status
       - name: Check labels
         id: check-labels
