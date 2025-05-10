@@ -19,13 +19,17 @@ jobs:
   pr:
     runs-on: ubuntu-latest
     steps:
-      - uses: docker://agilepathway/pull-request-label-checker:latest
-        id: label
+      - uses: mheap/github-action-required-labels@v5
+        id: check-labels
         with:
-          one_of: major,minor,patch
-          repo_token: ${{ secrets.GITHUB_TOKEN }}
+          mode: exactly
+          count: 1
+          labels: |
+            patch
+            minor
+            major
 
       - name: Echo label
         run: |
-          echo "label: ${{ steps.label.outputs.label_check }}"
+          echo "label: ${{ steps.check-labels.outputs.labels }}"
       
