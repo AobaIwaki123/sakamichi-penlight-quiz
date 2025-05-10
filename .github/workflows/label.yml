@@ -29,11 +29,11 @@ jobs:
       
       - name: Check out the repository
         uses: actions/checkout@v4
-        
+
       - name: Check labels
         id: check-labels
         run: |
-          labels=$(gh pr view ${{ github.event.pull_request.number }} --json labels --jq '.labels[].name')
+          mapfile -t labels < <(gh pr view 23 --json labels --jq '.labels[].name')
           major_count=0
           minor_count=0
           patch_count=0
