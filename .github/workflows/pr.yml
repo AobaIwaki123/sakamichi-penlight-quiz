@@ -1,0 +1,24 @@
+name: pr
+run-name: PR action
+description: PRが作られた時のActionの挙動を確認する
+
+on:
+  pull_request:
+    types:
+      - opened
+      - reopened
+      - synchronize
+
+defaults: 
+  run:
+    shell: bash
+
+jobs:
+  pr:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Label
+        run: |
+          echo ${{ github.event.pull_request.labels.*.name}}
+
+      
