@@ -27,17 +27,30 @@ jobs:
     permissions:
       contents: write
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout
+        uses: actions/checkout@v4
+      
+      - name: Check Labels
+        uses: mheap/github-action-required-labels@v5
+        id: check-labels
+        with:
+          mode: exactly
+          count: 1
+          labels: |
+            patch
+            minor
+            major
+
       - name: Determine Bump Level
         id: determine-bump
         run: |
           if [[ "${{ github.event_name }}" == "workflow_dispatch" ]]; then
             echo "::set-output name=bump_level::${{ github.event.inputs.bump-level }}"
-          elif [[ "${{ github.event.pull_request.labels.*.name }}" == *"major"* ]]; then
+          elif [[ "${{ steps.check-labels.outputs.labels }}" == *"major"* ]]; then
             echo "::set-output name=bump_level::major"
-          elif [[ "${{ github.event.pull_request.labels.*.name }}" == *"minor"* ]]; then
+          elif [[ "${{ steps.check-labels.outputs.labels }}" == *"minor"* ]]; then
             echo "::set-output name=bump_level::minor"
-          elif [[ "${{ github.event.pull_request.labels.*.name }}" == *"patch"* ]]; then
+          elif [[ "${{ steps.check-labels.outputs.labels }}" == *"patch"* ]]; then
             echo "::set-output name=bump_level::patch"
           else
             echo "No valid label found. Exiting."
