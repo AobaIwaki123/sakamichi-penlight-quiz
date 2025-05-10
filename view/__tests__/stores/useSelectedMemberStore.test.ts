@@ -1,6 +1,6 @@
-import { useSelectedMemberStore } from '../../stores/useSelectedMemberStore';
-import { Member } from '../../types/Member';
-import { Generation } from '@/consts/hinatazakaFilters';
+import { useSelectedMemberStore } from '@/stores/useSelectedMemberStore';
+import type { Member } from '@/types/Member';
+import type { Generation } from '@/consts/hinatazakaFilters';
 
 jest.mock('@/api/bq/getHinatazakaMember', () => ({
   getHinatazakaMember: jest.fn().mockResolvedValue([
@@ -124,9 +124,9 @@ describe('useSelectedMemberStore', () => {
     }
     
     const uniqueOrders = new Set<string>();
-    loops.forEach(loop => {
+    for (const loop of loops) {
       uniqueOrders.add(JSON.stringify(loop));
-    });
+    }
     
     expect(uniqueOrders.size).toBeGreaterThanOrEqual(5);
   });
