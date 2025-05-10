@@ -3,8 +3,18 @@
 import { BigQuery } from '@google-cloud/bigquery';
 
 import type { Member } from '@/types/Member';
+import { hinatazakaMemberMock } from './mockData/hinatazakaMemberMock';  
 
 export async function getHinatazakaMember(): Promise<Member[]> {
+  // 環境変数DEV_MODEをチェック  
+  const isDevMode = process.env.NODE_ENV === "development"; 
+
+    // devモードの場合はモックデータを返す  
+  if (isDevMode) {  
+    console.log('Using mock data in DEV_MODE');  
+    return hinatazakaMemberMock;  
+  }  
+  
   const bigquery = new BigQuery();
 
   const query = `
