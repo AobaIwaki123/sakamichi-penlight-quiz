@@ -9,25 +9,46 @@ on:
         options: [patch, minor, major]
         required: true
         description: Bump to patch or minor or major version
+  pull_request:
+    types:
+      - closed
 
 defaults:
   run:
     shell: bash
-    
+
 jobs:
   release:
-      timeout-minutes: 5
-      runs-on: ubuntu-latest
-      permissions:
-        contents: write
-      steps:
-        - uses: actions/checkout@v4
-        - env:
-            USERNAME: github-actions[bot]
-            EMAIL: github-actions[bot]@users.noreply.github.com
-            BUMP_LEVEL: ${{ inputs.bump-level }}
-            GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          run: |
-            git config --global user.name "${USERNAME}"
-            git config --global user.email "${EMAIL}"
-            version="$(.github/scripts/bump.sh "${BUMP_LEVEL}")"
+    if: >
+      github.event_name == 'workflow_dispatch' ||
+      (github.event_name == 'pull_request' && github.event.pull_request.merged == true)
+    timeout-minutes: 5
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+      - name: Determine Bump Level
+        id: determine-bump
+        run: |
+          if [[ "${{ github.event_name }}" == "workflow_dispatch" ]]; then
+            echo "::set-output name=bump_level::${{ github.event.inputs.bump-level }}"
+          elif [[ "${{ github.event.pull_request.labels.*.name }}" == *"major"* ]]; then
+            echo "::set-output name=bump_level::major"
+          elif [[ "${{ github.event.pull_request.labels.*.name }}" == *"minor"* ]]; then
+            echo "::set-output name=bump_level::minor"
+          elif [[ "${{ github.event.pull_request.labels.*.name }}" == *"patch"* ]]; then
+            echo "::set-output name=bump_level::patch"
+          else
+            echo "No valid label found. Exiting."
+            exit 1
+          fi
+      - env:
+          USERNAME: github-actions[bot]
+          EMAIL: github-actions[bot]@users.noreply.github.com
+          BUMP_LEVEL: ${{ steps.determine-bump.outputs.bump_level }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          git config --global user.name "${USERNAME}"
+          git config --global user.email "${EMAIL}"
+          version="$(.github/scripts/bump.sh "${BUMP_LEVEL}")"
