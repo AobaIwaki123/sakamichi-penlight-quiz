@@ -29,11 +29,12 @@ jobs:
       
       - name: Check out the repository
         uses: actions/checkout@v4
-
+        
       - name: Check labels
         id: check-labels
         run: |
           mapfile -t labels < <(gh pr view 23 --json labels --jq '.labels[].name')
+
           major_count=0
           minor_count=0
           patch_count=0
@@ -51,7 +52,9 @@ jobs:
             exit 1
           fi
 
-          if [[ $major_count -eq 1 && $minor_count -eq 1 ]] || [[ $major_count -eq 1 && $patch_count -eq 1 ]] || [[ $minor_count -eq 1 && $patch_count -eq 1 ]]; then
+          if [[ ($major_count -eq 1 && $minor_count -eq 1) || \
+                ($major_count -eq 1 && $patch_count -eq 1) || \
+                ($minor_count -eq 1 && $patch_count -eq 1) ]]; then
             echo "error: conflicting labels"
             exit 1
           fi
