@@ -3,11 +3,11 @@
 import { useAnswerCloseTriggerStore } from '@/stores/useAnswerCloseTriggerStore'
 import { useFilterStore } from '@/stores/useFilterStore';
 import { useSelectedMemberStore } from '@/stores/useSelectedMemberStore';
+import type { Member } from "@/types/Member";
 
 import { MemberImage } from "./MemberImage/MemberImage";
 import { MemberInfoHeader } from "./MemberInfoHeader/MemberInfoHeader";
 
-import { init } from 'next/dist/compiled/webpack/webpack';
 import { useEffect } from "react";
 
 export function MemberInfo() {
@@ -15,7 +15,7 @@ export function MemberInfo() {
 
   const triggerCount = useAnswerCloseTriggerStore((state) => state.triggerCount);
 
-  const pickRandomMember = useSelectedMemberStore((state) => state.pickRandomMember) as () => string | null;
+  const pickRandomMember = useSelectedMemberStore((state) => state.pickRandomMember) as () => Member | undefined;
 
   useEffect(() => {
     const _ = triggerCount;
