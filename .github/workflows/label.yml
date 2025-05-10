@@ -26,6 +26,10 @@ jobs:
     steps:
       - name: Set up GitHub CLI auth
         run: gh auth status
+      
+      - name: Check out the repository
+        uses: actions/checkout@v4
+        
       - name: Check labels
         id: check-labels
         run: |
