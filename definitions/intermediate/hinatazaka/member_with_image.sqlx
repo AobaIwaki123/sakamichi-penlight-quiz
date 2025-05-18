@@ -19,6 +19,6 @@ SELECT
 FROM
   ${ref("hinatazaka", "member_info")} info
 JOIN
-  ${ref("member_image_master")} img
+  ${ref("hinatazaka", "member_image_master")} img
 ON
   info.name = img.name

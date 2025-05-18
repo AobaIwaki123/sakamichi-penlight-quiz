@@ -17,12 +17,12 @@ SELECT
   info.type,
   info.url
 FROM
-  ${ref("member_with_image")} info
+  ${ref("hinatazaka", "member_with_image")} info
 JOIN
-  ${ref("penlight")} penlight1
+  ${ref("hinatazaka", "penlight")} penlight1
 ON
   info.penlight1 = penlight1.name_ja
 JOIN
-  ${ref("penlight")} penlight2
+  ${ref("hinatazaka", "penlight")} penlight2
 ON
   info.penlight2 = penlight2.name_ja
