@@ -17,7 +17,7 @@ SELECT
   img.type,
   img.url
 FROM
-  ${ref("member_info")} info
+  ${ref("hinatazaka", "member_info")} info
 JOIN
   ${ref("member_image_master")} img
 ON
