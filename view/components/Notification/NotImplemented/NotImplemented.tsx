@@ -11,9 +11,9 @@ export function NotImplemented() {
   const current = useLogoStore((state) => state.current);
 
   useEffect(() => {
-    if (current.name === 'sakurazaka' || current.name === 'nogizaka') {
+    if (current.name === 'nogizaka') {
       setOpened(true);
-    } else if (current.name === 'hinatazaka') {
+    } else if (current.name === 'hinatazaka' || current.name === 'sakurazaka') {
       setOpened(false);
     }
   }, [current]);

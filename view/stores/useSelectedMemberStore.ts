@@ -1,4 +1,5 @@
 import { getHinatazakaMember } from "@/api/bq/getHinatazakaMember";
+import { getSakurazakaMember } from "@/api/bq/getSakurazakaMember";
 import { create } from 'zustand'
 
 import type { Generation } from "@/consts/hinatazakaFilters";
@@ -130,6 +131,8 @@ export const useSelectedMemberStore = create<State>((set, get) => ({
 async function getGroupMembers(group: Group): Promise<Member[]> {
   if (group === 'hinatazaka') {
     return getHinatazakaMember()
+  } else if (group === 'sakurazaka') {
+    return getSakurazakaMember()
   }
 
   throw new Error(`未対応のグループ: ${group}`)
