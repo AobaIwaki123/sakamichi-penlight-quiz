@@ -1,0 +1,12 @@
+config {
+  type: "table",
+  schema: "sakurazaka",
+  name: "member_image_master",
+  description: "メンバー画像マスタ",
+}
+
+SELECT
+  *
+FROM
+  ${ref("sakurazaka", "member_image_2nd_album")}
+UNION ALL
