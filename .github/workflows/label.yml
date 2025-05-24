@@ -1,9 +1,10 @@
 name: label
 run-name: Check Labels
-description: Check if PR has a specific label
 
 on:
   pull_request:
+    branches:
+      - main
     types:
       - opened
       - reopened
