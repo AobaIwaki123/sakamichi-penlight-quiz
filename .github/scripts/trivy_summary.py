@@ -81,7 +81,7 @@ def main():
                 f"\n... and {len(vulns) - 10} more.\n"
             )
         summary += (
-            "\n📎 FULL REPORT is available in the `Artifacts` "
+            "\n📎 `trivy_full_report` is available in the `Artifacts` "
             "section below.\n"
         )
 
