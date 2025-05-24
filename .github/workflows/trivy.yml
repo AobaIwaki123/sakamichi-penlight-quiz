@@ -19,6 +19,9 @@ jobs:
   build:
     name: Build
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      actions: write
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -42,9 +45,9 @@ jobs:
 
       - name: Summarize and evaluate Trivy results
         run: python3 .github/scripts/trivy_summary.py
-        
+
       - name: Upload full Trivy report as artifact
-        if: always()  # スキャンに失敗してもアップロードされるように
+        if: always() # スキャンに失敗してもアップロードされるように
         uses: actions/upload-artifact@v4
         with:
           name: trivy-full-report
