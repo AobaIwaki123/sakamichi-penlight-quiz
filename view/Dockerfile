@@ -1,5 +1,5 @@
 # --- 共通環境変数定義（再利用のため） ---
-ARG NODE_VERSION=22
+ARG NODE_VERSION=16
 
 # --- 開発ステージ（ローカル開発やpnpm用） ---
 FROM node:${NODE_VERSION}-slim AS dev
@@ -17,7 +17,7 @@ COPY package.json pnpm-lock.yaml ./
 RUN npm install -g pnpm
 
 # グローバルバイナリディレクトリの設定（例：`pnpm dlx`等で必要）
-RUN pnpm config set global-bin-dir /usr/local/bin
+# RUN pnpm config set global-bin-dir /usr/local/bin
 
 # --- 開発・ビルドステージ ---
 FROM node:${NODE_VERSION}-slim AS builder

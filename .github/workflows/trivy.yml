@@ -24,7 +24,7 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Build an image from Dockerfile
-        run: docker build --target prod -t prod-view-penlight:${{ github.sha }} ./view
+        run: docker build --target dev -t prod-view-penlight:${{ github.sha }} ./view
 
       - name: Run Trivy scan
         uses: aquasecurity/trivy-action@0.28.0
