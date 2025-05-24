@@ -42,3 +42,9 @@ jobs:
 
       - name: Summarize and evaluate Trivy results
         run: python3 .github/scripts/trivy_summary.py
+      - name: Upload full Trivy report as artifact
+        if: always()  # スキャンに失敗してもアップロードされるように
+        uses: actions/upload-artifact@v4
+        with:
+          name: trivy-full-report
+          path: trivy_full_report.md

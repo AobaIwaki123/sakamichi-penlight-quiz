@@ -36,6 +36,18 @@ def main():
         if v["Severity"] in TARGET_SEVERITIES
     ]
 
+    # 脆弱性一覧を別ファイルとして保存
+    full_report_path = "trivy_full_report.md"
+    with open(full_report_path, "w") as f:
+        f.write("## 📋 Full Trivy Report\n")
+        f.write(
+            "| Severity | Pkg | ID | Title |\n|---|---|---|---|\n"
+        )
+        for v in vulns:
+            f.write(
+                f"| {v['Severity']} | {v['PkgName']} | {v['VulnerabilityID']} | {v.get('Title', '').strip()} |\n"
+            )
+
     # Markdown形式でのSummaryを作成
     severity_text = "/".join(TARGET_SEVERITIES)
     if not vulns:
@@ -49,6 +61,7 @@ def main():
             summary += (
                 f"\n... and {len(vulns) - 10} more.\n"
             )
+        summary += "\n📎 [Go to Actions tab → Download “trivy-full-report” artifact](../../actions)\n"  # noqa: E501
 
     # SummaryをGITHUB_STEP_SUMMARYに書き込む
     Path(summary_path).write_text(
