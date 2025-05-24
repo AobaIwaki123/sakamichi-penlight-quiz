@@ -36,32 +36,54 @@ def main():
         if v["Severity"] in TARGET_SEVERITIES
     ]
 
-    # 脆弱性一覧を別ファイルとして保存
-    full_report_path = "trivy_full_report.md"
-    with open(full_report_path, "w") as f:
-        f.write("## 📋 Full Trivy Report\n")
-        f.write(
-            "| Severity | Pkg | ID | Title |\n|---|---|---|---|\n"
-        )
-        for v in vulns:
-            f.write(
-                f"| {v['Severity']} | {v['PkgName']} | {v['VulnerabilityID']} | {v.get('Title', '').strip()} |\n"
-            )
-
-    # Markdown形式でのSummaryを作成
+    # 脆弱性レポートの生成（フルレポートとサマリーを1回のループで生成）
     severity_text = "/".join(TARGET_SEVERITIES)
+    full_report_path = "trivy_full_report.md"
+
     if not vulns:
         summary = f"✅ No {severity_text} vulnerabilities found.\n"
+        # 空のフルレポートも作成
+        with open(full_report_path, "w") as f:
+            f.write("## 📋 Full Trivy Report\n")
+            f.write(
+                f"✅ No {severity_text} vulnerabilities found.\n"
+            )
     else:
+        # サマリーのヘッダー部分を準備
         summary = f"🚨 Found {len(vulns)} {severity_text} vulnerabilities\n\n"
         summary += "| Severity | Pkg | ID | Title |\n|---|---|---|---|\n"
-        for v in vulns[:10]:
-            summary += f"| {v['Severity']} | {v['PkgName']} | {v['VulnerabilityID']} | {v.get('Title', '').strip()} |\n"  # noqa: E501
+
+        # フルレポートファイルを開く
+        with open(full_report_path, "w") as f:
+            f.write("## 📋 Full Trivy Report\n")
+            f.write(
+                "| Severity | Pkg | ID | Title |\n|---|---|---|---|\n"
+            )
+
+            # 1回のループでフルレポートとサマリーの両方を生成
+            for i, v in enumerate(vulns):
+                vuln_line = (
+                    f"| {v['Severity']} | {v['PkgName']} | "
+                    f"{v['VulnerabilityID']} | "
+                    f"{v.get('Title', '').strip()} |\n"
+                )
+
+                # フルレポートには全ての脆弱性を書き込み
+                f.write(vuln_line)
+
+                # サマリーには最初の10件のみ追加
+                if i < 10:
+                    summary += vuln_line
+
+        # サマリーに残りの件数情報を追加
         if len(vulns) > 10:
             summary += (
                 f"\n... and {len(vulns) - 10} more.\n"
             )
-        summary += "\n📎 FULL REPORT is available in the 'Artifacts' section of this workflow run.\n"  # noqa: E501
+        summary += (
+            "\n📎 FULL REPORT is available in the `Artifacts` "
+            "section below.\n"
+        )
 
     # SummaryをGITHUB_STEP_SUMMARYに書き込む
     Path(summary_path).write_text(
