@@ -16,7 +16,7 @@ spec:
         - name: harbor-pull-secret
       containers:
         - name: penlight
-          image: harbor.aooba.net/penlight/prod-view-penlight:dev-7ca17d18
+          image: harbor.aooba.net/penlight/prod-view-penlight:dev-bc40bf76
           volumeMounts:
             - name: gcp-sa-volume
               mountPath: /app/secret
