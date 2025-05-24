@@ -61,7 +61,7 @@ def main():
             summary += (
                 f"\n... and {len(vulns) - 10} more.\n"
             )
-        summary += "\n📎 [Go to Actions tab → Download “trivy-full-report” artifact](../../actions)\n"  # noqa: E501
+        summary += "\n📎 FULL REPORT is available in the 'Artifacts' section of this workflow run.\n"  # noqa: E501
 
     # SummaryをGITHUB_STEP_SUMMARYに書き込む
     Path(summary_path).write_text(
