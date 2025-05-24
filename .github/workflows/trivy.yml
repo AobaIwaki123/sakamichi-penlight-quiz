@@ -13,7 +13,7 @@ defaults:
     shell: bash
 
 env:
-  TRIVY_SEVERITIES: "CRITICAL,HIGH"
+  TRIVY_SEVERITIES: "CRITICAL,HIGH,MEDIUM"
 
 jobs:
   build:
