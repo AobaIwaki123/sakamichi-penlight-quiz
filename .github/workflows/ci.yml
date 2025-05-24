@@ -1,0 +1,41 @@
+name: ci
+run-name: CI for ${{ github.event_name }} - ${{ github.ref }}
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+defaults:
+  run:
+    shell: bash
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Corepack Enable
+        run: corepack enable
+
+      - name: Set up pnpm
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'pnpm'
+          cache-dependency-path: view/pnpm-lock.yaml
+
+      - name: Install pnpm
+        run: npm install -g pnpm
+
+      - name: Install dependencies
+        run: cd view && pnpm install
+
+      - name: Run tests
+        run: cd view && pnpm test

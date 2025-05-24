@@ -1,0 +1,37 @@
+name: label
+run-name: Check Labels
+
+on:
+  pull_request:
+    branches:
+      - main
+    types:
+      - opened
+      - reopened
+      - synchronize
+      - labeled
+      - unlabeled
+
+defaults: 
+  run:
+    shell: bash
+
+jobs:
+  pr:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check Labels
+        uses: mheap/github-action-required-labels@v5
+        id: check-labels
+        with:
+          mode: exactly
+          count: 1
+          labels: |
+            patch
+            minor
+            major
+
+      - name: Echo label
+        run: |
+          echo "label: ${{ steps.check-labels.outputs.labels }}"
+      
