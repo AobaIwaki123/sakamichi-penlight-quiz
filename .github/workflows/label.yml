@@ -12,13 +12,16 @@ on:
       - labeled
       - unlabeled
 
-defaults: 
+defaults:
   run:
     shell: bash
 
 jobs:
   pr:
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: read
     steps:
       - name: Check Labels
         uses: mheap/github-action-required-labels@v5
@@ -34,4 +37,3 @@ jobs:
       - name: Echo label
         run: |
           echo "label: ${{ steps.check-labels.outputs.labels }}"
-      
