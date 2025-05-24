@@ -2,7 +2,7 @@ name: trivy-action
 run-name: Trivy action
 
 on:
-  pull_request: 
+  pull_request:
     types:
       - opened
       - synchronize
@@ -11,6 +11,9 @@ on:
 defaults:
   run:
     shell: bash
+
+env:
+  TRIVY_SEVERITIES: "CRITICAL,HIGH"
 
 jobs:
   build:
@@ -26,15 +29,15 @@ jobs:
       - name: Run Trivy scan
         uses: aquasecurity/trivy-action@0.28.0
         with:
-          image-ref: 'prod-view-penlight:${{ github.sha }}'
-          format: 'json'
-          exit-code: '0'
+          image-ref: "prod-view-penlight:${{ github.sha }}"
+          format: "json"
+          exit-code: "0"
           ignore-unfixed: true
-          vuln-type: 'os,library'
-          severity: 'CRITICAL,HIGH'
-          output: 'trivy.json'
+          vuln-type: "os,library"
+          severity: ${{ env.TRIVY_SEVERITIES }}
+          output: "trivy.json"
         env:
           TRIVY_DISABLE_VEX_NOTICE: true
-      
+
       - name: Summarize and evaluate Trivy results
         run: python3 .github/scripts/trivy_summary.py

@@ -3,6 +3,13 @@ import os
 import sys
 from pathlib import Path
 
+# 検出対象のSeverityレベルを環境変数から取得（デフォルト値付き）
+TARGET_SEVERITIES = tuple(
+    os.environ.get(
+        "TRIVY_SEVERITIES", "HIGH,CRITICAL"
+    ).split(",")
+)
+
 
 def main():
     # Summaryファイルの出力先を取得
@@ -26,14 +33,15 @@ def main():
         v
         for r in results
         for v in r.get("Vulnerabilities", [])
-        if v["Severity"] in ("HIGH", "CRITICAL")
+        if v["Severity"] in TARGET_SEVERITIES
     ]
 
     # Markdown形式でのSummaryを作成
+    severity_text = "/".join(TARGET_SEVERITIES)
     if not vulns:
-        summary = "✅ No CRITICAL or HIGH vulnerabilities found.\n"
+        summary = f"✅ No {severity_text} vulnerabilities found.\n"
     else:
-        summary = f"🚨 Found {len(vulns)} CRITICAL/HIGH vulnerabilities\n\n"
+        summary = f"🚨 Found {len(vulns)} {severity_text} vulnerabilities\n\n"
         summary += "| Severity | Pkg | ID | Title |\n|---|---|---|---|\n"
         for v in vulns[:10]:
             summary += f"| {v['Severity']} | {v['PkgName']} | {v['VulnerabilityID']} | {v.get('Title', '').strip()} |\n"  # noqa: E501
@@ -49,8 +57,9 @@ def main():
 
     # CRITICALまたはHIGHの脆弱性がある場合はエラーを出力
     if vulns:
+        error_severities = " or ".join(TARGET_SEVERITIES)
         print(
-            "::error::Trivy scan detected CRITICAL or HIGH vulnerabilities"
+            f"::error::Trivy scan detected {error_severities} vulnerabilities"
         )
         sys.exit(1)
 
