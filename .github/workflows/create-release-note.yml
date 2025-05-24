@@ -1,0 +1,47 @@
+name: create-release-note
+run-name: Create Release Note
+
+on:
+  push:
+    tags:
+      - "v*.*.*" # Matches semantic version tags like v1.0.0
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: "Tag for the release note"
+        required: true
+        default: "v1.0.0"
+
+permissions:
+  contents: write
+
+defaults:
+  run:
+    shell: bash
+
+jobs:
+  create-release-note:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set tag variable
+        id: set-tag
+        run: |
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            echo "tag=${{ github.event.inputs.tag }}" >> $GITHUB_OUTPUT
+          else
+            echo "tag=${GITHUB_REF#refs/tags/}" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Create Release Note
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh release create "${{ steps.set-tag.outputs.tag }}" \
+            --title "${{ steps.set-tag.outputs.tag }}" \
+            --notes "Release notes for ${{ steps.set-tag.outputs.tag }}" \
+            --generate-notes
