@@ -19,12 +19,12 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Build an image from Dockerfile
-        run: docker build -t image:${{ github.sha }} .
+        run: docker build --target prod -t prod-view-penlight:${{ github.sha }} ./view
 
       - name: Run Trivy scan
         uses: aquasecurity/trivy-action@0.28.0
         with:
-          image-ref: 'image:${{ github.sha }}'
+          image-ref: 'prod-view-penlight:${{ github.sha }}'
           format: 'table'
           exit-code: '1'
           ignore-unfixed: true
