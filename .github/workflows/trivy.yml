@@ -33,6 +33,8 @@ jobs:
           vuln-type: 'os,library'
           severity: 'CRITICAL,HIGH'
           output: 'trivy-report.txt'
+        env:
+          TRIVY_DISABLE_VEX_NOTICE: true
       
       - name: Fail and summarize if vulnerabilities found
         run: |
