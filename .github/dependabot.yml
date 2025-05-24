@@ -9,7 +9,16 @@ updates:
     directory: "/view" # Location of package manifests
     schedule:
       interval: "weekly"
+    labels:
+      - "dependencies"
+      - "github_actions"
+      - "patch"
+
   - package-ecosystem: "github-actions"
     directory: "/" # .github/workflows がルートにあるならここ
     schedule:
       interval: "weekly"
+    labels:
+      - "dependencies"
+      - "github_actions"
+      - "patch"
