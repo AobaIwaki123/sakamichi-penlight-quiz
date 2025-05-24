@@ -4,7 +4,7 @@ export const sakurazakaMemberMock = [
 	{
 		id: 0,
 		name: "小池美波",
-		nickname: null,
+		nickname: "",
 		emoji: "😄",
 		gen: "1st" as Generation,
 		graduated: true,
@@ -16,7 +16,7 @@ export const sakurazakaMemberMock = [
 	{
 		id: 4,
 		name: "大沼晶保",
-		nickname: null,
+		nickname: "",
 		emoji: "😄",
 		gen: "2nd" as Generation,
 		graduated: false,
@@ -28,7 +28,7 @@ export const sakurazakaMemberMock = [
 	{
 		id: 13,
 		name: "山﨑天",
-		nickname: null,
+		nickname: "",
 		emoji: "😄",
 		gen: "2nd" as Generation,
 		graduated: false,
@@ -40,7 +40,7 @@ export const sakurazakaMemberMock = [
 	{
 		id: 9,
 		name: "増本綺良",
-		nickname: null,
+		nickname: "",
 		emoji: "😄",
 		gen: "2nd" as Generation,
 		graduated: false,
@@ -52,7 +52,7 @@ export const sakurazakaMemberMock = [
 	{
 		id: 11,
 		name: "森田ひかる",
-		nickname: null,
+		nickname: "",
 		emoji: "😄",
 		gen: "2nd" as Generation,
 		graduated: false,
@@ -64,7 +64,7 @@ export const sakurazakaMemberMock = [
 	{
 		id: 2,
 		name: "遠藤光莉",
-		nickname: null,
+		nickname: "",
 		emoji: "😄",
 		gen: "2nd" as Generation,
 		graduated: false,
@@ -76,7 +76,7 @@ export const sakurazakaMemberMock = [
 	{
 		id: 5,
 		name: "幸阪茉里乃",
-		nickname: null,
+		nickname: "",
 		emoji: "😄",
 		gen: "2nd" as Generation,
 		graduated: false,
@@ -88,7 +88,7 @@ export const sakurazakaMemberMock = [
 	{
 		id: 10,
 		name: "松田里奈",
-		nickname: null,
+		nickname: "",
 		emoji: "😄",
 		gen: "2nd" as Generation,
 		graduated: false,
@@ -100,7 +100,7 @@ export const sakurazakaMemberMock = [
 	{
 		id: 6,
 		name: "武元唯衣",
-		nickname: null,
+		nickname: "",
 		emoji: "😄",
 		gen: "2nd" as Generation,
 		graduated: false,
@@ -112,7 +112,7 @@ export const sakurazakaMemberMock = [
 	{
 		id: 12,
 		name: "守屋麗奈",
-		nickname: null,
+		nickname: "",
 		emoji: "😄",
 		gen: "2nd" as Generation,
 		graduated: false,
@@ -124,7 +124,7 @@ export const sakurazakaMemberMock = [
 	{
 		id: 7,
 		name: "田村保乃",
-		nickname: null,
+		nickname: "",
 		emoji: "😄",
 		gen: "2nd" as Generation,
 		graduated: false,
@@ -136,7 +136,7 @@ export const sakurazakaMemberMock = [
 	{
 		id: 3,
 		name: "大園玲",
-		nickname: null,
+		nickname: "",
 		emoji: "😄",
 		gen: "2nd" as Generation,
 		graduated: false,
@@ -148,7 +148,7 @@ export const sakurazakaMemberMock = [
 	{
 		id: 8,
 		name: "藤吉夏鈴",
-		nickname: null,
+		nickname: "",
 		emoji: "😄",
 		gen: "2nd" as Generation,
 		graduated: false,
@@ -160,7 +160,7 @@ export const sakurazakaMemberMock = [
 	{
 		id: 1,
 		name: "井上梨名",
-		nickname: null,
+		nickname: "",
 		emoji: "😄",
 		gen: "2nd" as Generation,
 		graduated: false,
@@ -172,7 +172,7 @@ export const sakurazakaMemberMock = [
 	{
 		id: 20,
 		name: "的野美青",
-		nickname: null,
+		nickname: "",
 		emoji: "😄",
 		gen: "3rd" as Generation,
 		graduated: false,
@@ -184,7 +184,7 @@ export const sakurazakaMemberMock = [
 	{
 		id: 17,
 		name: "小島凪紗",
-		nickname: null,
+		nickname: "",
 		emoji: "😄",
 		gen: "3rd" as Generation,
 		graduated: false,
@@ -196,7 +196,7 @@ export const sakurazakaMemberMock = [
 	{
 		id: 15,
 		name: "遠藤理子",
-		nickname: null,
+		nickname: "",
 		emoji: "😄",
 		gen: "3rd" as Generation,
 		graduated: false,
@@ -208,7 +208,7 @@ export const sakurazakaMemberMock = [
 	{
 		id: 18,
 		name: "谷口愛季",
-		nickname: null,
+		nickname: "",
 		emoji: "😄",
 		gen: "3rd" as Generation,
 		graduated: false,
@@ -220,7 +220,7 @@ export const sakurazakaMemberMock = [
 	{
 		id: 24,
 		name: "山下瞳月",
-		nickname: null,
+		nickname: "",
 		emoji: "😄",
 		gen: "3rd" as Generation,
 		graduated: false,
@@ -232,7 +232,7 @@ export const sakurazakaMemberMock = [
 	{
 		id: 16,
 		name: "小田倉麗奈",
-		nickname: null,
+		nickname: "",
 		emoji: "😄",
 		gen: "3rd" as Generation,
 		graduated: false,
@@ -244,7 +244,7 @@ export const sakurazakaMemberMock = [
 	{
 		id: 19,
 		name: "中嶋優月",
-		nickname: null,
+		nickname: "",
 		emoji: "😄",
 		gen: "3rd" as Generation,
 		graduated: false,
@@ -256,7 +256,7 @@ export const sakurazakaMemberMock = [
 	{
 		id: 22,
 		name: "村井優",
-		nickname: null,
+		nickname: "",
 		emoji: "😄",
 		gen: "3rd" as Generation,
 		graduated: false,
@@ -268,7 +268,7 @@ export const sakurazakaMemberMock = [
 	{
 		id: 14,
 		name: "石森璃花",
-		nickname: null,
+		nickname: "",
 		emoji: "😄",
 		gen: "3rd" as Generation,
 		graduated: false,
@@ -280,7 +280,7 @@ export const sakurazakaMemberMock = [
 	{
 		id: 23,
 		name: "村山美羽",
-		nickname: null,
+		nickname: "",
 		emoji: "😄",
 		gen: "3rd" as Generation,
 		graduated: false,
@@ -292,7 +292,7 @@ export const sakurazakaMemberMock = [
 	{
 		id: 21,
 		name: "向井純葉",
-		nickname: null,
+		nickname: "",
 		emoji: "😄",
 		gen: "3rd" as Generation,
 		graduated: false,
