@@ -12,6 +12,10 @@ on:
       - labeled
       - unlabeled
 
+permissions:
+  contents: read
+  pull-requests: read
+
 defaults:
   run:
     shell: bash
@@ -19,9 +23,6 @@ defaults:
 jobs:
   pr:
     runs-on: ubuntu-latest
-    permissions:
-      contents: read
-      pull-requests: read
     steps:
       - name: Check Labels
         uses: mheap/github-action-required-labels@v5
