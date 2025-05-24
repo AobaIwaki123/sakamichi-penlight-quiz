@@ -7,6 +7,12 @@ on:
       - opened
       - synchronize
       - reopened
+    paths:
+      - 'view/**'
+
+permissions:
+  contents: read
+  actions: write
 
 defaults:
   run:
@@ -19,9 +25,6 @@ jobs:
   build:
     name: Build
     runs-on: ubuntu-latest
-    permissions:
-      contents: read
-      actions: write
     steps:
       - name: Checkout
         uses: actions/checkout@v4

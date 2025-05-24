@@ -20,6 +20,9 @@ on:
     branches:
       - dev
 
+permissions:
+  contents: write
+
 env:
   HARBOR_REGISTRY: harbor.aooba.net
   IMAGE_NAME: penlight/prod-view-penlight
@@ -33,8 +36,6 @@ defaults:
 jobs:
   determine-path:
     runs-on: ubuntu-latest
-    permissions:
-      contents: read
     outputs:
       release: ${{ steps.set-release.outputs.release }}
       deployment_file_path: ${{ steps.set-deployment-path.outputs.deployment_file_path }}
@@ -57,8 +58,6 @@ jobs:
 
   determine-image-tag:
     runs-on: ubuntu-latest
-    permissions:
-      contents: read
     outputs:
       image_tag: ${{ steps.set-tag.outputs.image_tag }}
     steps:
@@ -83,8 +82,6 @@ jobs:
 
   docker-build-and-push-to-harbor:
     runs-on: ubuntu-latest
-    permissions:
-      contents: read
     needs:
       - determine-image-tag
       - update-deployment-manifest
@@ -118,8 +115,6 @@ jobs:
     needs:
       - determine-path
       - determine-image-tag
-    permissions:
-      contents: write
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -156,8 +151,6 @@ jobs:
 
   sync:
     runs-on: ubuntu-latest
-    permissions:
-      contents: read
     needs:
       - docker-build-and-push-to-harbor
       - determine-image-tag
