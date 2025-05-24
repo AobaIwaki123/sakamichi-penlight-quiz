@@ -27,23 +27,14 @@ jobs:
         uses: aquasecurity/trivy-action@0.28.0
         with:
           image-ref: 'prod-view-penlight:${{ github.sha }}'
-          format: 'table'
+          format: 'json'
           exit-code: '0'
           ignore-unfixed: true
           vuln-type: 'os,library'
           severity: 'CRITICAL,HIGH'
-          output: 'trivy-report.txt'
+          output: 'trivy.json'
         env:
           TRIVY_DISABLE_VEX_NOTICE: true
       
-      - name: Fail and summarize if vulnerabilities found
-        run: |
-          echo "## 🔍 Trivy Scan Summary (CRITICAL, HIGH)" >> "$GITHUB_STEP_SUMMARY"
-          echo '```' >> "$GITHUB_STEP_SUMMARY" 
-          cat trivy-report.txt >> "$GITHUB_STEP_SUMMARY"
-          echo '```' >> "$GITHUB_STEP_SUMMARY"
-
-          if grep -qE 'CRITICAL|HIGH' trivy-result.txt; then
-            "::error file=trivy-result.txt::CRITICAL or HIGH vulnerabilities found"
-            exit 1
-          fi
+      - name: Summarize and evaluate Trivy results
+        run: python3 .github/scripts/trivy_summary.py
