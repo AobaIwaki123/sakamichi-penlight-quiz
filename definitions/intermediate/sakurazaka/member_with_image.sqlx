@@ -1,6 +1,6 @@
 config {
   type: "table",
-  schema: "hinatazaka",
+  schema: "sakurazaka",
   name: "member_with_image",
   description: "メンバー情報に画像を結合したもの",
 }
@@ -17,8 +17,8 @@ SELECT
   img.type,
   img.url
 FROM
-  ${ref("hinatazaka", "member_info")} info
+  ${ref("sakurazaka", "member_info")} info
 JOIN
-  ${ref("hinatazaka", "member_image_master")} img
+  ${ref("sakurazaka", "member_image_master")} img
 ON
   info.name = img.name
