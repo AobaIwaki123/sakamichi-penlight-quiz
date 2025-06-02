@@ -40,6 +40,6 @@
     "postcss-preset-mantine": "1.17.0",
     "postcss-simple-vars": "^7.0.1",
     "ts-jest": "^29.3.2",
-    "typescript": "5.8.2"
+    "typescript": "5.8.3"
   }
 }
