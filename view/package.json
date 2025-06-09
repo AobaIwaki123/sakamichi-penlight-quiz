@@ -11,7 +11,7 @@
     "test:watch": "jest --watch"
   },
   "dependencies": {
-    "@google-cloud/bigquery": "^7.9.4",
+    "@google-cloud/bigquery": "^8.1.0",
     "@mantine/core": "7.17.4",
     "@mantine/hooks": "7.17.4",
     "@mantinex/mantine-logo": "^1.1.0",
