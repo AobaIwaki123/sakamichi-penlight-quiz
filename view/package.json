@@ -14,7 +14,7 @@
     "@google-cloud/bigquery": "^7.9.4",
     "@mantine/core": "7.17.4",
     "@mantine/hooks": "7.17.4",
-    "@mantinex/mantine-logo": "^1.1.0",
+    "@mantinex/mantine-logo": "^2.0.0",
     "@next/bundle-analyzer": "^15.3.0",
     "@tabler/icons-react": "^3.31.0",
     "clsx": "^2.1.1",
