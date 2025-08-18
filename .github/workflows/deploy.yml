@@ -62,7 +62,7 @@ jobs:
       image_tag: ${{ steps.set-tag.outputs.image_tag }}
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
         with:
           fetch-depth: 0 # タグ取得のため必須
 
@@ -87,7 +87,7 @@ jobs:
       - update-deployment-manifest
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
         with:
           ref: main
 
@@ -117,7 +117,7 @@ jobs:
       - determine-image-tag
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - name: Update deployment YAML with new image tag
         uses: mikefarah/yq@v4

@@ -27,7 +27,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - name: Build an image from Dockerfile
         run: docker build --target prod -t prod-view-penlight:${{ github.sha }} ./view
