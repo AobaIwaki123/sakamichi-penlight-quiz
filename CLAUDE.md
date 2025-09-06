@@ -60,7 +60,10 @@ This is a Next.js quiz application about Sakamichi Group idol penlight colors, s
 - **Before making changes**: Create a new feature branch from main (e.g., `git checkout -b feature/description`)
 - **After making changes**: Always commit and push changes, then create a PR if one doesn't exist
 - Use descriptive commit messages that explain the purpose of the change
-- Create pull requests for code review before merging to main
+- **Create pull requests**: Include code review before merging to main and add appropriate version labels:
+  - `major` - Breaking changes or major new features
+  - `minor` - New features or enhancements
+  - `patch` - Bug fixes, documentation, or small improvements
 
 ## Important Notes
 - Application is optimized for mobile/portrait orientation
