@@ -1,7 +1,7 @@
-import { hinatazakaPenlightColors } from '@/consts/hinatazakaColors';
 import { useAnswerCloseTriggerStore } from '@/stores/useAnswerCloseTriggerStore';
 import { useAnswerTriggerStore } from '@/stores/useAnswerTriggerStore'
 import { useSelectedMemberStore } from '@/stores/useSelectedMemberStore';
+import { usePenlightStore } from '@/stores/usePenlightStore';
 import { Overlay, Portal, Text, Transition } from '@mantine/core';
 import { useEffect, useRef, useState } from 'react';
 import classes from './FullscreenNotification.module.css';
@@ -18,6 +18,7 @@ export function FullscreenNotification({ message }: FullscreenNotificationProps)
   const answerTriggerCount = useAnswerTriggerStore((state) => state.triggerCount);
   const answerCloseTrigger = useAnswerCloseTriggerStore((state) => state.trigger);
   const selectedMember = useSelectedMemberStore((state) => state.selectedMember);
+  const getPenlightById = usePenlightStore((state) => state.getPenlightById);
   const selectedMemberRef = useRef<typeof selectedMember>(null);
 
   useEffect(() => {
@@ -32,10 +33,10 @@ export function FullscreenNotification({ message }: FullscreenNotificationProps)
       if (current) {
         const penlight1Index = current.penlight1_id;
         const penlight2Index = current.penlight2_id;
-        const penlight1Info = hinatazakaPenlightColors[penlight1Index];
-        const penlight2Info = hinatazakaPenlightColors[penlight2Index];
-        setPenlight1(penlight1Info.name_ja);
-        setPenlight2(penlight2Info.name_ja);
+        const penlight1Info = getPenlightById(penlight1Index);
+        const penlight2Info = getPenlightById(penlight2Index);
+        setPenlight1(penlight1Info?.name_ja || '未取得');
+        setPenlight2(penlight2Info?.name_ja || '未取得');
       }
     }
   }, [answerTriggerCount]); // ✅ これでselectedMemberは依存に含めなくてOK＆警告なし
