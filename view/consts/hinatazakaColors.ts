@@ -1,9 +1,4 @@
-export type PenlightColor = {
-  id: number;
-  name_ja: string;
-  name_en: string;
-  color: string;
-};
+import type { PenlightColor } from '@/types/PenlightColor';
 
 export const hinatazakaPenlightColors: PenlightColor[] = [
   { id: 0, name_ja: 'パステルブルー', name_en: 'pastel_blue', color: '#09b8ff' },
