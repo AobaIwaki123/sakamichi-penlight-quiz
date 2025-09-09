@@ -85,7 +85,7 @@ export async function debugPenlightTable(dataset: 'hinatazaka' | 'sakurazaka') {
     };
 
   } catch (error) {
-    console.error(`${dataset} ペンライトテーブルデバッグエラー:`, error);
+    console.error('%s ペンライトテーブルデバッグエラー:', dataset, error);
     return { exists: false, error: String(error) };
   }
 }
