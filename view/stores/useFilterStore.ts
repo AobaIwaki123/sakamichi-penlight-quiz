@@ -1,10 +1,8 @@
-// stores/useFilterStore.ts
+/**
+ * フィルター状態管理ストア
+ */
 import { create } from 'zustand';
-
-type FilterState = {
-  checkedFilters: Record<string, boolean>;
-  setFilter: (type: string, checked: boolean) => void;
-};
+import type { FilterState } from '@/types';
 
 export const useFilterStore = create<FilterState>((set) => ({
   checkedFilters: {},

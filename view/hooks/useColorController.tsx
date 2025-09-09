@@ -1,27 +1,5 @@
-import { hinatazakaPenlightColors } from '@/consts/hinatazakaColors';
-// hooks/useColorController.ts
-import { useColorStore } from '@/stores/useColorStore';
-
-export function useColorController(id: string) {
-  const index = useColorStore((s) => s.colorMap[id]?.index ?? 0);
-  const setIndex = useColorStore((s) => s.setIndex);
-
-  const penlightColors = hinatazakaPenlightColors
-
-  const next = () =>
-    setIndex(id, (prev) => (prev + 1) % penlightColors.length);
-  const prev = () =>
-    setIndex(id, (prev) => (prev - 1 + penlightColors.length) % penlightColors.length);
-
-  const current = penlightColors[index];
-
-  return {
-    index,
-    color: current.color,
-    nameJa: current.name_ja,
-    nameEn: current.name_en,
-    next,
-    prev,
-    allColors: penlightColors,
-  };
-}
+/**
+ * 旧バージョンのuseColorController - 新しいhooks/index.tsを使用してください
+ * @deprecated hooks/index.tsのuseColorControllerを使用してください
+ */
+export { useColorController } from './index';

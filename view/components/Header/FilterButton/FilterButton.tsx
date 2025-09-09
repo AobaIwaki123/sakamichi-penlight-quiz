@@ -1,8 +1,7 @@
 "use client";
 
-import { hinatazakaFilters } from '@/consts/hinatazakaFilters';
-import type { Generation } from "@/consts/hinatazakaFilters";
-import { GenerationMap } from "@/consts/hinatazakaFilters";
+import { HINATAZAKA_FILTERS, GENERATION_MAP } from '@/constants';
+import type { Generation } from '@/types';
 import { useFilterStore } from '@/stores/useFilterStore';
 import { useSelectedMemberStore } from "@/stores/useSelectedMemberStore";
 import { ActionIcon, Checkbox, Menu, Stack } from '@mantine/core';
@@ -18,7 +17,7 @@ export function FilterButton() {
 
   // ✅ 初期化（マウント時にフィルター状態を設定）
   useEffect(() => {
-    for (const filter of hinatazakaFilters) {
+    for (const filter of HINATAZAKA_FILTERS) {
       useFilterStore.getState().setFilter(filter.type, filter.defaultChecked || false);
     }
   }, []);
@@ -41,7 +40,7 @@ export function FilterButton() {
     let graduatedFilter = false
 
     for (const label of selectedLabels) {
-      const mapped = GenerationMap[label]
+      const mapped = GENERATION_MAP[label]
       if (!mapped) continue
 
       if (mapped === 'graduated') {
@@ -87,7 +86,7 @@ export function FilterButton() {
         <Menu.Label>フィルター</Menu.Label>
         <Menu.Item>
           <Stack>
-            {hinatazakaFilters.map((filter) => (
+            {HINATAZAKA_FILTERS.map((filter) => (
               <Checkbox
                 key={filter.type}
                 label={filter.type}

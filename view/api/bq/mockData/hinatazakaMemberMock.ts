@@ -1,4 +1,4 @@
-import type { Generation } from "@/consts/hinatazakaFilters";
+import type { Generation } from '@/types';
 
 export const hinatazakaMemberMock = [
 	{

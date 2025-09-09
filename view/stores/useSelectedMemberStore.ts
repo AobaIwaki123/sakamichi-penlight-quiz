@@ -1,34 +1,11 @@
+/**
+ * 選択メンバーの状態管理ストア
+ */
+import { create } from 'zustand';
 import { getHinatazakaMember } from "@/api/bq/getHinatazakaMember";
-import { create } from 'zustand'
+import type { SelectedMemberState, Group, Member } from '@/types';
 
-import type { Generation } from "@/consts/hinatazakaFilters";
-import type { Group } from "@/types/Group";
-import type { Member } from "@/types/Member";
-
-type State = {
-  selectedGroup: Group
-  hasInvalidFilter: boolean
-  allMembers: Member[]
-  filters: {
-    gen?: Generation[] // ← 単一ではなく複数
-    graduated?: boolean
-  } // フィルタ可能な属性を絞る
-  filteredMembers: Member[]
-  shuffledMembers: Member[]
-  currentShuffleIndex: number
-  selectedMember?: Member
-  isLoading: boolean
-  setGroup: (group: Group) => void
-  setFilters: (filters: {
-  gen?: Generation[] // ← 単一ではなく複数
-  graduated?: boolean
-}) => void
-  applyFilters: () => void
-  shuffleMembers: () => void
-  pickRandomMember: () => Member | undefined
-}
-
-export const useSelectedMemberStore = create<State>((set, get) => ({
+export const useSelectedMemberStore = create<SelectedMemberState>((set, get) => ({
   selectedGroup: 'hinatazaka',
   allMembers: [],
   filters: {},
