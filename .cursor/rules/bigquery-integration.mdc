@@ -1,0 +1,69 @@
+---
+description: "BigQuery統合パターンとデータ通信"
+globs: **/api/bq/**,**/types/**,definitions/**
+---
+
+# BigQuery統合ガイド
+
+## BigQuery接続アーキテクチャ
+
+### API層
+- **メインAPI関数**: [view/api/bq/getHinatazakaMember.ts](mdc:view/api/bq/getHinatazakaMember.ts)
+- **モックデータ**: [view/api/bq/mockData/hinatazakaMemberMock.ts](mdc:view/api/bq/mockData/hinatazakaMemberMock.ts)
+- **認証**: サービスアカウント認証情報で`@google-cloud/bigquery`パッケージを使用
+
+### 接続パターン
+```typescript
+const bigquery = new BigQuery();
+const query = `SELECT * FROM sakamichipenlightquiz.sakamichi.hinatazaka_member_master`;
+const [job] = await bigquery.createQueryJob(options);
+const [rows] = await job.getQueryResults();
+```
+
+### データベース構造
+- **プロジェクト**: `sakamichipenlightquiz`
+- **本番データセット**: `sakamichi`
+- **開発データセット**: `hinatazaka`
+- **メインテーブル**: `hinatazaka_member_master`
+
+### 環境処理
+- **開発モード**: [hinatazakaMemberMock.ts](mdc:view/api/bq/mockData/hinatazakaMemberMock.ts)からモックデータを返す
+- **本番モード**: 実際のBigQueryテーブルにクエリ
+- **認証**: `GOOGLE_APPLICATION_CREDENTIALS`環境変数経由
+
+### データフロー
+1. **ソース**: [definitions/sources/hinatazaka/](mdc:definitions/sources/hinatazaka/)の生データ定義
+2. **中間処理**: [definitions/intermediate/hinatazaka/](mdc:definitions/intermediate/hinatazaka/)の処理済みテーブル
+3. **出力**: [definitions/output/sakamichi/](mdc:definitions/output/sakamichi/)の最終テーブル
+
+### 主要テーブルと関係
+- `member_info` → ベースメンバー情報
+- `penlight` → ペンライト色定義
+- `member_image_master` → 異なるコンテキストの画像URL
+- `member_with_image` → メンバー情報と画像の結合
+- `member_master` → ペンライトIDとの結合
+- `hinatazaka_member_master` → 最終出力テーブル
+
+### メンバー型定義
+完全なインターフェースは[view/types/Member.ts](mdc:view/types/Member.ts)を参照：
+```typescript
+interface Member {
+  id: number;
+  name: string;
+  nickname: string;
+  emoji: string;
+  gen: Generation;
+  graduated: boolean;
+  penlight1_id: number;
+  penlight2_id: number;
+  type: string;
+  url: string;
+}
+```
+
+### ベストプラクティス
+- 開発と本番環境の区別には必ず`NODE_ENV`をチェック
+- BigQueryコストを避けるため開発時はモックデータを使用
+- BigQueryデバッグ用にジョブIDをログ出力
+- クエリ結果を型付き配列として処理
+- BigQueryジョブに適切なロケーション（US）を設定

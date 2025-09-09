@@ -1,0 +1,45 @@
+---
+alwaysApply: true
+description: "プロジェクト概要とアーキテクチャガイド"
+---
+
+# 坂道ペンライトクイズ - プロジェクト概要
+
+## プロジェクト構成
+坂道グループ（日向坂46）のアイドルペンライト色に関するNext.jsクイズアプリケーションです。
+
+### コアアーキテクチャ
+- **フロントエンド**: [view/](mdc:view/) ディレクトリのNext.js 15 App Routerアプリ
+- **状態管理**: アプリケーション状態用のZustandストア
+- **UIフレームワーク**: カスタムテーマ付きMantine UIコンポーネント
+- **データソース**: [view/api/bq/getHinatazakaMember.ts](mdc:view/api/bq/getHinatazakaMember.ts)経由のBigQuery API
+- **データパイプライン**: [definitions/](mdc:definitions/)でのBigQueryテーブル管理用Dataform
+- **デプロイメント**: ArgoCD GitOpsワークフローを使用したKubernetes
+
+### 主要ディレクトリ
+- `view/app/` - Next.js App Routerのページとレイアウト
+- `view/components/` - 機能別に整理されたReactコンポーネント
+- `view/stores/` - Zustand状態管理ストア
+- `view/api/` - データ取得用API関数
+- `view/types/` - TypeScript型定義
+- `view/consts/` - アプリケーション定数とフィルター
+- `definitions/` - BigQuery用DataformのSQL定義
+- `k8s/` - Kubernetesデプロイメントマニフェスト
+
+### アプリケーションフロー
+1. **メンバー選択**: [useSelectedMemberStore.ts](mdc:view/stores/useSelectedMemberStore.ts)でメンバーデータ、フィルタリング、ランダム選択を管理
+2. **クイズロジック**: ユーザーがランダムに選択されたアイドルメンバーのペンライト色を推測
+3. **状態管理**: 複数のZustandストアが異なる側面（回答、フィルター、UIトリガー）を処理
+4. **データ取得**: BigQuery統合でメンバー情報とペンライト色を提供
+
+### 開発環境
+- ローカル開発には[compose.yml](mdc:compose.yml)を使用
+- 開発サーバーはポート3000で実行
+- 開発モード用のモックデータが利用可能
+- 本番ビルドはDistrolessイメージでマルチステージDockerを使用
+
+### 重要な注意事項
+- アプリケーションはモバイル/縦画面向けに最適化
+- マニフェストとサービスワーカーでPWA機能を使用
+- BigQuery統合にはGOOGLE_APPLICATION_CREDENTIALS経由の適切な認証が必要
+- 開発モードではBigQueryコストを避けるためモックデータを使用
