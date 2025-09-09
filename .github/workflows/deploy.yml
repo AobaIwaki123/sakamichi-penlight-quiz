@@ -129,7 +129,7 @@ jobs:
           echo "Updated image in ${{ needs.determine-path.outputs.deployment_file_path }}"
 
       - name: Set up Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v5
         if: ${{ needs.determine-path.outputs.release != 'dev' }}
         with:
           node-version: 22
