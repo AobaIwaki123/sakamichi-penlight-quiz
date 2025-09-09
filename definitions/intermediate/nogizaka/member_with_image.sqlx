@@ -1,0 +1,24 @@
+config {
+  type: "table",
+  schema: "nogizaka",
+  name: "member_with_image",
+  description: "乃木坂46メンバー情報に画像を結合したもの",
+}
+
+SELECT
+  info.id,
+  info.name,
+  info.nickname,
+  info.emoji,
+  info.gen,
+  info.graduated,
+  info.penlight1,
+  info.penlight2,
+  img.type,
+  img.url
+FROM
+  ${ref("member_info")} info
+JOIN
+  ${ref("member_image_master")} img
+ON
+  info.name = img.name

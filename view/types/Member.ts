@@ -1,5 +1,8 @@
 // types/member.ts
-import type { Generation } from "@/consts/hinatazakaFilters";
+import type { Generation as HinatazakaGeneration } from "@/consts/hinatazakaFilters";
+import type { Generation as NogizakaGeneration } from "@/consts/nogizakaFilters";
+
+export type Generation = HinatazakaGeneration | NogizakaGeneration;
 
 export interface Member {
   id: number;

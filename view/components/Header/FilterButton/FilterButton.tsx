@@ -1,8 +1,8 @@
 "use client";
 
-import { hinatazakaFilters } from '@/consts/hinatazakaFilters';
-import type { Generation } from "@/consts/hinatazakaFilters";
-import { GenerationMap } from "@/consts/hinatazakaFilters";
+import { hinatazakaFilters, GenerationMap as HinatazakaGenerationMap } from '@/consts/hinatazakaFilters';
+import { nogizakaFilters, GenerationMap as NogizakaGenerationMap } from '@/consts/nogizakaFilters';
+import type { Generation } from "@/types/Member";
 import { useFilterStore } from '@/stores/useFilterStore';
 import { useSelectedMemberStore } from "@/stores/useSelectedMemberStore";
 import { ActionIcon, Checkbox, Menu, Stack } from '@mantine/core';
@@ -16,12 +16,23 @@ export function FilterButton() {
   const checkedFilters = useFilterStore((state) => state.checkedFilters);
   const setFilter = useFilterStore((state) => state.setFilter);
 
+  // 現在選択されているグループを取得
+  const selectedGroup = useSelectedMemberStore((state) => state.selectedGroup);
+
+  // グループに応じたフィルターとマッピングを選択
+  const currentFilters = selectedGroup === 'nogizaka' ? nogizakaFilters : hinatazakaFilters;
+  const currentGenerationMap = selectedGroup === 'nogizaka' ? NogizakaGenerationMap : HinatazakaGenerationMap;
+
   // ✅ 初期化（マウント時にフィルター状態を設定）
   useEffect(() => {
-    for (const filter of hinatazakaFilters) {
+    // グループ変更時にフィルターをクリア
+    useFilterStore.getState().clearFilters();
+
+    // 新しいグループのフィルターを設定
+    for (const filter of currentFilters) {
       useFilterStore.getState().setFilter(filter.type, filter.defaultChecked || false);
     }
-  }, []);
+  }, [selectedGroup, currentFilters]);
 
   // ✅ チェックボックス変更時
   const handleCheckboxChange = (type: string, checked: boolean) => {
@@ -41,7 +52,7 @@ export function FilterButton() {
     let graduatedFilter = false
 
     for (const label of selectedLabels) {
-      const mapped = GenerationMap[label]
+      const mapped = currentGenerationMap[label]
       if (!mapped) continue
 
       if (mapped === 'graduated') {
@@ -63,7 +74,7 @@ export function FilterButton() {
     filterObj.graduated = graduatedFilter
 
     useSelectedMemberStore.getState().setFilters(filterObj)
-  }, [checkedFilters])
+  }, [checkedFilters, currentGenerationMap])
 
 
 
@@ -87,7 +98,7 @@ export function FilterButton() {
         <Menu.Label>フィルター</Menu.Label>
         <Menu.Item>
           <Stack>
-            {hinatazakaFilters.map((filter) => (
+            {currentFilters.map((filter) => (
               <Checkbox
                 key={filter.type}
                 label={filter.type}

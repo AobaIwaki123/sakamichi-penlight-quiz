@@ -4,6 +4,7 @@ import { create } from 'zustand';
 type FilterState = {
   checkedFilters: Record<string, boolean>;
   setFilter: (type: string, checked: boolean) => void;
+  clearFilters: () => void;
 };
 
 export const useFilterStore = create<FilterState>((set) => ({
@@ -14,5 +15,9 @@ export const useFilterStore = create<FilterState>((set) => ({
         ...state.checkedFilters,
         [type]: checked,
       },
+    })),
+  clearFilters: () =>
+    set(() => ({
+      checkedFilters: {},
     })),
 }));
