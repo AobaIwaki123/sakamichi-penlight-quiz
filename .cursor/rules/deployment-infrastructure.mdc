@@ -1,0 +1,179 @@
+---
+description: "Kubernetes デプロイメントとインフラストラクチャ管理"
+globs: k8s/**,Makefile,compose.yml,Dockerfile
+---
+
+# デプロイメント・インフラガイド
+
+## インフラ構成
+
+### コンテナ化
+- **ベースイメージ**: Node.js 22 slim
+- **本番イメージ**: gcr.io/distroless/nodejs22-debian12:nonroot
+- **セキュリティ**: 非rootユーザーで実行
+- **最適化**: 多段階ビルドでイメージサイズ削減
+
+### Docker設定
+- **開発環境**: [compose.yml](mdc:compose.yml) でローカル開発
+- **本番環境**: [view/Dockerfile](mdc:view/Dockerfile) で最適化されたイメージ
+- **ポート**: 3000番ポートで公開
+
+## Kubernetesデプロイメント
+
+### 環境別構成
+- **開発環境**: [k8s/manifests/dev/](mdc:k8s/manifests/dev/)
+- **本番環境**: [k8s/manifests/main/](mdc:k8s/manifests/main/)
+
+### Kubernetesリソース
+
+#### Deployment
+```yaml
+# k8s/manifests/main/deployment.yml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: penlight-view
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: penlight-view
+  template:
+    spec:
+      containers:
+      - name: penlight-view
+        image: harbor.aooba.net/penlight/prod-view-penlight:latest
+        ports:
+        - containerPort: 3000
+```
+
+#### Service
+- ClusterIP サービスでクラスター内通信
+- ポート3000でアプリケーションを公開
+
+#### Ingress
+- 外部からのHTTPS通信を受け付け
+- TLS終端を実行
+
+### GitOps ワークフロー
+
+#### ArgoCD設定
+- **アプリケーション名**: penlight
+- **Git リポジトリ**: https://github.com/AobaIwaki123/sakamichi-penlight-quiz
+- **マニフェストパス**: k8s/manifests
+- **自動同期**: 有効（selfHeal, prune）
+
+#### [argocd/app.yml](mdc:k8s/argocd/app.yml)
+```yaml
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: penlight
+spec:
+  project: default
+  source:
+    repoURL: 'https://github.com/AobaIwaki123/sakamichi-penlight-quiz'
+    targetRevision: HEAD
+    path: k8s/manifests
+  syncPolicy:
+    automated:
+      selfHeal: true
+      prune: true
+```
+
+## デプロイメントワークフロー
+
+### 手動デプロイ手順
+
+#### 1. イメージビルド
+```bash
+make build  # Dockerイメージをビルド
+```
+
+#### 2. イメージタグ付け・プッシュ
+```bash
+make tag    # イメージにタグを付与
+make push   # Harbor レジストリにプッシュ
+```
+
+#### 3. 一括デプロイ
+```bash
+make cd     # build + tag + push を一括実行
+```
+
+#### 4. ArgoCD同期
+```bash
+make sync   # ArgoCD に同期を強制実行
+```
+
+### 自動デプロイ
+- GitHubにpushすると自動的にArgoCDが検知
+- マニフェストファイルの変更を自動反映
+- selfHeal機能で設定ドリフトを自動修正
+
+## 環境変数・設定
+
+### BigQuery認証
+- **環境変数**: `GOOGLE_APPLICATION_CREDENTIALS`
+- **設定場所**: サービスアカウントキーのパス
+- **開発環境**: `./view/secret/credentials.json`
+
+### Node.js設定
+- **NODE_ENV**: production (本番), development (開発)
+- **PORT**: 3000 (デフォルト)
+- **HOSTNAME**: 0.0.0.0
+
+## モニタリング・運用
+
+### ヘルスチェック
+- Next.js の標準的なヘルスチェックエンドポイント
+- KubernetesのreadinessProbe, livenessProbeで監視
+
+### ログ管理
+- コンテナログをKubernetesで収集
+- BigQueryクエリのジョブIDをログ出力
+
+### セキュリティ
+- Distrolessイメージで脆弱性を最小化
+- 非rootユーザーでコンテナ実行
+- TLS通信でHTTPS必須
+
+## トラブルシューティング
+
+### よくある問題
+
+#### BigQuery接続エラー
+1. サービスアカウントキーの確認
+2. プロジェクトIDの設定確認
+3. データセット・テーブルの存在確認
+
+#### イメージビルド失敗
+1. Node.jsバージョンの確認
+2. pnpm lock ファイルの整合性チェック
+3. ビルドログでエラー詳細を確認
+
+#### ArgoCD同期エラー
+1. マニフェストファイルの文法チェック
+2. Kubernetesリソースの名前衝突確認
+3. 権限設定の確認
+
+## 開発環境セットアップ
+
+### ローカル開発
+```bash
+# Docker Composeで起動
+docker-compose up -d
+
+# または直接起動
+cd view/
+pnpm dev
+```
+
+### 環境変数設定
+```bash
+# BigQuery認証（開発環境）
+export GOOGLE_APPLICATION_CREDENTIALS=/path/to/credentials.json
+
+# または .env.local ファイルに設定
+NODE_ENV=development
+```

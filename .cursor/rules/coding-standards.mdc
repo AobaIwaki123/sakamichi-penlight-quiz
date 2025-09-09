@@ -1,0 +1,267 @@
+---
+alwaysApply: true
+description: "日本語でのコーディング規約と開発ガイドライン"
+---
+
+# コーディング規約・開発ガイドライン
+
+## 基本方針
+
+### 言語使用規則
+- **コードコメント**: 日本語で記述する
+- **関数・メソッドの説明**: JSDocコメントは日本語で記述
+- **変数名・関数名**: 英語で記述（国際的な慣例に従う）
+- **エラーメッセージ**: ユーザー向けは日本語、開発者向けは英語も可
+- **ドキュメント**: 日本語で記述（このプロジェクトの文書）
+
+### 例
+```typescript
+/**
+ * 日向坂46のメンバー情報を取得する関数
+ * BigQueryから最新のメンバーデータを取得し、開発環境ではモックデータを返す
+ */
+export async function getHinatazakaMember(): Promise<Member[]> {
+  // 開発モードかどうかをチェック
+  const isDevMode = process.env.NODE_ENV === "development";
+  
+  if (isDevMode) {
+    // devモードの場合はモックデータを返す
+    console.log('モックデータを使用中（開発モード）');
+    return hinatazakaMemberMock;
+  }
+  
+  // 本番環境ではBigQueryに接続
+  const bigquery = new BigQuery();
+  // ... 処理続く
+}
+```
+
+## TypeScript規約
+
+### 型定義
+- interfaceは日本語コメント付きで定義
+- 型名は英語（PascalCase）
+- プロパティ名は英語（camelCase）
+
+```typescript
+/**
+ * 日向坂46メンバーの情報を表すインターフェース
+ */
+export interface Member {
+  /** メンバーID */
+  id: number;
+  /** メンバー名（フルネーム） */
+  name: string;
+  /** ニックネーム（任意） */
+  nickname: string;
+  /** 代表絵文字 */
+  emoji: string;
+  /** 所属期生 */
+  gen: Generation;
+  /** 卒業済みかどうか */
+  graduated: boolean;
+  /** ペンライト色1のID */
+  penlight1_id: number;
+  /** ペンライト色2のID */
+  penlight2_id: number;
+}
+```
+
+### エラーハンドリング
+```typescript
+try {
+  const members = await getHinatazakaMember();
+  console.log(`${members.length}件のメンバー情報を取得しました`);
+} catch (error) {
+  console.error('メンバー情報の取得に失敗しました:', error);
+  // ユーザー向けエラーメッセージは日本語
+  throw new Error('メンバー情報を読み込めませんでした。しばらく時間をおいて再試行してください。');
+}
+```
+
+## React コンポーネント規約
+
+### コンポーネント定義
+```typescript
+/**
+ * メンバー情報を表示するコンポーネント
+ * ペンライトクイズのメイン表示部分を担当する
+ */
+interface MemberInfoProps {
+  /** 表示するメンバー情報 */
+  member: Member;
+  /** ローディング状態 */
+  isLoading?: boolean;
+}
+
+export const MemberInfo: React.FC<MemberInfoProps> = ({
+  member,
+  isLoading = false
+}) => {
+  // ローディング中の表示
+  if (isLoading) {
+    return <div>メンバー情報を読み込み中...</div>;
+  }
+  
+  return (
+    <div>
+      {/* メンバー情報の表示 */}
+    </div>
+  );
+};
+```
+
+### CSS Modules
+```css
+/* MemberInfo.module.css */
+
+/* メンバー情報のコンテナ */
+.memberContainer {
+  padding: 1rem;
+  border-radius: 8px;
+  background-color: var(--mantine-color-white);
+}
+
+/* メンバー名のスタイル */
+.memberName {
+  font-size: 1.5rem;
+  font-weight: bold;
+  color: var(--mantine-color-blue-7);
+}
+```
+
+## Zustand ストア規約
+
+### ストア定義
+```typescript
+/**
+ * 選択されたメンバーの状態を管理するストア
+ */
+interface SelectedMemberState {
+  /** 現在選択されているグループ */
+  selectedGroup: Group;
+  /** 全メンバーリスト */
+  allMembers: Member[];
+  /** フィルタリング済みメンバーリスト */
+  filteredMembers: Member[];
+  /** 現在選択されているメンバー */
+  selectedMember?: Member;
+  /** ローディング状態 */
+  isLoading: boolean;
+}
+
+/**
+ * アクション定義（関数の説明は日本語）
+ */
+interface SelectedMemberActions {
+  /** グループを設定し、メンバー情報を取得する */
+  setGroup: (group: Group) => Promise<void>;
+  /** フィルターを適用する */
+  applyFilters: () => void;
+  /** ランダムにメンバーを選択する */
+  pickRandomMember: () => Member | undefined;
+}
+```
+
+## SQL・Dataform規約
+
+### SQLコメント
+```sql
+-- 日向坂46メンバーマスターテーブルの作成
+-- ペンライト情報とメンバー情報を結合した最終テーブル
+config {
+  type: "table",
+  schema: "sakamichi",
+  name: "hinatazaka_member_master",
+  description: "日向坂46メンバー情報のマスターテーブル"
+}
+
+SELECT
+  info.id,
+  info.name,                    -- メンバー名
+  info.nickname,                -- ニックネーム
+  info.emoji,                   -- 代表絵文字
+  info.gen,                     -- 所属期生
+  info.graduated,               -- 卒業状態
+  penlight1.id AS penlight1_id, -- ペンライト色1
+  penlight2.id AS penlight2_id, -- ペンライト色2
+  info.type,                    -- 画像タイプ
+  info.url                      -- 画像URL
+FROM
+  ${ref("member_with_image")} info
+JOIN
+  ${ref("penlight")} penlight1 ON info.penlight1 = penlight1.name_ja
+JOIN
+  ${ref("penlight")} penlight2 ON info.penlight2 = penlight2.name_ja
+```
+
+## Git コミット規約
+
+### コミットメッセージ
+```
+feat: メンバーフィルタリング機能を追加
+
+- 期生別でのメンバー絞り込み機能を実装
+- 卒業生の表示/非表示切り替えを追加
+- フィルタ状態をZustandで管理
+
+Closes #123
+```
+
+### ブランチ命名
+- `feature/機能名` - 新機能開発
+- `fix/修正内容` - バグ修正
+- `docs/文書更新` - ドキュメント更新
+- `refactor/リファクタリング内容` - コードリファクタリング
+
+## ドキュメント規約
+
+### README・説明文書
+- 日本語で記述
+- 技術的な詳細も日本語で説明
+- コマンド例は英語（実際のコマンドのため）
+
+### API ドキュメント
+```typescript
+/**
+ * BigQueryから日向坂46メンバー情報を取得する
+ * 
+ * @returns Promise<Member[]> メンバー情報の配列
+ * @throws Error BigQuery接続エラーまたはクエリ実行エラー
+ * 
+ * @example
+ * ```typescript
+ * const members = await getHinatazakaMember();
+ * console.log(`取得したメンバー数: ${members.length}`);
+ * ```
+ */
+export async function getHinatazakaMember(): Promise<Member[]> {
+  // 実装
+}
+```
+
+## ログ・デバッグ規約
+
+### ログメッセージ
+```typescript
+// 開発時のデバッグログ（日本語OK）
+console.log('メンバー情報を取得中...');
+console.log(`フィルター適用後: ${filteredMembers.length}件`);
+
+// 本番環境のログ（構造化ログ推奨）
+logger.info('Member data fetched', { 
+  count: members.length,
+  group: 'hinatazaka',
+  timestamp: new Date().toISOString()
+});
+
+// エラーログ
+console.error('BigQuery接続エラー:', error.message);
+```
+
+### デバッグコメント
+```typescript
+// TODO: ペンライト色の取得ロジックを最適化する
+// FIXME: フィルター適用時のパフォーマンス問題を修正
+// NOTE: この処理は日向坂46専用の実装
+```
