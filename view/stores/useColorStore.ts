@@ -1,6 +1,6 @@
-import { hinatazakaPenlightColors } from '@/consts/hinatazakaColors';
 // stores/colorStore.ts
 import { create } from 'zustand';
+import { usePenlightStore } from './usePenlightStore';
 
 type ColorInfo = {
   index: number;
@@ -33,7 +33,19 @@ export const useColorStore = create<ColorState>((set, get) => ({
     }),
   getColorData: (id) => {
     const index = get().colorMap[id]?.index ?? 0;
-    const current = hinatazakaPenlightColors[index];
+    const { penlightColors } = usePenlightStore.getState();
+    const current = penlightColors[index];
+    
+    // ペンライト色データが未取得の場合はデフォルト値を返す
+    if (!current) {
+      return {
+        index,
+        nameJa: '未取得',
+        nameEn: 'not_loaded',
+        color: '#cccccc',
+      };
+    }
+    
     return {
       index,
       nameJa: current.name_ja,

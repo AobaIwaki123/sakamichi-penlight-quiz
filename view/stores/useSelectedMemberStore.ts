@@ -5,6 +5,7 @@ import { create } from 'zustand'
 import type { Generation } from "@/consts/hinatazakaFilters";
 import type { Group } from "@/types/Group";
 import type { Member } from "@/types/Member";
+import { usePenlightStore } from "./usePenlightStore";
 
 type State = {
   selectedGroup: Group
@@ -43,7 +44,12 @@ export const useSelectedMemberStore = create<State>((set, get) => ({
   setGroup: async (group) => {
     set({ isLoading: true, selectedGroup: group })
     try {
-      const members = await getGroupMembers(group)
+      // メンバーデータとペンライト色データを並行して取得
+      const [members] = await Promise.all([
+        getGroupMembers(group),
+        usePenlightStore.getState().fetchPenlightColors(group)
+      ]);
+      
       console.log("members", members)
       set({ allMembers: members })
       get().applyFilters()
