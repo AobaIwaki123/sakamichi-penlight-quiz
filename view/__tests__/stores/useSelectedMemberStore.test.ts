@@ -1,9 +1,9 @@
 import { useSelectedMemberStore } from '@/stores/useSelectedMemberStore';
 import type { Member } from '@/types/Member';
-import type { Generation } from '@/consts/hinatazakaFilters';
+import type { Generation } from '@/consts/groupConfigs';
 
-jest.mock('@/api/bq/getHinatazakaMember', () => ({
-  getHinatazakaMember: jest.fn().mockResolvedValue([
+jest.mock('@/api/bq/getMemberData', () => ({
+  getMemberData: jest.fn().mockResolvedValue([
     { 
       id: 1, 
       name: 'Member 1', 

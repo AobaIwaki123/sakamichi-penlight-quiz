@@ -1,7 +1,7 @@
-import { getHinatazakaMember } from "@/api/bq/getHinatazakaMember";
+import { getMemberData } from "@/api/bq/getMemberData";
 import { create } from 'zustand'
 
-import type { Generation } from "@/consts/hinatazakaFilters";
+import type { Generation } from "@/consts/groupConfigs";
 import type { Group } from "@/types/Group";
 import type { Member } from "@/types/Member";
 
@@ -128,10 +128,6 @@ export const useSelectedMemberStore = create<State>((set, get) => ({
 }))
 
 async function getGroupMembers(group: Group): Promise<Member[]> {
-  if (group === 'hinatazaka') {
-    return getHinatazakaMember()
-  }
-
-  throw new Error(`未対応のグループ: ${group}`)
+  return getMemberData(group);
 }
 

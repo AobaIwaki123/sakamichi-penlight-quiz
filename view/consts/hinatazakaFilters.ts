@@ -1,27 +1,24 @@
-export type Filter = {
-  type: string;
-  defaultChecked: boolean;
-}
+import { getGroupConfig } from './groupConfigs';
+import type { Filter, HinatazakaGeneration } from './groupConfigs';
 
-export const hinatazakaFilters: Filter[] = [
-  { type: '1期生', defaultChecked: true },
-  { type: '2期生', defaultChecked: true },
-  { type: '3期生', defaultChecked: true },
-  { type: '4期生', defaultChecked: true },
-  { type: '5期生', defaultChecked: true },
-  { type: '卒業生', defaultChecked: false },
-]
+// 後方互換性のためのエクスポート
+export type { Filter };
 
-// Generation.ts
-export type Generation = "1st" | "2nd" | "3rd" | "4th" | "5th" | "graduated";
+// 日向坂46の設定を取得
+const hinatazakaConfig = getGroupConfig('hinatazaka');
 
+/**
+ * @deprecated 新しいコードでは getGroupConfig('hinatazaka').filters を使用してください
+ */
+export const hinatazakaFilters: Filter[] = hinatazakaConfig.filters;
 
-export const GenerationMap: { [key: string]: Generation } = {
-  "1期生": "1st",
-  "2期生": "2nd",
-  "3期生": "3rd",
-  "4期生": "4th",
-  "5期生": "5th",
-  "卒業生": "graduated",
-};
+/**
+ * @deprecated 新しいコードでは HinatazakaGeneration を使用してください
+ */
+export type Generation = HinatazakaGeneration;
+
+/**
+ * @deprecated 新しいコードでは getGroupConfig('hinatazaka').generationMap を使用してください
+ */
+export const GenerationMap: { [key: string]: string } = hinatazakaConfig.generationMap;
 

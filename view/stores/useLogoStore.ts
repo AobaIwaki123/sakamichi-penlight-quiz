@@ -1,5 +1,5 @@
 import { create } from 'zustand'
-
+import { getAllGroupConfigs } from '@/consts/groupConfigs';
 import type { Group } from "@/types/Group";
 
 type Logo = {
@@ -7,11 +7,11 @@ type Logo = {
   url: string
 }
 
-const logos: Logo[] = [
-  { name: 'hinatazaka', url: 'https://upload.wikimedia.org/wikipedia/commons/0/0b/Hinatazaka46_logo.svg' },
-  { name: 'sakurazaka', url: 'https://upload.wikimedia.org/wikipedia/commons/7/7a/Sakurazaka46_logo.svg' },
-  { name: 'nogizaka', url: 'https://upload.wikimedia.org/wikipedia/commons/6/65/Nogizaka46_logo.svg' },
-]
+// 設定から動的にロゴ配列を生成
+const logos: Logo[] = getAllGroupConfigs().map(config => ({
+  name: config.name,
+  url: config.logoUrl
+}));
 
 type LogoStore = {
   index: number
