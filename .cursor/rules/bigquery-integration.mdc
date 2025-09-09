@@ -1,6 +1,6 @@
 ---
 description: "BigQuery統合パターンとデータ通信"
-globs: **/api/bq/**,**/types/**,definitions/**
+globs: **/api/bq/**,**/types/**,definitions/**,**/stores/**,**/consts/**
 ---
 
 # BigQuery統合ガイド
@@ -8,43 +8,119 @@ globs: **/api/bq/**,**/types/**,definitions/**
 ## BigQuery接続アーキテクチャ
 
 ### API層
-- **メインAPI関数**: [view/api/bq/getHinatazakaMember.ts](mdc:view/api/bq/getHinatazakaMember.ts)
-- **モックデータ**: [view/api/bq/mockData/hinatazakaMemberMock.ts](mdc:view/api/bq/mockData/hinatazakaMemberMock.ts)
-- **認証**: サービスアカウント認証情報で`@google-cloud/bigquery`パッケージを使用
+
+#### メンバーデータ取得
+- **日向坂46API**: [view/api/bq/getHinatazakaMember.ts](mdc:view/api/bq/getHinatazakaMember.ts)
+- **櫻坂46API**: [view/api/bq/getSakurazakaMember.ts](mdc:view/api/bq/getSakurazakaMember.ts)
+- **メンバーモック**: [view/api/bq/mockData/](mdc:view/api/bq/mockData/)配下の各グループモックファイル
+
+#### ペンライトデータ取得
+- **日向坂46ペンライト**: [view/api/bq/getHinatazakaPenlight.ts](mdc:view/api/bq/getHinatazakaPenlight.ts)
+- **櫻坂46ペンライト**: [view/api/bq/getSakurazakaPenlight.ts](mdc:view/api/bq/getSakurazakaPenlight.ts)
+- **ペンライトモック**: [view/api/bq/mockData/hinatazakaPenlightMock.ts](mdc:view/api/bq/mockData/hinatazakaPenlightMock.ts)等
+- **デバッグ用**: [view/api/bq/debugPenlight.ts](mdc:view/api/bq/debugPenlight.ts)
 
 ### 接続パターン
+
+#### 標準的なBigQueryクエリパターン
 ```typescript
-const bigquery = new BigQuery();
-const query = `SELECT * FROM sakamichipenlightquiz.sakamichi.hinatazaka_member_master`;
-const [job] = await bigquery.createQueryJob(options);
-const [rows] = await job.getQueryResults();
+export async function getHinatazakaMember(): Promise<Member[]> {
+  const isDevMode = process.env.NODE_ENV === "development";
+  
+  if (isDevMode) {
+    console.log('Using mock data in DEV_MODE');
+    return hinatazakaMemberMock;
+  }
+  
+  const bigquery = new BigQuery();
+  const query = `SELECT * FROM sakamichipenlightquiz.sakamichi.hinatazaka_member_master`;
+  
+  const options = {
+    query: query,
+    location: 'US',
+  };
+  
+  const [job] = await bigquery.createQueryJob(options);
+  console.log(`Job ${job.id} started.`);
+  
+  const [rows] = await job.getQueryResults();
+  return rows as Member[];
+}
+```
+
+#### ペンライトデータクエリパターン
+```typescript
+export async function getHinatazakaPenlight(): Promise<PenlightColor[]> {
+  const isDevMode = process.env.NODE_ENV === "development";
+  
+  if (isDevMode) {
+    return hinatazakaPenlightMock;
+  }
+  
+  const bigquery = new BigQuery();
+  const query = `SELECT * FROM sakamichipenlightquiz.sakamichi.hinatazaka_penlight`;
+  
+  const options = { query, location: 'US' };
+  const [job] = await bigquery.createQueryJob(options);
+  const [rows] = await job.getQueryResults();
+  
+  return rows as PenlightColor[];
+}
 ```
 
 ### データベース構造
+
+#### プロジェクト・データセット構成
 - **プロジェクト**: `sakamichipenlightquiz`
 - **本番データセット**: `sakamichi`
-- **開発データセット**: `hinatazaka`
-- **メインテーブル**: `hinatazaka_member_master`
+- **開発データセット**: `hinatazaka`, `sakurazaka`
+
+#### 主要テーブル
+- **メンバーマスター**: `hinatazaka_member_master`, `sakurazaka_member_master`
+- **ペンライトテーブル**: `hinatazaka_penlight`, `sakurazaka_penlight`
 
 ### 環境処理
-- **開発モード**: [hinatazakaMemberMock.ts](mdc:view/api/bq/mockData/hinatazakaMemberMock.ts)からモックデータを返す
-- **本番モード**: 実際のBigQueryテーブルにクエリ
+
+#### 開発・本番環境の自動切り替え
+- **開発モード**: `NODE_ENV === "development"`でモックデータを返す
+- **本番モード**: 実際のBigQueryテーブルにクエリ実行
 - **認証**: `GOOGLE_APPLICATION_CREDENTIALS`環境変数経由
+- **ロケーション**: 必ず`US`を指定してBigQueryジョブを実行
 
 ### データフロー
-1. **ソース**: [definitions/sources/hinatazaka/](mdc:definitions/sources/hinatazaka/)の生データ定義
-2. **中間処理**: [definitions/intermediate/hinatazaka/](mdc:definitions/intermediate/hinatazaka/)の処理済みテーブル
-3. **出力**: [definitions/output/sakamichi/](mdc:definitions/output/sakamichi/)の最終テーブル
 
-### 主要テーブルと関係
-- `member_info` → ベースメンバー情報
-- `penlight` → ペンライト色定義
-- `member_image_master` → 異なるコンテキストの画像URL
-- `member_with_image` → メンバー情報と画像の結合
-- `member_master` → ペンライトIDとの結合
-- `hinatazaka_member_master` → 最終出力テーブル
+#### Dataformパイプライン構造
+1. **ソース**: [definitions/sources/](mdc:definitions/sources/)の生データ定義
+   - `member_info.js` - ベースメンバー情報
+   - `penlight.js` - ペンライト色マスター定義
+   - `member_image_*.js` - 各種画像ソーステーブル
 
-### メンバー型定義
+2. **中間処理**: [definitions/intermediate/](mdc:definitions/intermediate/)
+   - `member_image_master.sqlx` - 画像データ統合
+   - `member_with_image.sqlx` - メンバー情報と画像の結合
+   - `member_master.sqlx` - ペンライトIDとの結合処理
+
+3. **出力**: [definitions/output/sakamichi/](mdc:definitions/output/sakamichi/)
+   - `hinatazaka_member_master.sqlx` - 最終メンバーテーブル
+   - `hinatazaka_penlight.sqlx` - ペンライト色テーブル
+   - `sakurazaka_member_master.sqlx` - 櫻坂46メンバーテーブル
+   - `sakurazaka_penlight.sqlx` - 櫻坂46ペンライトテーブル
+
+#### ペンライトデータ統合SQL
+```sql
+-- メンバーマスター作成（ペンライトIDを含む）
+SELECT 
+  info.*,
+  penlight1.id AS penlight1_id,
+  penlight2.id AS penlight2_id
+FROM ${ref("member_with_image")} info
+JOIN ${ref("penlight")} penlight1 ON info.penlight1 = penlight1.name_ja
+JOIN ${ref("penlight")} penlight2 ON info.penlight2 = penlight2.name_ja
+```
+
+### 型定義
+
+#### メンバー型定義
 完全なインターフェースは[view/types/Member.ts](mdc:view/types/Member.ts)を参照：
 ```typescript
 interface Member {
@@ -54,16 +130,103 @@ interface Member {
   emoji: string;
   gen: Generation;
   graduated: boolean;
-  penlight1_id: number;
-  penlight2_id: number;
+  penlight1_id: number;  // ペンライトテーブルへの参照
+  penlight2_id: number;  // ペンライトテーブルへの参照
   type: string;
   url: string;
 }
 ```
 
+#### ペンライトカラー型定義
+[view/types/PenlightColor.ts](mdc:view/types/PenlightColor.ts)または[view/consts/hinatazakaColors.ts](mdc:view/consts/hinatazakaColors.ts)で定義：
+```typescript
+interface PenlightColor {
+  id: number;
+  name_ja: string;   // 日本語色名
+  name_en: string;   // 英語色名
+  color: string;     // HEX色コード（例: '#09b8ff'）
+}
+```
+
+### データ取得・状態管理統合
+
+#### ペンライトカラー取得と解決
+```typescript
+// ペンライトカラーデータ取得
+const penlightColors = await getHinatazakaPenlight();
+
+// メンバーのペンライトカラー解決
+const members = await getHinatazakaMember();
+members.forEach(member => {
+  const penlight1Color = penlightColors.find(p => p.id === member.penlight1_id);
+  const penlight2Color = penlightColors.find(p => p.id === member.penlight2_id);
+});
+```
+
+#### Zustandストアでの統合
+```typescript
+// ペンライトカラーストアでのBigQuery統合例
+export const usePenlightStore = create<PenlightState>((set, get) => ({
+  colors: [],
+  isLoading: false,
+  
+  loadColors: async (group: Group) => {
+    set({ isLoading: true });
+    try {
+      const colors = group === 'hinatazaka' 
+        ? await getHinatazakaPenlight()
+        : await getSakurazakaPenlight();
+      set({ colors, isLoading: false });
+    } catch (error) {
+      console.error('Failed to load penlight colors:', error);
+      set({ isLoading: false });
+    }
+  }
+}));
+```
+
+### 実装移行パターン
+
+#### ハードコードからBigQuery統合への移行
+```typescript
+// 旧: ハードコードされたペンライト色定義
+import { hinatazakaPenlightColors } from '@/consts/hinatazakaColors';
+
+// 新: BigQuery統合
+import { getHinatazakaPenlight } from '@/api/bq/getHinatazakaPenlight';
+
+// 段階的移行：フォールバック機能付き
+export async function getPenlightColors(group: Group): Promise<PenlightColor[]> {
+  try {
+    return group === 'hinatazaka'
+      ? await getHinatazakaPenlight()
+      : await getSakurazakaPenlight();
+  } catch (error) {
+    console.warn('BigQuery fallback to hardcoded colors:', error);
+    // フォールバックとしてハードコードデータを返す
+    return hinatazakaPenlightColors;
+  }
+}
+```
+
 ### ベストプラクティス
+
+#### 基本原則
 - 開発と本番環境の区別には必ず`NODE_ENV`をチェック
 - BigQueryコストを避けるため開発時はモックデータを使用
 - BigQueryデバッグ用にジョブIDをログ出力
-- クエリ結果を型付き配列として処理
-- BigQueryジョブに適切なロケーション（US）を設定
+- クエリ結果を型付き配列として適切にキャスト
+- BigQueryジョブには適切なロケーション（US）を設定
+
+#### ペンライトデータ特有の考慮事項
+- メンバーデータとペンライトデータは別々に取得・キャッシュする
+- ペンライトIDによるリレーション管理を適切に行う
+- 色データの一貫性を保つため、IDベースの参照を徹底
+- グループ別（日向坂46・櫻坂46）のペンライトテーブル分離に対応
+
+#### エラーハンドリング・パフォーマンス
+- BigQuery接続失敗時のフォールバック機能を実装
+- ペンライトカラーが見つからない場合のデフォルト処理
+- データ型不整合時の適切なエラーメッセージ
+- ペンライトデータのキャッシュ戦略（Zustandストア活用）
+- 必要に応じてペンライトデータの事前読み込み
