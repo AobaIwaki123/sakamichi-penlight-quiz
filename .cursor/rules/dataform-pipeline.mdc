@@ -1,110 +1,377 @@
 ---
 description: "DataformデータパイプラインとBigQueryテーブル定義"
-globs: definitions/**,workflow_settings.yaml
+globs: definitions/**,**/*.sqlx,**/*.js
 ---
 
-# Dataformデータパイプラインガイド
+# Dataform・SQLデータパイプラインガイド
 
-## パイプライン設定
-- **Dataform設定**: [workflow_settings.yaml](mdc:workflow_settings.yaml)
-- **プロジェクト**: `sakamichipenlightquiz`
-- **ロケーション**: `US`
-- **デフォルトデータセット**: `hinatazaka`
-- **Dataformコアバージョン**: `3.0.0`
+## Dataform プロジェクト構成
 
-## データパイプラインフロー
-
-### 1. ソーステーブル
-[definitions/sources/hinatazaka/](mdc:definitions/sources/hinatazaka/)に配置：
-- **member_info.js**: ベースメンバー情報テーブル
-- **penlight.js**: ペンライト色定義
-- **member_image_*.js**: 異なるコンテキスト用の各種画像ソーステーブル
-
-### 2. 中間処理
-[definitions/intermediate/hinatazaka/](mdc:definitions/intermediate/hinatazaka/)に配置：
-
-#### member_image_master.sqlx
-異なる画像ソースをマスター画像テーブルに統合。
-
-#### member_with_image.sqlx  
-メンバー情報と画像を結合：
-```sql
-SELECT info.*, img.type, img.url
-FROM ${ref("member_info")} info
-JOIN ${ref("member_image_master")} img
-ON info.name = img.name
+### ディレクトリ構造
+```
+definitions/
+├── sources/              # 生データソース定義
+│   ├── hinatazaka/      # 日向坂46データ
+│   │   ├── member_info.js
+│   │   ├── penlight.js
+│   │   └── member_image_*.js
+│   └── sakurazaka/      # 櫻坂46データ
+│       ├── member_info.js
+│       ├── penlight.js
+│       └── member_image_*.js
+├── intermediate/         # 中間処理テーブル
+│   ├── hinatazaka/
+│   │   ├── member_image_master.sqlx
+│   │   ├── member_with_image.sqlx
+│   │   └── member_master.sqlx
+│   └── sakurazaka/
+│       └── ... (同様の構成)
+└── output/              # 最終出力テーブル
+    └── sakamichi/
+        ├── hinatazaka_member_master.sqlx
+        ├── hinatazaka_penlight.sqlx
+        ├── sakurazaka_member_master.sqlx
+        └── sakurazaka_penlight.sqlx
 ```
 
-#### member_master.sqlx
-ペンライトデータと結合する最終処理：
+## データフロー設計
+
+### 3層アーキテクチャ
+1. **ソース層**: 生データの取り込み
+2. **中間層**: データクレンジング・結合処理
+3. **出力層**: アプリケーション向け最終テーブル
+
+### データ依存関係
+```
+sources/member_info.js
+sources/penlight.js        →  intermediate/member_master.sqlx
+sources/member_image_*.js  →  intermediate/member_image_master.sqlx
+                          →  intermediate/member_with_image.sqlx
+                          →  output/hinatazaka_member_master.sqlx
+```
+
+## SQLXファイル規約
+
+### 基本構造
 ```sql
+-- config block（必須）
+config {
+  type: "table",           -- table, view, incremental
+  schema: "sakamichi",     -- データセット名
+  name: "hinatazaka_member_master",  -- テーブル名
+  description: "日向坂46メンバー情報のマスターテーブル",
+  
+  -- オプション設定
+  partition: "created_at", -- パーティション設定（日付カラム）
+  cluster: "id, gen"       -- クラスタリング設定
+}
+
+-- SQLクエリ部分
+SELECT
+  -- カラム定義とコメント
+  info.id,                    -- メンバーID
+  info.name,                  -- メンバー名
+  info.nickname,              -- ニックネーム
+  info.emoji,                 -- 代表絵文字
+  info.gen,                   -- 所属期生
+  info.graduated,             -- 卒業状態
+  penlight1.id AS penlight1_id, -- ペンライト色1のID
+  penlight2.id AS penlight2_id, -- ペンライト色2のID
+  info.type,                  -- 画像タイプ
+  info.url                    -- 画像URL
+FROM
+  ${ref("member_with_image")} info
+JOIN
+  ${ref("penlight")} penlight1 ON info.penlight1 = penlight1.name_ja
+JOIN
+  ${ref("penlight")} penlight2 ON info.penlight2 = penlight2.name_ja
+```
+
+### 参照構文（Dataform ref）
+```sql
+-- 同一スキーマ内の参照
+${ref("table_name")}
+
+-- 異なるスキーマの参照
+${ref("schema_name", "table_name")}
+
+-- ソースデータの参照
+${ref("hinatazaka", "member_info")}
+```
+
+## ソースデータ定義
+
+### JavaScriptソースファイル
+```javascript
+// sources/hinatazaka/member_info.js
+const member_info = [
+  {
+    id: 1,
+    name: "潮紗理菜",
+    nickname: "しお",
+    emoji: "🧂",
+    gen: "1st",
+    graduated: false,
+    penlight1: "青",        // 日本語色名（結合キー）
+    penlight2: "空色"       // 日本語色名（結合キー）
+  },
+  // ... 他のメンバー
+];
+
+// 必須エクスポート
+module.exports = member_info;
+```
+
+### ペンライトマスターデータ
+```javascript
+// sources/hinatazaka/penlight.js
+const penlight = [
+  {
+    id: 1,
+    name_ja: "青",
+    name_en: "blue",
+    color: "#0066ff"         // HEX色コード
+  },
+  {
+    id: 2,
+    name_ja: "空色",
+    name_en: "sky_blue",
+    color: "#87ceeb"
+  },
+  // ... 全ペンライト色
+];
+
+module.exports = penlight;
+```
+
+## 中間テーブル設計
+
+### 画像マスター統合
+```sql
+-- intermediate/hinatazaka/member_image_master.sqlx
+config {
+  type: "table",
+  schema: "hinatazaka",
+  name: "member_image_master",
+  description: "日向坂46メンバー画像情報の統合テーブル"
+}
+
+-- 複数の画像ソースを統合
+SELECT id, name, type, url FROM ${ref("member_image_13th_single")}
+UNION ALL
+SELECT id, name, type, url FROM ${ref("member_image_5th_hinatansai")}
+UNION ALL
+SELECT id, name, type, url FROM ${ref("member_image_5th_member")}
+```
+
+### メンバー・画像結合
+```sql
+-- intermediate/hinatazaka/member_with_image.sqlx
+config {
+  type: "table",
+  schema: "hinatazaka",
+  name: "member_with_image",
+  description: "メンバー情報と画像の結合テーブル"
+}
+
 SELECT 
-  info.*,
-  penlight1.id AS penlight1_id,
-  penlight2.id AS penlight2_id
-FROM ${ref("member_with_image")} info
-JOIN ${ref("penlight")} penlight1 ON info.penlight1 = penlight1.name_ja
-JOIN ${ref("penlight")} penlight2 ON info.penlight2 = penlight2.name_ja
+  m.*,                      -- 全メンバー情報
+  i.type,                   -- 画像タイプ
+  i.url                     -- 画像URL
+FROM 
+  ${ref("member_master")} m
+LEFT JOIN 
+  ${ref("member_image_master")} i ON m.id = i.id AND m.name = i.name
 ```
 
-### 3. 出力テーブル
-[definitions/output/sakamichi/](mdc:definitions/output/sakamichi/)に配置：
+## 最終出力テーブル
 
-#### hinatazaka_member_master.sqlx
-アプリケーションが使用する最終本番テーブル：
+### アプリケーション向けマスターテーブル
 ```sql
-SELECT id, name, nickname, emoji, gen, graduated, 
-       penlight1_id, penlight2_id, type, url
-FROM ${ref("hinatazaka", "member_master")}
+-- output/sakamichi/hinatazaka_member_master.sqlx
+config {
+  type: "table",
+  schema: "sakamichi",      -- 統一スキーマ
+  name: "hinatazaka_member_master",
+  description: "日向坂46メンバー情報の最終テーブル（アプリケーション用）"
+}
+
+SELECT
+  info.id,
+  info.name,                    -- メンバー名
+  info.nickname,                -- ニックネーム  
+  info.emoji,                   -- 代表絵文字
+  info.gen,                     -- 所属期生
+  info.graduated,               -- 卒業状態
+  penlight1.id AS penlight1_id, -- ペンライト色1のID
+  penlight2.id AS penlight2_id, -- ペンライト色2のID
+  info.type,                    -- 画像タイプ
+  info.url                      -- 画像URL
+FROM
+  ${ref("hinatazaka", "member_with_image")} info
+JOIN
+  ${ref("hinatazaka", "penlight")} penlight1 ON info.penlight1 = penlight1.name_ja  
+JOIN  
+  ${ref("hinatazaka", "penlight")} penlight2 ON info.penlight2 = penlight2.name_ja
 ```
 
-## データスキーマ
+### ペンライト色マスターテーブル
+```sql
+-- output/sakamichi/hinatazaka_penlight.sqlx
+config {
+  type: "table",
+  schema: "sakamichi",
+  name: "hinatazaka_penlight", 
+  description: "日向坂46ペンライト色マスターテーブル"
+}
 
-### メンバー情報構造
-- `id`: 一意のメンバー識別子
-- `name`: メンバーのフルネーム（日本語）
-- `nickname`: オプションのニックネーム
-- `emoji`: 代表絵文字
-- `gen`: 世代（1st、2nd、3rd等）
-- `graduated`: 卒業ステータス（真偽値）
-- `penlight1_id`/`penlight2_id`: ペンライト色IDへの参照
-- `type`: 画像コンテキストタイプ
-- `url`: 画像URL
-
-### ペンライトデータ
-- `id`: 一意のペンライト色ID
-- `name_ja`: 日本語色名
-- 色定義がクイズオプションにマップ
-
-## 開発ワークフロー
-
-### Dataformでの作業
-1. **VSCode拡張機能**: `vscode-dataform-tools`拡張機能を使用
-2. **プロジェクトID**: VSCode設定で`sakamichipenlightquiz`に設定
-3. **フォーマット**: SQLフォーマットに`dataform` CLIを使用
-4. **自動分割なし**: コンパイル済みクエリは縦分割で開かない
-
-### テーブル依存関係
-```
-member_info ─┐
-             ├─→ member_with_image ─┐
-member_image_master ──────────────┘  │
-                                     ├─→ member_master ─→ hinatazaka_member_master
-penlight ────────────────────────────┘
+SELECT
+  id,
+  name_ja,                      -- 日本語色名
+  name_en,                      -- 英語色名
+  color                         -- HEX色コード
+FROM
+  ${ref("hinatazaka", "penlight")}
+ORDER BY
+  id
 ```
 
-### ベストプラクティス
-- テーブル参照には`${ref()}`関数を使用
-- すべてのテーブルに説明付きの`config`ブロックを含める
-- 一貫した命名規則を維持
-- 最終出力前に中間テーブルをテスト
-- ソース宣言は最小限で焦点を絞って保つ
+## データ品質管理
 
-## データパイプライン統計 (最終更新: 2025-09-11 19:41:51)
+### データバリデーション
+```sql
+-- 重複チェック
+SELECT 
+  name, 
+  COUNT(*) as count
+FROM ${ref("member_master")}
+GROUP BY name
+HAVING COUNT(*) > 1;
 
-- 総SQLファイル数:       10
-- ソースファイル数:        9
-- 中間テーブル数:        6
-- 出力テーブル数:        4
-- 最終更新PR: #manual
+-- ペンライト参照整合性チェック  
+SELECT 
+  m.name,
+  m.penlight1,
+  m.penlight2
+FROM ${ref("member_master")} m
+LEFT JOIN ${ref("penlight")} p1 ON m.penlight1 = p1.name_ja
+LEFT JOIN ${ref("penlight")} p2 ON m.penlight2 = p2.name_ja
+WHERE p1.id IS NULL OR p2.id IS NULL;
+```
 
+### テストクエリ
+```sql
+-- アサーションテスト例
+config {
+  type: "assertion",
+  name: "no_duplicate_members"
+}
+
+SELECT *
+FROM ${ref("hinatazaka_member_master")}
+GROUP BY id
+HAVING COUNT(*) > 1
+```
+
+## スキーマ管理
+
+### プロジェクト・データセット構成
+- **開発環境**: `hinatazaka`, `sakurazaka` スキーマ
+- **本番環境**: `sakamichi` 統一スキーマ
+- **プロジェクト**: `sakamichipenlightquiz`
+
+### 命名規則
+- **テーブル名**: `{group}_member_master`, `{group}_penlight`
+- **カラム名**: 英語（snake_case）
+- **中間テーブル**: 目的を明確にした名前（`member_with_image`等）
+
+## デプロイメント戦略
+
+### ステージング vs 本番
+```sql
+-- 環境別設定の例
+config {
+  type: "table",
+  schema: dataform.projectConfig.vars.target_schema || "sakamichi",
+  name: "hinatazaka_member_master"
+}
+```
+
+### インクリメンタル更新
+```sql
+-- 大量データの場合のインクリメンタル設定
+config {
+  type: "incremental",
+  uniqueKey: ["id"],
+  updateStrategy: "merge"
+}
+
+SELECT * FROM source_table
+${ when(incremental(), `WHERE updated_at > (SELECT MAX(updated_at) FROM ${self()})`) }
+```
+
+## パフォーマンス最適化
+
+### パーティション戦略
+```sql
+config {
+  type: "table",
+  partition: "created_date",  -- 日付でパーティション分割
+  cluster: ["id", "gen"]      -- よく使われるカラムでクラスタリング
+}
+```
+
+### クエリ最適化
+- **JOIN順序**: 小さいテーブルを左側に配置
+- **WHERE句**: パーティション条件を最初に記述
+- **SELECT句**: 必要なカラムのみ選択
+
+## エラーハンドリング
+
+### 一般的なエラーパターン
+1. **参照エラー**: `${ref()}` の誤った参照
+2. **スキーマエラー**: 存在しないカラムの参照
+3. **型エラー**: データ型の不一致
+4. **結合エラー**: JOINキーの不整合
+
+### デバッグ方法
+```sql
+-- データ確認用クエリ
+SELECT 
+  COUNT(*) as total_count,
+  COUNT(DISTINCT id) as unique_ids,
+  MIN(id) as min_id,
+  MAX(id) as max_id
+FROM ${ref("target_table")}
+```
+
+## ベストプラクティス
+
+### SQL記述規約
+1. **コメント**: 日本語でビジネスロジックを説明
+2. **インデント**: 読みやすさを重視した整列
+3. **カラム順序**: id, name等の基本情報を先頭に配置
+4. **JOIN**: 明示的にINNER/LEFT JOINを記述
+
+### データモデリング
+1. **正規化**: 適度な正規化でデータ整合性を保つ
+2. **非正規化**: アプリケーション性能を考慮した結合済みテーブル
+3. **履歴管理**: 必要に応じて更新履歴を保持
+4. **メタデータ**: created_at, updated_at等の管理カラム
+
+### Git管理
+1. **コミット単位**: 論理的な変更単位でコミット
+2. **ブランチ戦略**: feature/table-name等の命名
+3. **レビュー**: SQLロジックとパフォーマンスの観点でレビュー
+
+## 監視・運用
+
+### データ品質監視
+- 日次でのレコード数チェック
+- 参照整合性の監視
+- 異常データの検出
+
+### パフォーマンス監視  
+- クエリ実行時間の監視
+- BigQueryスロット使用量の確認
+- パーティション効率性の評価

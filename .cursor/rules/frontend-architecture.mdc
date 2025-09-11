@@ -147,9 +147,26 @@ pnpm dev  # 開発サーバー起動（ポート3000）
 
 ## プロジェクト統計 (最終更新: 2025-09-11 19:41:51)
 
-- Reactコンポーネント数:       27
-- Zustandストア数:        7
-- カスタムフック数:        1
-- API関数数:        9
-- 最終更新PR: #manual
+- **技術スタック**: Next.js 15.3.3, React 19.0.0, TypeScript 5.8.3
+- **状態管理**: Zustand v5.0.3
+- **UIライブラリ**: Mantine UI v7.17.4
+- **テストフレームワーク**: Jest + React Testing Library
+- **Reactコンポーネント数**: 27
+- **Zustandストア数**: 7
+- **カスタムフック数**: 1
+- **API関数数**: 9
+- **テストファイル数**: 1（stores/useSelectedMemberStore.test.ts）
+- **最終更新PR**: #manual
+
+## 新機能・改善点
+
+### PWA対応強化
+- **Service Worker**: next-pwa v5.6.0でオフライン対応
+- **マニフェスト**: [manifest.json](mdc:view/public/manifest.json)でPWA設定
+- **アイコン**: Maskable/Rounded対応のアプリアイコン
+
+### モバイル最適化
+- **ビューポート**: 縦画面最適化（portrait-primary）
+- **タッチUI**: 44px以上のタッチターゲット確保
+- **パフォーマンス**: Core Web Vitals対応
 

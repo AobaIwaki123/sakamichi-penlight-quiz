@@ -1,0 +1,477 @@
+---
+description: "Git、セマンティックバージョニング、ブランチ戦略のワークフローガイド"
+globs: .git/**,**/package.json,Makefile,**/argocd/**,workflow_settings.yaml
+---
+
+# ワークフロー管理ガイド
+
+## Git ブランチ戦略
+
+### ブランチ構成
+```
+main                    # 本番デプロイブランチ
+├── develop            # 開発統合ブランチ（任意）
+├── feature/機能名      # 新機能開発
+├── fix/修正内容       # バグ修正
+├── refactor/内容      # リファクタリング
+├── docs/文書更新      # ドキュメント更新
+└── hotfix/緊急修正    # 緊急本番修正
+```
+
+### ブランチ命名規則
+```bash
+# 新機能開発
+feature/member-filter-ui
+feature/penlight-color-picker
+feature/quiz-result-animation
+
+# バグ修正
+fix/bigquery-connection-error
+fix/mobile-layout-issue
+fix/zustand-state-persistence
+
+# リファクタリング
+refactor/store-architecture
+refactor/component-structure
+refactor/api-error-handling
+
+# ドキュメント更新
+docs/api-documentation
+docs/deployment-guide
+docs/cursor-rules-update
+
+# 緊急修正
+hotfix/critical-bigquery-timeout
+hotfix/mobile-crash-fix
+```
+
+## セマンティックバージョニング
+
+### バージョン管理規則
+現在のバージョン: `3.0.3`（[package.json](mdc:view/package.json)より）
+
+#### バージョン番号の構成
+```
+MAJOR.MINOR.PATCH
+  │     │     └── パッチ: バグ修正・小改善
+  │     └────────── マイナー: 新機能追加（後方互換性あり）
+  └──────────────── メジャー: 破壊的変更（後方互換性なし）
+```
+
+#### 具体的な判断基準
+
+##### MAJOR（破壊的変更）
+- **API仕様変更**: BigQuery API関数のシグネチャ変更
+- **データ構造変更**: Member, PenlightColor interfaceの破壊的変更
+- **環境要件変更**: Node.js、React等のメジャーバージョンアップ
+- **設定変更**: 環境変数、設定ファイル形式の変更
+- **UI/UX大幅変更**: ユーザー操作フローの大幅な変更
+
+例：
+```typescript
+// MAJOR変更の例
+// 旧
+interface Member {
+  penlight1: string;
+  penlight2: string;
+}
+
+// 新（破壊的変更）
+interface Member {
+  penlightColors: PenlightColor[];  // 構造の根本的変更
+}
+```
+
+##### MINOR（新機能追加）
+- **新機能**: 新しいクイズモード、フィルター機能
+- **新コンポーネント**: 新しいReactコンポーネントの追加
+- **新API**: 新しいBigQuery関数、新しいストア
+- **新グループ対応**: 櫻坂46など新グループのサポート
+- **パフォーマンス改善**: 大幅な性能向上
+
+例：
+```typescript
+// MINOR変更の例
+// 新機能：時間制限クイズモード
+export interface QuizSettings {
+  timeLimit?: number;        // 新しいオプション機能
+  difficulty?: 'easy' | 'hard';
+}
+```
+
+##### PATCH（バグ修正・小改善）
+- **バグ修正**: 既存機能の不具合修正
+- **UI調整**: スタイル調整、レスポンシブ対応
+- **パフォーマンス調整**: 小規模な最適化
+- **ドキュメント更新**: README、コメント更新
+- **依存関係更新**: パッチレベルの依存関係更新
+
+### バージョン更新ワークフロー
+
+#### 自動バージョニング（推奨）
+```bash
+# package.json のバージョン更新
+npm version patch   # 3.0.3 → 3.0.4
+npm version minor   # 3.0.3 → 3.1.0  
+npm version major   # 3.0.3 → 4.0.0
+
+# Git タグも自動生成される
+git push --follow-tags
+```
+
+#### 手動バージョニング
+```bash
+# package.json を直接編集後
+git add package.json
+git commit -m "chore: bump version to 3.0.4"
+git tag v3.0.4
+git push origin main --tags
+```
+
+## PR（Pull Request）作成規則
+
+### PRテンプレート
+```markdown
+## 変更内容
+<!-- 何を変更したかを簡潔に記述 -->
+
+## 変更の種類
+- [ ] 🐛 バグ修正 (patch)
+- [ ] ✨ 新機能 (minor) 
+- [ ] 💥 破壊的変更 (major)
+- [ ] 📚 ドキュメント更新 (patch)
+- [ ] 🎨 リファクタリング (patch)
+- [ ] ⚡ パフォーマンス改善 (minor)
+
+## 影響範囲
+<!-- どの部分に影響するかを記述 -->
+- [ ] フロントエンド (React/Next.js)
+- [ ] 状態管理 (Zustand)
+- [ ] API (BigQuery)
+- [ ] データベース (Dataform)
+- [ ] インフラ (Kubernetes)
+- [ ] テスト
+
+## テスト
+- [ ] ユニットテスト追加/更新済み
+- [ ] 手動テスト完了
+- [ ] 回帰テスト確認済み
+- [ ] モバイル動作確認済み
+
+## 破壊的変更の詳細
+<!-- MAJOR変更の場合のみ記入 -->
+
+## 関連Issue
+<!-- 関連するIssue番号があれば記載 -->
+Closes #
+
+## セマンティックバージョニングラベル
+**必須**: 以下のラベルを1つ選択してPRに追加
+- `major` - 破壊的変更
+- `minor` - 新機能追加  
+- `patch` - バグ修正・小改善
+```
+
+### PRラベル管理
+GitHubでは以下のラベルを使用：
+
+#### セマンティックバージョニングラベル（必須）
+- `major` 🔴 - 破壊的変更
+- `minor` 🟡 - 新機能追加
+- `patch` 🟢 - バグ修正・小改善
+
+#### 技術領域ラベル（任意）
+- `frontend` - Next.js/React関連
+- `backend` - BigQuery/API関連
+- `infrastructure` - Kubernetes/Docker関連
+- `dataform` - SQL/データパイプライン関連
+- `testing` - テスト関連
+
+## コミットメッセージ規約
+
+### Conventional Commits形式
+```
+<type>[optional scope]: <description>
+
+[optional body]
+
+[optional footer(s)]
+```
+
+### コミットタイプ
+```bash
+feat:     # 新機能 (minor)
+fix:      # バグ修正 (patch)
+docs:     # ドキュメント更新 (patch)
+style:    # コードスタイル変更 (patch)
+refactor: # リファクタリング (patch)
+perf:     # パフォーマンス改善 (minor)
+test:     # テスト追加・修正 (patch)
+chore:    # その他の変更 (patch)
+ci:       # CI/CD設定変更 (patch)
+build:    # ビルド設定変更 (patch)
+
+# 破壊的変更の場合は ! を追加
+feat!:    # 破壊的な新機能 (major)
+fix!:     # 破壊的なバグ修正 (major)
+```
+
+### コミットメッセージ例
+```bash
+# 新機能
+feat(member): 期生別フィルター機能を追加
+
+- 1期生〜3期生での絞り込み機能を実装
+- フィルター状態をZustandで管理
+- モバイルUIでの表示を最適化
+
+Closes #123
+
+# バグ修正
+fix(bigquery): 開発モードでのモックデータ読み込みエラーを修正
+
+NODE_ENV判定の条件を修正し、開発環境で
+正常にモックデータが返されるように改善
+
+# 破壊的変更
+feat!(api)!: メンバーAPI のレスポンス形式を変更
+
+BREAKING CHANGE: Member interface のペンライト
+プロパティを penlight1/penlight2 から 
+penlightColors 配列に変更
+
+# リファクタリング
+refactor(store): Zustandストア構造を最適化
+
+- 状態の分離により再レンダリングを削減
+- TypeScript型定義を厳密化
+- パフォーマンス向上のためセレクター最適化
+```
+
+## GitOps ワークフロー
+
+### 自動デプロイメント
+
+#### ArgoCD同期設定
+[k8s/argocd/app.yml](mdc:k8s/argocd/app.yml)での自動同期設定：
+```yaml
+syncPolicy:
+  automated:
+    selfHeal: true          # 設定ドリフトの自動修正
+    prune: true            # 不要リソースの自動削除
+  syncOptions:
+    - CreateNamespace=true  # ネームスペース自動作成
+```
+
+#### デプロイフロー
+```
+1. コード変更 → GitHub push
+2. ArgoCD が変更を検知
+3. 自動的にクラスターに反映
+4. ヘルスチェック実行
+5. 問題があれば自動ロールバック
+```
+
+### 手動デプロイ（緊急時）
+
+#### Makefileコマンド
+```bash
+# イメージビルド
+make build
+
+# GCRにプッシュ（タグ指定）
+make push-gcr TAG=v3.0.4
+
+# 一括デプロイ
+make cd-gcr TAG=v3.0.4
+
+# ArgoCD強制同期
+make sync TOKEN=$ARGOCD_TOKEN
+```
+
+#### 環境別デプロイ
+```bash
+# 開発環境
+git push origin develop
+# → k8s/manifests/dev/ が自動デプロイ
+
+# 本番環境  
+git push origin main
+# → k8s/manifests/main/ が自動デプロイ
+```
+
+## リリース管理
+
+### リリースノート作成
+```markdown
+# Release v3.1.0
+
+## 🚀 新機能
+- 櫻坂46メンバーのサポートを追加
+- 時間制限クイズモードを追加
+- PWAオフライン機能を強化
+
+## 🐛 バグ修正  
+- モバイル環境でのタッチ反応を改善
+- BigQuery接続タイムアウトエラーを修正
+
+## 🎨 改善
+- ペンライト色表示のアニメーションを追加
+- ローディング状態のUXを改善
+
+## 🔧 技術的変更
+- Next.js 15への更新
+- Zustandストア構造の最適化
+- Jest設定の改善
+
+## 📱 モバイル対応
+- iPhone 15 Pro Max対応
+- 横画面レイアウトの改善
+
+## 💥 破壊的変更
+なし
+
+---
+**リリース日**: 2025-09-11
+**リリース責任者**: AobaIwaki
+```
+
+### リリース前チェックリスト
+```markdown
+## リリース前確認事項
+
+### コード品質
+- [ ] 全テストが通る
+- [ ] ESLintエラーがない
+- [ ] TypeScriptコンパイルエラーがない
+- [ ] ビルドが正常に完了する
+
+### 機能テスト
+- [ ] 日向坂46メンバーデータが正常に表示される
+- [ ] ペンライト色が正しく表示される
+- [ ] フィルター機能が正常に動作する
+- [ ] ランダム選択に重複がない
+
+### モバイルテスト
+- [ ] iPhone (Safari) での動作確認
+- [ ] Android (Chrome) での動作確認
+- [ ] PWA機能の動作確認
+- [ ] タッチ操作の確認
+
+### パフォーマンス
+- [ ] 初回ロード時間 < 3秒
+- [ ] Lighthouse Score > 90
+- [ ] モバイルでの快適な操作性
+
+### インフラ
+- [ ] Kubernetesマニフェストの構文確認
+- [ ] ArgoCD同期テスト
+- [ ] BigQuery接続テスト
+- [ ] 環境変数の確認
+
+### ドキュメント
+- [ ] README更新
+- [ ] CHANGELOG更新
+- [ ] API仕様書更新（必要に応じて）
+```
+
+## ホットフィックス ワークフロー
+
+### 緊急修正手順
+```bash
+# 1. main から緊急修正ブランチを作成
+git checkout main
+git pull origin main
+git checkout -b hotfix/critical-issue-fix
+
+# 2. 修正作業
+# ...
+
+# 3. テスト・確認
+pnpm test
+pnpm build
+
+# 4. コミット（hotfix タイプを使用）
+git add .
+git commit -m "hotfix: BigQueryタイムアウトエラーの緊急修正
+
+- クエリタイムアウト時間を30秒から60秒に延長
+- 接続エラー時のリトライ機能を追加
+
+Fixes #emergency-issue"
+
+# 5. main に直接マージ（レビュー必須）
+git checkout main
+git merge hotfix/critical-issue-fix
+
+# 6. パッチバージョンアップ
+npm version patch  # 3.0.3 → 3.0.4
+
+# 7. デプロイ
+git push origin main --follow-tags
+make cd-gcr TAG=v3.0.4
+
+# 8. 必要に応じて develop にもマージ
+git checkout develop
+git merge main
+git push origin develop
+```
+
+## 継続的改善
+
+### 定期メンテナンス
+```bash
+# 月次作業
+- [ ] 依存関係の更新確認
+- [ ] セキュリティ脆弱性チェック  
+- [ ] パフォーマンス指標の確認
+- [ ] ログ・メトリクス分析
+
+# 四半期作業
+- [ ] アーキテクチャレビュー
+- [ ] 技術負債の棚卸し
+- [ ] ドキュメント全体見直し
+- [ ] 新技術の検討・導入検討
+```
+
+### 品質指標の監視
+```typescript
+// 品質指標の例
+const qualityMetrics = {
+  codeQuality: {
+    testCoverage: '> 80%',
+    eslintErrors: '0',
+    typeScriptErrors: '0'
+  },
+  performance: {
+    lighthouse: '> 90',
+    loadTime: '< 3s',
+    bigQueryResponseTime: '< 5s'
+  },
+  reliability: {
+    uptime: '> 99.9%',
+    errorRate: '< 1%',
+    deploymentSuccessRate: '> 95%'
+  }
+};
+```
+
+## ベストプラクティス
+
+### Git管理
+1. **頻繁なコミット**: 小さな変更を頻繁にコミット
+2. **明確なメッセージ**: コミットメッセージは日本語で分かりやすく
+3. **ブランチの短命化**: 機能ブランチは1週間以内でマージ
+4. **コンフリクト回避**: こまめなrebase/merge
+
+### バージョン管理
+1. **セマンティック厳守**: 必ずセマンティックバージョニングに従う
+2. **ラベル必須**: PRには必ずバージョニングラベルを付与
+3. **リリースノート**: ユーザー影響を重視した記述
+4. **後方互換性**: 可能な限り後方互換性を保持
+
+### デプロイメント
+1. **段階的デプロイ**: 開発→本番の順序を守る
+2. **ロールバック準備**: 問題時の迅速なロールバック体制
+3. **監視徹底**: デプロイ後の動作監視を怠らない
+4. **ダウンタイム最小化**: ユーザー影響を最小限に抑制

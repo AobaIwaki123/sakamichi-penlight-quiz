@@ -1,0 +1,329 @@
+---
+description: "テスト戦略とJest設定のガイドライン"
+globs: **/__tests__/**,**/test/**,*.test.ts,*.test.tsx,*.spec.ts,*.spec.tsx,jest.config.js,jest.setup.js
+---
+
+# テスト戦略・自動化ガイド
+
+## テスト環境構成
+
+### テストフレームワーク
+- **ユニットテスト**: Jest + Testing Library
+- **設定ファイル**: [jest.config.js](mdc:view/jest.config.js)
+- **セットアップ**: [jest.setup.js](mdc:view/jest.setup.js)
+- **実行コマンド**: `pnpm test`, `pnpm test:watch`
+
+### Jest設定
+```javascript
+module.exports = {
+  preset: 'ts-jest',
+  testEnvironment: 'jsdom',
+  moduleNameMapper: {
+    '^@/(.*)$': '<rootDir>/$1',
+  },
+  setupFilesAfterEnv: ['<rootDir>/jest.setup.js'],
+  testPathIgnorePatterns: ['<rootDir>/node_modules/', '<rootDir>/.next/'],
+};
+```
+
+## Zustandストアテスト戦略
+
+### 基本テストパターン
+```typescript
+// useSelectedMemberStore.test.ts の実例
+import { useSelectedMemberStore } from '@/stores/useSelectedMemberStore';
+import type { Member } from '@/types/Member';
+
+// API関数のモック化
+jest.mock('@/api/bq/getHinatazakaMember', () => ({
+  getHinatazakaMember: jest.fn().mockResolvedValue([
+    // テスト用のモックデータ
+  ])
+}));
+
+describe('useSelectedMemberStore', () => {
+  beforeEach(async () => {
+    const store = useSelectedMemberStore.getState();
+    await store.setGroup('hinatazaka');
+    store.setFilters({});
+    store.applyFilters();
+  });
+  
+  // 個別のテストケース
+});
+```
+
+### Zustandストアテストのベストプラクティス
+
+#### 1. ストア状態の分離
+```typescript
+beforeEach(async () => {
+  // 各テスト前にストアを初期状態にリセット
+  const store = useSelectedMemberStore.getState();
+  await store.setGroup('hinatazaka');
+  store.setFilters({});
+  store.applyFilters();
+});
+```
+
+#### 2. 非同期処理のテスト
+```typescript
+test('メンバーデータの非同期取得', async () => {
+  const store = useSelectedMemberStore.getState();
+  await store.setGroup('hinatazaka');
+  
+  expect(store.allMembers).toHaveLength(6);
+  expect(store.isLoading).toBe(false);
+});
+```
+
+#### 3. ランダム処理のテスト
+```typescript
+test('重複なしでメンバーが選択される', () => {
+  const store = useSelectedMemberStore.getState();
+  const memberIds = new Set<number>();
+  const totalMembers = store.filteredMembers.length;
+  
+  for (let i = 0; i < totalMembers; i++) {
+    const member = store.pickRandomMember();
+    if (member) {
+      expect(memberIds.has(member.id)).toBe(false);
+      memberIds.add(member.id);
+    }
+  }
+  
+  expect(memberIds.size).toBe(totalMembers);
+});
+```
+
+#### 4. フィルタリングロジックのテスト
+```typescript
+test('期生別フィルターが正常に動作する', () => {
+  const store = useSelectedMemberStore.getState();
+  const allMembers = store.allMembers;
+  
+  const firstGenMembers = allMembers.filter(m => m.gen === '1st');
+  expect(firstGenMembers.length).toBe(2);
+  
+  // フィルター適用後の動作確認
+  // ...
+});
+```
+
+## API関数のテスト戦略
+
+### BigQuery APIのモック化
+```typescript
+// BigQuery関数のモック
+jest.mock('@/api/bq/getHinatazakaMember', () => ({
+  getHinatazakaMember: jest.fn().mockResolvedValue([
+    {
+      id: 1,
+      name: 'Test Member',
+      nickname: 'TM',
+      emoji: '🌟',
+      gen: '1st' as Generation,
+      graduated: false,
+      penlight1_id: 1,
+      penlight2_id: 2,
+      type: 'regular',
+      url: 'https://example.com/1'
+    }
+  ])
+}));
+```
+
+### 開発・本番環境の分岐テスト
+```typescript
+describe('環境別動作テスト', () => {
+  test('開発モードでモックデータを返す', () => {
+    const originalEnv = process.env.NODE_ENV;
+    process.env.NODE_ENV = 'development';
+    
+    // テストロジック
+    
+    process.env.NODE_ENV = originalEnv;
+  });
+});
+```
+
+## Reactコンポーネントテスト
+
+### Testing Libraryの使用
+```typescript
+import { render, screen, fireEvent } from '@testing-library/react';
+import { MemberInfo } from '@/components/Home/MemberInfo/MemberInfo';
+
+describe('MemberInfo コンポーネント', () => {
+  test('メンバー情報が正しく表示される', () => {
+    const mockMember = {
+      id: 1,
+      name: 'テストメンバー',
+      nickname: 'テスト',
+      emoji: '🌟',
+      // ...
+    };
+    
+    render(<MemberInfo member={mockMember} />);
+    
+    expect(screen.getByText('テストメンバー')).toBeInTheDocument();
+    expect(screen.getByText('🌟')).toBeInTheDocument();
+  });
+});
+```
+
+### Mantineコンポーネントのテスト
+```typescript
+import { MantineProvider } from '@mantine/core';
+
+const renderWithMantine = (component: React.ReactElement) => {
+  return render(
+    <MantineProvider>
+      {component}
+    </MantineProvider>
+  );
+};
+```
+
+## カスタムフックのテスト
+
+### useColorControllerのテスト例
+```typescript
+import { renderHook } from '@testing-library/react';
+import { useColorController } from '@/hooks/useColorController';
+
+describe('useColorController フック', () => {
+  test('正常にペンライト色を管理する', () => {
+    const { result } = renderHook(() => useColorController());
+    
+    // フックの動作をテスト
+    expect(result.current.colors).toBeDefined();
+  });
+});
+```
+
+## エラーハンドリングのテスト
+
+### BigQuery接続エラーのテスト
+```typescript
+test('BigQuery接続エラー時のフォールバック', async () => {
+  // BigQuery関数をエラーを投げるようにモック
+  const mockGetMembers = jest.fn().mockRejectedValue(new Error('Connection failed'));
+  
+  // エラーハンドリングの確認
+  try {
+    await mockGetMembers();
+  } catch (error) {
+    expect(error.message).toBe('Connection failed');
+  }
+});
+```
+
+### ユーザー向けエラーメッセージのテスト
+```typescript
+test('ユーザーフレンドリーなエラーメッセージ', () => {
+  const errorMessage = 'メンバー情報を読み込めませんでした。しばらく時間をおいて再試行してください。';
+  expect(errorMessage).toMatch(/メンバー情報/);
+  expect(errorMessage).toMatch(/再試行/);
+});
+```
+
+## パフォーマンステスト
+
+### ランダム選択の分散性テスト
+```typescript
+test('ランダム選択の分散性（10回試行で8回以上異なる順序）', () => {
+  const store = useSelectedMemberStore.getState();
+  const loops: number[][] = [];
+  
+  for (let loop = 0; loop < 10; loop++) {
+    store.shuffleMembers();
+    const loopOrder: number[] = [];
+    
+    // 1ループ分の選択順序を記録
+    // ...
+    
+    loops.push(loopOrder);
+  }
+  
+  const uniqueOrders = new Set<string>();
+  for (const loop of loops) {
+    uniqueOrders.add(JSON.stringify(loop));
+  }
+  
+  expect(uniqueOrders.size).toBeGreaterThanOrEqual(8);
+});
+```
+
+## テスト実行・CI戦略
+
+### ローカルテスト実行
+```bash
+# 全テスト実行
+pnpm test
+
+# ウォッチモード
+pnpm test:watch
+
+# カバレッジ付き実行
+pnpm test --coverage
+```
+
+### テストファイル構成
+```
+view/__tests__/
+├── stores/                 # Zustandストアのテスト
+│   ├── useSelectedMemberStore.test.ts
+│   ├── useColorStore.test.ts
+│   └── ...
+├── components/            # Reactコンポーネントのテスト
+│   ├── Home/
+│   └── ...
+├── api/                   # API関数のテスト
+│   └── bq/
+└── hooks/                 # カスタムフックのテスト
+```
+
+## テスト品質基準
+
+### カバレッジ目標
+- **ストア**: 90%以上
+- **API関数**: 80%以上
+- **重要なコンポーネント**: 70%以上
+
+### テスト必須項目
+1. **ストアの状態変更**: 全てのアクションをテスト
+2. **API関数**: 正常系・異常系両方をテスト
+3. **フィルタリングロジック**: 全てのフィルター組み合わせをテスト
+4. **ランダム処理**: 分散性と重複防止をテスト
+5. **エラーハンドリング**: ユーザー向けメッセージをテスト
+
+## ベストプラクティス
+
+### 日本語でのテスト記述
+```typescript
+describe('メンバー選択ストア', () => {
+  test('重複なしでメンバーが選択される', () => {
+    // テストロジック
+  });
+  
+  test('期生別フィルターが正常に動作する', () => {
+    // テストロジック
+  });
+});
+```
+
+### テストデータの管理
+- モックデータは実際のデータ構造と一致させる
+- 日本語のテスト用データを使用（Member名、ニックネーム等）
+- BigQuery APIモックは開発モードの動作と一致させる
+
+### 非同期処理のテスト
+- `async/await`を適切に使用
+- Promise解決後の状態変更を確認
+- タイムアウトを適切に設定
+
+### メモリリーク防止
+- 各テスト後のストアリセット
+- モック関数のクリア
+- イベントリスナーの適切な削除
