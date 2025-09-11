@@ -1,0 +1,18 @@
+config {
+  type: "table",
+  schema: "nogizaka",
+  name: "member_master",
+  description: "乃木坂46メンバー基本情報テーブル"
+}
+
+SELECT
+  id,
+  name,
+  nickname,
+  emoji,
+  gen,
+  graduated,
+  penlight1,
+  penlight2
+FROM
+  ${ref("nogizaka", "member_info")}

@@ -1,0 +1,16 @@
+config {
+  type: "table",
+  schema: "sakamichi",
+  name: "nogizaka_penlight",
+  description: "乃木坂46ペンライト色マスターテーブル"
+}
+
+SELECT
+  id,
+  name_ja,                      -- 日本語色名
+  name_en,                      -- 英語色名
+  color                         -- HEX色コード
+FROM
+  ${ref("nogizaka", "penlight")}
+ORDER BY
+  id

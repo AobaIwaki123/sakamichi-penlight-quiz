@@ -1,0 +1,15 @@
+config {
+  type: "table",
+  schema: "nogizaka",
+  name: "member_with_image",
+  description: "乃木坂46メンバー情報と画像の結合テーブル"
+}
+
+SELECT 
+  m.*,                      -- 全メンバー情報
+  i.type,                   -- 画像タイプ
+  i.url                     -- 画像URL
+FROM 
+  ${ref("member_master")} m
+LEFT JOIN 
+  ${ref("member_image_master")} i ON m.id = i.id AND m.name = i.name
