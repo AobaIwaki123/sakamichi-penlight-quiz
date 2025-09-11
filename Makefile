@@ -52,13 +52,13 @@ help:
 dev:
 	@echo "🚀 開発環境を起動中..."
 	@echo "💡 http://localhost:3000 でアクセスできます"
-	@docker-compose up -d
+	@docker compose up -d
 	@echo "✅ 開発環境が起動しました"
 
 ## 開発停止: Docker Compose 環境を停止・削除
 dev-down:
 	@echo "🛑 開発環境を停止中..."
-	@docker-compose down -v
+	@docker compose down -v
 	@echo "✅ 開発環境を停止しました"
 
 ## Git: 不要なブランチを削除（リモート追跡ブランチも含む）
