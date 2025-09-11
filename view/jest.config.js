@@ -8,8 +8,13 @@ module.exports = {
   testPathIgnorePatterns: ['<rootDir>/node_modules/', '<rootDir>/.next/'],
   transform: {
     '^.+\\.(ts|tsx)$': ['ts-jest', {
-      tsconfig: 'tsconfig.json',
+      tsconfig: {
+        jsx: 'react-jsx',
+      },
     }],
   },
+  transformIgnorePatterns: [
+    'node_modules/(?!(@mantine|@tabler))',
+  ],
   moduleFileExtensions: ['ts', 'tsx', 'js', 'jsx', 'json', 'node'],
 };
