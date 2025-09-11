@@ -2,6 +2,7 @@
 
 import { useColorController } from '@/hooks/useColorController';
 import { useAnswerTriggerStore } from '@/stores/useAnswerTriggerStore'
+import { useAnswerHistoryStore } from '@/stores/useAnswerHistoryStore';
 import { useSelectedMemberStore } from '@/stores/useSelectedMemberStore';
 import type { Member } from '@/types/Member';
 import { Button, Text } from '@mantine/core';
@@ -13,7 +14,13 @@ export function AnswerButton() {
 
   const trigger = useAnswerTriggerStore((state) => state.trigger)
 
+  // 正答履歴記録用のストア
+  const recordCorrectAnswer = useAnswerHistoryStore((state) => state.recordCorrectAnswer);
+  const recordIncorrectAnswer = useAnswerHistoryStore((state) => state.recordIncorrectAnswer);
+
+  // メンバー選択ストアから必要な情報を取得
   const selectedMember = useSelectedMemberStore((state) => state.selectedMember);
+  const selectedGroup = useSelectedMemberStore((state) => state.selectedGroup);
 
   const { index: leftIndex, nameJa: leftNameJa } = useColorController("left");
   const { index: rightIndex, nameJa: rightNameJa } = useColorController("right");
@@ -31,9 +38,15 @@ export function AnswerButton() {
     if (isMatch) {
       console.log('一致：正解の組み合わせです');
       setMessage('正解');
+
+      // 正答履歴を記録
+      recordCorrectAnswer(selectedGroup, selectedMember.id);
     } else {
       console.log('不一致：この組み合わせは正解ではありません');
       setMessage('不正解');
+
+      // 不正答履歴を記録
+      recordIncorrectAnswer(selectedGroup, selectedMember.id);
     }
 
     trigger();

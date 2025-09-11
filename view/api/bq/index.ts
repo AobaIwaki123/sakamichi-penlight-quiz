@@ -47,9 +47,20 @@ export {
 // デバッグ関数のエクスポート
 export { debugPenlightTable } from './debugPenlight';
 
+// 低正答率メンバー取得関数のエクスポート
+export { 
+  getLowAccuracyMembers,
+  pickLowAccuracyMember,
+  getAllMembersForLowAccuracyAnalysis
+} from './getLowAccuracyMembers';
+
 // 型定義のエクスポート
 export type { Member } from '@/types/Member';
 export type { PenlightColor } from '@/types/PenlightColor';
+export type { 
+  LowAccuracyMemberOptions,
+  LowAccuracyMemberResult 
+} from './getLowAccuracyMembers';
 
 /**
  * 指定されたグループのメンバー情報を取得する統合関数
