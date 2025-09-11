@@ -3,22 +3,29 @@ prune-br:
 	@git branch | xargs git branch -d
 
 build:
-	@docker build --target prod -t prod-view-penlight ./view
+	@docker build --target prod -t penlight-view:latest ./view
 
-tag:
-	@docker tag prod-view-penlight:latest harbor.aooba.net/penlight/prod-view-penlight:local-tmp-4
-
-push:
-	@docker -D push harbor.aooba.net/penlight/prod-view-penlight:local-tmp-4
+# GCRへのプッシュ（引数でタグを指定）
+push-gcr:
+	@if [ -z "$(TAG)" ]; then \
+		echo "Usage: make push-gcr TAG=<tag>"; \
+		echo "Example: make push-gcr TAG=local"; \
+		exit 1; \
+	fi
+	@./scripts/push-to-gcr.sh $(TAG)
 
 run:
 	@docker run -d \
 		--name prod-view-penlight \
 		-p 3000:3000 \
-		prod-view-penlight
+		penlight-view:latest
 
-cd: build tag push
-	@echo "Build, tag, and push completed."
+# GCRへの一括デプロイ
+cd-gcr: build
+	@if [ -z "$(TAG)" ]; then \
+		TAG=local-$(shell git rev-parse --short HEAD); \
+	fi && \
+	./scripts/push-to-gcr.sh $$TAG
 
 sync:
 	@curl -X POST https://argocd.aooba.net/api/v1/applications/penlight/sync \

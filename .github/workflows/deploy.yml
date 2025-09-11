@@ -24,7 +24,8 @@ permissions:
   contents: write
 
 env:
-  HARBOR_REGISTRY: harbor.aooba.net
+  GCR_REGISTRY: gcr.io
+  PROJECT_ID: ${{ secrets.GCP_PROJECT_ID }}
   IMAGE_NAME: penlight/prod-view-penlight
   DEPLOYMENT_FILE_PATH: k8s/manifests/deployment.yml
   PACKAGE_JSON_PATH: view/package.json
@@ -80,7 +81,7 @@ jobs:
             echo "image_tag=$latest_tag" >> "$GITHUB_OUTPUT"
           fi
 
-  docker-build-and-push-to-harbor:
+  docker-build-and-push-to-gcr:
     runs-on: ubuntu-latest
     needs:
       - determine-image-tag
@@ -94,21 +95,21 @@ jobs:
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
 
-      - name: Login to Harbor registry
+      - name: Login to GCR
         uses: docker/login-action@v3
         with:
-          registry: ${{ env.HARBOR_REGISTRY }}
-          username: robot$github-action-penlight
-          password: ${{ secrets.HARBOR_TOKEN }}
+          registry: ${{ env.GCR_REGISTRY }}
+          username: _json_key
+          password: ${{ secrets.GCP_SA_KEY }}
 
-      - name: Build and Push Docker image to Harbor
+      - name: Build and Push Docker image to GCR
         uses: docker/build-push-action@v6
         with:
           context: ./view
           file: ./view/Dockerfile
           target: prod
           push: true
-          tags: ${{ env.HARBOR_REGISTRY }}/${{ env.IMAGE_NAME }}:${{ needs.determine-image-tag.outputs.image_tag }}
+          tags: ${{ env.GCR_REGISTRY }}/${{ env.PROJECT_ID }}/${{ env.IMAGE_NAME }}:${{ needs.determine-image-tag.outputs.image_tag }}
 
   update-deployment-manifest:
     runs-on: ubuntu-latest
@@ -122,7 +123,7 @@ jobs:
       - name: Update deployment YAML with new image tag
         uses: mikefarah/yq@v4
         with:
-          cmd: yq -i '.spec.template.spec.containers[0].image = "${{ env.HARBOR_REGISTRY }}/${{ env.IMAGE_NAME }}:${{ needs.determine-image-tag.outputs.image_tag }}"' "${{ needs.determine-path.outputs.deployment_file_path }}"
+          cmd: yq -i '.spec.template.spec.containers[0].image = "${{ env.GCR_REGISTRY }}/${{ env.PROJECT_ID }}/${{ env.IMAGE_NAME }}:${{ needs.determine-image-tag.outputs.image_tag }}"' "${{ needs.determine-path.outputs.deployment_file_path }}"
 
       - name: Check updated deployment file
         run: |
@@ -152,13 +153,13 @@ jobs:
   sync:
     runs-on: ubuntu-latest
     needs:
-      - docker-build-and-push-to-harbor
+      - docker-build-and-push-to-gcr
       - determine-image-tag
     steps:
       - name: Trigger ArgoCD sync via API
         env:
           ARGOCD_TOKEN: ${{ secrets.ARGOCD_TOKEN }}
         run: |
-          curl -X POST https://argocd.aooba.net/api/v1/applications/penlight-${{ needs.determine-image-tag.outputs.image_tag }}/sync \
+          curl -X POST https://argocd.aooba.net/api/v1/applications/penlight-${{ needs.determine-path.outputs.release }}/sync \
             -H "Authorization: Bearer $ARGOCD_TOKEN" \
             -H "Content-Type: application/json"
