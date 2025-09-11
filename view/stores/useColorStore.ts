@@ -1,56 +1,119 @@
-// stores/colorStore.ts
 import { create } from 'zustand';
 import { usePenlightStore } from './usePenlightStore';
 
-type ColorInfo = {
+// ============================================================================
+// 型定義
+// ============================================================================
+
+/**
+ * カラー選択インデックス情報
+ */
+interface ColorInfo {
+  /** 現在選択されているペンライト色のインデックス */
   index: number;
-};
+}
 
-type ColorState = {
+/**
+ * カラーデータの表示情報
+ */
+interface ColorDisplayData {
+  /** 現在のインデックス */
+  index: number;
+  /** 日本語色名 */
+  nameJa: string;
+  /** 英語色名 */
+  nameEn: string;
+  /** HEX色コード */
+  color: string;
+}
+
+/**
+ * カラーストアの状態定義
+ */
+interface ColorState {
+  /** IDごとのカラー選択状態を管理するマップ */
   colorMap: Record<string, ColorInfo>;
-  setIndex: (id: string, updater: (prev: number) => number) => void;
-  getColorData: (id: string) => {
-    index: number;
-    nameJa: string;
-    nameEn: string;
-    color: string;
-  };
-};
+}
 
-export const useColorStore = create<ColorState>((set, get) => ({
+/**
+ * カラーストアのアクション定義
+ */
+interface ColorActions {
+  /** 指定されたIDのカラーインデックスを更新する */
+  setIndex: (id: string, updater: (prev: number) => number) => void;
+  /** 指定されたIDのカラー表示データを取得する */
+  getColorData: (id: string) => ColorDisplayData;
+}
+
+type ColorStore = ColorState & ColorActions;
+
+/**
+ * カラー管理用Zustandストア
+ * ペンライト色の選択状態とその表示データを管理する
+ */
+export const useColorStore = create<ColorStore>((set, get) => ({
+  // 初期状態
   colorMap: {},
+
+  // カラーインデックスの更新
   setIndex: (id, updater) =>
     set((state) => {
-      const currentIndex = state.colorMap[id]?.index ?? 0;
+      const currentIndex = getCurrentIndex(state.colorMap, id);
+      const newIndex = updater(currentIndex);
+      
       return {
         colorMap: {
           ...state.colorMap,
-          [id]: {
-            index: updater(currentIndex),
-          },
+          [id]: { index: newIndex },
         },
       };
     }),
+
+  // カラーデータの取得
   getColorData: (id) => {
-    const index = get().colorMap[id]?.index ?? 0;
+    const index = getCurrentIndex(get().colorMap, id);
     const { penlightColors } = usePenlightStore.getState();
-    const current = penlightColors[index];
+    const selectedColor = penlightColors[index];
     
-    // ペンライト色データが未取得の場合はデフォルト値を返す
-    if (!current) {
-      return {
-        index,
-        nameJa: '未取得',
-        nameEn: 'not_loaded',
-        color: '#cccccc',
-      };
+    // データ未取得時のフォールバック
+    if (!selectedColor) {
+      return createFallbackColorData(index);
     }
     
+    // 正常なカラーデータを返す
     return {
       index,
-      nameJa: current.name_ja,
-      nameEn: current.name_en,
-      color: current.color,
+      nameJa: selectedColor.name_ja,
+      nameEn: selectedColor.name_en,
+      color: selectedColor.color,
     };
   },
 }));
+
+// ============================================================================
+// ヘルパー関数
+// ============================================================================
+
+/**
+ * 指定されたIDの現在のインデックスを取得する
+ * @param colorMap カラーマップ
+ * @param id 対象のID
+ * @returns 現在のインデックス（未設定の場合は0）
+ */
+function getCurrentIndex(colorMap: Record<string, ColorInfo>, id: string): number {
+  return colorMap[id]?.index ?? 0;
+}
+
+/**
+ * データ未取得時のフォールバックカラーデータを作成する
+ * @param index 現在のインデックス
+ * @returns フォールバック用のカラーデータ
+ */
+function createFallbackColorData(index: number): ColorDisplayData {
+  return {
+    index,
+    nameJa: '未取得',
+    nameEn: 'not_loaded',
+    color: '#cccccc',
+  };
+}
