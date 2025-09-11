@@ -1,5 +1,5 @@
 # --- 共通環境変数定義（再利用のため） ---
-ARG NODE_VERSION=22
+ARG NODE_VERSION=24
 
 # --- 開発ステージ（ローカル開発やpnpm用） ---
 FROM node:${NODE_VERSION}-slim AS dev
@@ -37,7 +37,7 @@ COPY . .
 RUN pnpm run build
 
 # --- 本番ステージ（軽量かつ安全なDistrolessイメージ） ---
-FROM gcr.io/distroless/nodejs22-debian12:nonroot AS prod
+FROM gcr.io/distroless/nodejs24-debian12:nonroot AS prod
 
 # 本番環境変数
 ENV NODE_ENV=production
