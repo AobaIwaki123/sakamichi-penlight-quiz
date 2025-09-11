@@ -276,21 +276,3 @@ export async function fetchPenlightData(
   }
 }
 
-/**
- * グループ名のバリデーション
- * 
- * @param group 検証対象のグループ名
- * @returns 有効なグループ名
- * @throws ApiError 無効なグループ名の場合
- */
-export function validateGroup(group: string): Group {
-  if (group !== 'hinatazaka' && group !== 'sakurazaka') {
-    throw createApiError(
-      ApiErrorCode.DATA_VALIDATION_ERROR,
-      `無効なグループ名です: ${group}`,
-      undefined,
-      { validGroups: ['hinatazaka', 'sakurazaka'] }
-    );
-  }
-  return group as Group;
-}

@@ -15,7 +15,6 @@ export { getSakurazakaPenlight } from './getSakurazakaPenlight';
 export {
   fetchMemberData,
   fetchPenlightData,
-  validateGroup,
   type Group,
   TABLE_NAMES,
   BIGQUERY_CONFIG
@@ -71,15 +70,13 @@ export type { PenlightColor } from '@/types/PenlightColor';
  * ```
  */
 export async function getMembersByGroup(group: import('./common/queryUtils').Group): Promise<import('@/types/Member').Member[]> {
-  const { validateGroup } = await import('./common/queryUtils');
-  const validatedGroup = validateGroup(group);
-  
-  switch (validatedGroup) {
+  switch (group) {
     case 'hinatazaka':
       return (await import('./getHinatazakaMember')).getHinatazakaMember();
     case 'sakurazaka':
       return (await import('./getSakurazakaMember')).getSakurazakaMember();
     default:
+      // TypeScriptの型システムによって、ここには到達しないはず
       throw new Error(`サポートされていないグループです: ${group}`);
   }
 }
@@ -101,15 +98,13 @@ export async function getMembersByGroup(group: import('./common/queryUtils').Gro
  * ```
  */
 export async function getPenlightByGroup(group: import('./common/queryUtils').Group): Promise<import('@/types/PenlightColor').PenlightColor[]> {
-  const { validateGroup } = await import('./common/queryUtils');
-  const validatedGroup = validateGroup(group);
-  
-  switch (validatedGroup) {
+  switch (group) {
     case 'hinatazaka':
       return (await import('./getHinatazakaPenlight')).getHinatazakaPenlight();
     case 'sakurazaka':
       return (await import('./getSakurazakaPenlight')).getSakurazakaPenlight();
     default:
+      // TypeScriptの型システムによって、ここには到達しないはず
       throw new Error(`サポートされていないグループです: ${group}`);
   }
 }

@@ -3,7 +3,6 @@
  */
 
 import {
-  validateGroup,
   validateMemberData,
   validatePenlightData,
   buildMemberQuery,
@@ -18,21 +17,7 @@ import {
   ApiErrorCode
 } from '@/api/bq/common/errorHandling';
 
-import type { Member } from '@/types/Member';
-import type { PenlightColor } from '@/types/PenlightColor';
-
 describe('BigQuery API共通ユーティリティ', () => {
-  describe('validateGroup', () => {
-    test('有効なグループ名を受け入れる', () => {
-      expect(validateGroup('hinatazaka')).toBe('hinatazaka');
-      expect(validateGroup('sakurazaka')).toBe('sakurazaka');
-    });
-
-    test('無効なグループ名でエラーをスローする', () => {
-      expect(() => validateGroup('invalid')).toThrow();
-      expect(() => validateGroup('')).toThrow();
-    });
-  });
 
   describe('validateMemberData', () => {
     test('有効なメンバーデータを正しく検証する', () => {
