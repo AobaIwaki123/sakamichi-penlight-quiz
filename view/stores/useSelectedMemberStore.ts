@@ -1,5 +1,6 @@
 import { getHinatazakaMember } from "@/api/bq/getHinatazakaMember";
 import { getSakurazakaMember } from "@/api/bq/getSakurazakaMember";
+import { pickLowAccuracyMember, type LowAccuracyMemberOptions } from "@/api/bq/getLowAccuracyMembers";
 import { create } from 'zustand'
 
 import type { Generation } from "@/consts/hinatazakaFilters";
@@ -45,6 +46,10 @@ interface MemberSelectionState {
   // フィルター状態
   filters: MemberFilters
   hasInvalidFilter: boolean
+  
+  // 低正答率メンバー選択設定
+  useLowAccuracyMode: boolean
+  lowAccuracyOptions: LowAccuracyMemberOptions
 }
 
 // アクション定義
@@ -59,6 +64,11 @@ interface MemberSelectionActions {
   // メンバー選択操作
   shuffleMembers: () => void
   pickRandomMember: () => Member | undefined
+  pickLowAccuracyMember: () => Promise<Member | undefined>
+  
+  // 低正答率モード設定
+  setLowAccuracyMode: (enabled: boolean, options?: Partial<LowAccuracyMemberOptions>) => void
+  updateLowAccuracyOptions: (options: Partial<LowAccuracyMemberOptions>) => void
   
   // キャッシュ管理
   clearCache: (group?: Group) => void
@@ -80,6 +90,15 @@ export const useSelectedMemberStore = create<SelectedMemberStore>((set, get) => 
   selectedMember: undefined,
   isLoading: false,
   hasInvalidFilter: false,
+  
+  // 低正答率メンバー選択設定の初期値
+  useLowAccuracyMode: false,
+  lowAccuracyOptions: {
+    accuracyThreshold: 0.6,
+    minAnswerThreshold: 3,
+    maxCount: undefined,
+    excludeIds: []
+  },
 
   setGroup: async (group, forceRefresh = false) => {
     const { isLoading, cache, cacheExpiry } = get();
