@@ -9,3 +9,8 @@ SELECT
   *
 FROM
   ${ref("sakurazaka", "member_image_2nd_album")}
+UNION ALL
+SELECT
+  *
+FROM
+  ${ref("sakurazaka", "member_image_4th_towel")}
