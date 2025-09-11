@@ -87,7 +87,7 @@ export function logError(
   error: Error | ApiError,
   additionalInfo?: Record<string, any>
 ): void {
-  console.error(`[${context}] エラーが発生しました:`, {
+  console.error('[%s] エラーが発生しました:', context, {
     message: error.message,
     code: (error as ApiError).code || 'UNKNOWN',
     cause: (error as ApiError).cause?.message,
