@@ -6,12 +6,11 @@ import type { Member } from '@/types/Member';
 import { hinatazakaMemberMock } from './mockData/hinatazakaMemberMock';  
 
 export async function getHinatazakaMember(): Promise<Member[]> {
-  // 環境変数DEV_MODEをチェック  
-  const isDevMode = process.env.NODE_ENV === "development"; 
+  // USE_MOCK環境変数をチェックしてモックデータの使用を決定
+  const useMock = process.env.USE_MOCK === "true";
 
-    // devモードの場合はモックデータを返す  
-  if (isDevMode) {  
-    console.log('Using mock data in DEV_MODE');  
+  if (useMock) {  
+    console.log('モックデータを使用中（USE_MOCK=true）');  
     return hinatazakaMemberMock;  
   }  
   

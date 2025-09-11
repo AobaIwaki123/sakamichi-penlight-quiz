@@ -7,17 +7,17 @@ import { hinatazakaPenlightMock } from './mockData/hinatazakaPenlightMock';
 
 /**
  * BigQueryから日向坂46のペンライト色情報を取得する関数
- * 開発環境ではモックデータを返し、本番環境ではBigQueryから取得する
+ * USE_MOCK環境変数がtrueの場合はモックデータを返し、falseの場合はBigQueryから取得する
  * 
  * @returns Promise<PenlightColor[]> ペンライト色情報の配列
  * @throws Error BigQuery接続エラーまたはクエリ実行エラー
  */
 export async function getHinatazakaPenlight(): Promise<PenlightColor[]> {
-  // 環境変数をチェック
-  const isDevMode = process.env.NODE_ENV === "development";
+  // USE_MOCK環境変数をチェックしてモックデータの使用を決定
+  const useMock = process.env.USE_MOCK === "true";
   
-  if (isDevMode) {
-    console.log('ペンライト色のモックデータを使用中（開発モード）');
+  if (useMock) {
+    console.log('ペンライト色のモックデータを使用中（USE_MOCK=true）');
     return hinatazakaPenlightMock;
   }
 
