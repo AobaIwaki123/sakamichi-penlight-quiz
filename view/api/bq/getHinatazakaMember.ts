@@ -1,42 +1,22 @@
  "use server";
 
-import { BigQuery } from '@google-cloud/bigquery';
-
 import type { Member } from '@/types/Member';
-import { hinatazakaMemberMock } from './mockData/hinatazakaMemberMock';  
+import { hinatazakaMemberMock } from './mockData/hinatazakaMemberMock';
+import { fetchMemberData } from './common/queryUtils';
 
+/**
+ * BigQueryから日向坂46のメンバー情報を取得する関数
+ * USE_MOCK環境変数がtrueの場合はモックデータを返し、falseの場合はBigQueryから取得する
+ * 
+ * @returns Promise<Member[]> 日向坂46メンバー情報の配列
+ * @throws Error BigQuery接続エラーまたはクエリ実行エラー
+ * 
+ * @example
+ * ```typescript
+ * const members = await getHinatazakaMember();
+ * console.log(`取得したメンバー数: ${members.length}`);
+ * ```
+ */
 export async function getHinatazakaMember(): Promise<Member[]> {
-  // USE_MOCK環境変数をチェックしてモックデータの使用を決定
-  const useMock = process.env.USE_MOCK === "true";
-
-  if (useMock) {  
-    console.log('モックデータを使用中（USE_MOCK=true）');  
-    return hinatazakaMemberMock;  
-  }  
-  
-  const bigquery = new BigQuery();
-
-  const query = `
-   SELECT
-     *
-   FROM
-     sakamichipenlightquiz.sakamichi.hinatazaka_member_master
-  `;
-
-  const options = {
-    query: query,
-    location: 'US', // 必要に応じて適切なロケーションに変更
-  };
-
-  const [job] = await bigquery.createQueryJob(options);
-  console.log(`Job ${job.id} started.`);
-
-  const [rows] = await job.getQueryResults();
-
-  console.log('Rows:');
-  for (const row of rows) {
-    console.log(row);
-  }
-
-  return rows as Member[];
+  return fetchMemberData('hinatazaka', hinatazakaMemberMock);
 }
