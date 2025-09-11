@@ -1,0 +1,160 @@
+name: cursor-rules-check
+run-name: Cursor Rules チェック
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+
+permissions:
+  contents: read
+  pull-requests: write
+
+defaults:
+  run:
+    shell: bash
+
+jobs:
+  check-cursor-rules-update:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: PR情報を取得
+        id: pr-info
+        run: |
+          echo "PR Number: ${{ github.event.pull_request.number }}"
+          echo "PR Title: ${{ github.event.pull_request.title }}"
+          echo "PR Labels: ${{ join(github.event.pull_request.labels.*.name, ', ') }}"
+
+      - name: 変更ファイルを分析
+        id: analyze-changes
+        run: |
+          echo "=== 変更されたファイル一覧 ==="
+          
+          # 変更されたファイルを取得
+          CHANGED_FILES=$(git diff --name-only origin/main...HEAD)
+          echo "$CHANGED_FILES"
+          
+          # Cursor Rules更新が必要かチェック
+          NEEDS_RULES_UPDATE=false
+          
+          # フロントエンド関連の変更
+          if echo "$CHANGED_FILES" | grep -E '^view/(components|stores|hooks|types|api)/' > /dev/null; then
+            echo "::notice::フロントエンドコンポーネント/ストア/フックの変更を検出"
+            NEEDS_RULES_UPDATE=true
+          fi
+          
+          # アーキテクチャ関連の変更
+          if echo "$CHANGED_FILES" | grep -E '^view/(app|layout)/' > /dev/null; then
+            echo "::notice::アーキテクチャ関連の変更を検出"
+            NEEDS_RULES_UPDATE=true
+          fi
+          
+          # BigQuery/Dataform関連の変更
+          if echo "$CHANGED_FILES" | grep -E '^definitions/' > /dev/null; then
+            echo "::notice::Dataformパイプライン変更を検出"
+            NEEDS_RULES_UPDATE=true
+          fi
+          
+          # インフラ関連の変更
+          if echo "$CHANGED_FILES" | grep -E '^k8s/|^\.github/workflows/' > /dev/null; then
+            echo "::notice::インフラ・デプロイメント設定変更を検出"
+            NEEDS_RULES_UPDATE=true
+          fi
+          
+          # 新しいパッケージ/依存関係の追加
+          if echo "$CHANGED_FILES" | grep -E '^view/(package\.json|pnpm-lock\.yaml)$' > /dev/null; then
+            echo "::notice::依存関係の変更を検出"
+            NEEDS_RULES_UPDATE=true
+          fi
+          
+          # 設定ファイルの変更
+          if echo "$CHANGED_FILES" | grep -E '\.(config|env)' > /dev/null; then
+            echo "::notice::設定ファイルの変更を検出"
+            NEEDS_RULES_UPDATE=true
+          fi
+          
+          echo "needs_update=$NEEDS_RULES_UPDATE" >> $GITHUB_OUTPUT
+
+      - name: セマンティックバージョニングラベルチェック
+        id: check-labels
+        run: |
+          # PRラベルを確認
+          LABELS="${{ join(github.event.pull_request.labels.*.name, ',') }}"
+          
+          HAS_SEMANTIC_LABEL=false
+          if [[ "$LABELS" == *"major"* ]] || [[ "$LABELS" == *"minor"* ]] || [[ "$LABELS" == *"patch"* ]]; then
+            HAS_SEMANTIC_LABEL=true
+            echo "✅ セマンティックバージョニングラベルが設定されています"
+          else
+            echo "❌ セマンティックバージョニングラベル (major/minor/patch) が設定されていません"
+          fi
+          
+          echo "has_semantic_label=$HAS_SEMANTIC_LABEL" >> $GITHUB_OUTPUT
+          echo "labels=$LABELS" >> $GITHUB_OUTPUT
+
+      - name: Cursor Rules更新推奨の通知
+        if: steps.analyze-changes.outputs.needs_update == 'true'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const { owner, repo } = context.repo;
+            const pull_number = context.payload.pull_request.number;
+            
+            const needsUpdate = '${{ steps.analyze-changes.outputs.needs_update }}';
+            const hasSemanticLabel = '${{ steps.check-labels.outputs.has_semantic_label }}';
+            const labels = '${{ steps.check-labels.outputs.labels }}';
+            
+            let comment = `## 🔄 Cursor Rules 更新チェック結果\n\n`;
+            
+            if (needsUpdate === 'true') {
+              comment += `### ⚠️ Cursor Rules の更新を推奨します\n\n`;
+              comment += `このPRには以下の変更が含まれており、Cursor Rulesの更新が推奨されます：\n\n`;
+              
+              // 変更内容に基づく具体的な推奨事項
+              comment += `#### 推奨される更新項目\n`;
+              comment += `- [ ] \`frontend-architecture.mdc\` - コンポーネント・ストア構成の更新\n`;
+              comment += `- [ ] \`deployment-infrastructure.mdc\` - インフラ設定の更新\n`;
+              comment += `- [ ] \`dataform-pipeline.mdc\` - データパイプライン構成の更新\n`;
+              comment += `- [ ] \`coding-standards.mdc\` - コーディング規約の確認・更新\n\n`;
+            }
+            
+            if (hasSemanticLabel === 'false') {
+              comment += `### 🏷️ セマンティックバージョニングラベルが必要です\n\n`;
+              comment += `以下のいずれかのラベルを追加してください：\n`;
+              comment += `- \`patch\` - バグ修正・小規模改善\n`;
+              comment += `- \`minor\` - 新機能追加（後方互換性あり）\n`;
+              comment += `- \`major\` - 破壊的変更\n\n`;
+            } else {
+              comment += `### ✅ セマンティックバージョニング\n\n`;
+              comment += `ラベル設定済み: \`${labels}\`\n\n`;
+            }
+            
+            comment += `### 📋 PR作成後のチェックリスト\n\n`;
+            comment += `- [ ] 適切なセマンティックバージョニングラベルを設定\n`;
+            comment += `- [ ] 変更内容に対応するCursor Rulesの更新を検討\n`;
+            comment += `- [ ] テスト実行・動作確認完了\n`;
+            comment += `- [ ] ドキュメント更新（必要な場合）\n\n`;
+            
+            comment += `---\n`;
+            comment += `*このチェックは自動実行されています。詳細は [PR管理ガイドライン](.cursor/rules/pr-management.mdc) を参照してください。*`;
+            
+            await github.rest.issues.createComment({
+              owner,
+              repo,
+              issue_number: pull_number,
+              body: comment
+            });
+
+      - name: セマンティックラベル必須チェック
+        if: steps.check-labels.outputs.has_semantic_label == 'false'
+        run: |
+          echo "::error::セマンティックバージョニングラベル (major/minor/patch) の設定が必要です"
+          echo "PRに適切なラベルを追加してください："
+          echo "  - patch: バグ修正・小規模改善"
+          echo "  - minor: 新機能追加（後方互換性あり）"
+          echo "  - major: 破壊的変更"
+          exit 1

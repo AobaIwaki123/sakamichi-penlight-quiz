@@ -177,3 +177,9 @@ export GOOGLE_APPLICATION_CREDENTIALS=/path/to/credentials.json
 # または .env.local ファイルに設定
 NODE_ENV=development
 ```
+
+## インフラ更新履歴 (最終更新: 2025-09-11 19:41:51)
+
+- PR #manual による設定更新
+- 更新者: AobaIwaki
+

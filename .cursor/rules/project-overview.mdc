@@ -43,3 +43,10 @@ description: "プロジェクト概要とアーキテクチャガイド"
 - マニフェストとサービスワーカーでPWA機能を使用
 - BigQuery統合にはGOOGLE_APPLICATION_CREDENTIALS経由の適切な認証が必要
 - 開発モードではBigQueryコストを避けるためモックデータを使用
+
+## 更新履歴
+
+### 2025-09-11 19:41:51 - PR #manual
+- **更新種別**: manual
+- **更新者**: AobaIwaki
+

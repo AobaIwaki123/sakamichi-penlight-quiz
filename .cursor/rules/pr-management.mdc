@@ -1,0 +1,265 @@
+# PR管理・Cursor Rules更新ガイドライン
+
+## 概要
+
+このrulesファイルは、PR作成後にCursor Rulesを自動更新するためのガイドラインと手順を定義します。プロジェクトの開発フローに合わせて、適切なバージョン管理とルール更新を行います。
+
+## PR作成プロセス
+
+### 1. PR作成前のチェックリスト
+
+```bash
+# 現在のブランチ確認
+git branch --show-current
+
+# 最新のmainブランチを取得
+git fetch origin main
+git merge origin/main
+
+# 変更内容の確認
+git status
+git diff
+```
+
+### 2. セマンティックバージョニングラベル
+
+PRを作成する際は、変更の影響度に応じて必ず以下のラベルを付与する：
+
+- **`major`** - 破壊的変更（API変更、データベース変更等）
+- **`minor`** - 新機能追加（後方互換性あり）
+- **`patch`** - バグ修正・小規模改善
+
+### 3. PR作成テンプレート
+
+```markdown
+## 変更内容
+[具体的な変更内容を日本語で記述]
+
+## 影響範囲
+- [ ] フロントエンド変更
+- [ ] バックエンド変更
+- [ ] データベース変更
+- [ ] Cursor Rules更新が必要
+
+## セマンティックバージョニング
+- [ ] `patch` - バグ修正・小規模改善
+- [ ] `minor` - 新機能追加（後方互換性あり）
+- [ ] `major` - 破壊的変更
+
+## Cursor Rules更新
+- [ ] 新しいコーディング規約の追加
+- [ ] プロジェクト構成の変更
+- [ ] 開発フロー変更
+- [ ] 更新不要
+
+## テスト
+- [ ] ユニットテスト追加/更新済み
+- [ ] 手動テスト完了
+- [ ] 回帰テスト確認済み
+```
+
+## PR作成後のCursor Rules更新プロセス
+
+### 自動更新対象
+
+PR作成・マージ後に自動的に更新される項目：
+
+1. **プロジェクト概要** - 新機能追加時
+2. **コーディング規約** - 新しい規約追加時
+3. **フロントエンド構成** - UI/UX変更時
+4. **デプロイメント設定** - インフラ変更時
+
+### 更新手順
+
+#### 1. PR作成時の自動チェック
+
+```yaml
+# .github/workflows/cursor-rules-check.yml
+name: cursor-rules-check
+on:
+  pull_request:
+    types: [opened, synchronize]
+
+jobs:
+  check-rules:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      
+      - name: Check if Cursor Rules update needed
+        run: |
+          # 変更ファイルをチェック
+          git diff --name-only origin/main...HEAD | grep -E '\.(ts|tsx|js|jsx|sql|yml|yaml)$' || exit 0
+          
+          # Cursor Rules関連ファイルの更新が必要かチェック
+          if git diff --name-only origin/main...HEAD | grep -E '(components|stores|api|k8s|definitions)'; then
+            echo "::warning::Cursor Rules の更新を検討してください"
+          fi
+```
+
+#### 2. PR マージ後の自動更新
+
+```yaml
+# .github/workflows/update-cursor-rules.yml
+name: update-cursor-rules
+on:
+  pull_request:
+    types: [closed]
+
+jobs:
+  update-rules:
+    if: github.event.pull_request.merged == true
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        
+      - name: Update project overview
+        if: contains(github.event.pull_request.labels.*.name, 'minor') || contains(github.event.pull_request.labels.*.name, 'major')
+        run: |
+          # プロジェクト概要を更新
+          echo "プロジェクト概要更新: $(date)" >> .cursor/rules/project-overview.mdc
+          
+      - name: Commit rules update
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add .cursor/rules/
+          git diff --staged --quiet || git commit -m "auto: Cursor Rules更新 (PR #${{ github.event.pull_request.number }})"
+          git push
+```
+
+### 手動更新が必要なケース
+
+以下の場合は手動でCursor Rulesの更新を行う：
+
+1. **新しいアーキテクチャ導入時**
+   ```bash
+   # 新しい技術スタック追加例
+   echo "## 新技術スタック: XYZ" >> .cursor/rules/frontend-architecture.mdc
+   ```
+
+2. **コーディング規約の大幅変更時**
+   ```typescript
+   // 新しい命名規則を追加
+   // 例：React Hook規約の追加
+   ```
+
+3. **データベーススキーマ変更時**
+   ```sql
+   -- BigQuery スキーマ変更を反映
+   ```
+
+### Cursor Rules ファイル別更新指針
+
+#### frontend-architecture.mdc
+- コンポーネント追加時
+- 新しいHook作成時
+- 状態管理変更時
+- UI/UXフレームワーク変更時
+
+#### coding-standards.mdc
+- コードスタイル変更時
+- 新しい規約追加時
+- 言語設定変更時
+
+#### deployment-infrastructure.mdc
+- Kubernetes設定変更時
+- CI/CD パイプライン変更時
+- インフラ構成変更時
+
+#### dataform-pipeline.mdc
+- BigQuery テーブル追加時
+- データパイプライン変更時
+- SQL規約変更時
+
+## 実装ガイド
+
+### 1. GitHub Actions設定
+
+新しいワークフローファイルを作成：
+
+```bash
+mkdir -p .github/workflows
+```
+
+### 2. Cursor Rules 更新スクリプト
+
+```bash
+#!/bin/bash
+# scripts/update-cursor-rules.sh
+
+RULES_DIR=".cursor/rules"
+PR_NUMBER=$1
+LABELS=$2
+
+# プロジェクト概要更新
+if [[ "$LABELS" == *"major"* ]] || [[ "$LABELS" == *"minor"* ]]; then
+    echo "## 更新履歴" >> "$RULES_DIR/project-overview.mdc"
+    echo "- $(date '+%Y-%m-%d'): PR #$PR_NUMBER による更新" >> "$RULES_DIR/project-overview.mdc"
+fi
+
+# バージョン情報更新
+echo "最終更新: $(date '+%Y-%m-%d %H:%M:%S')" > "$RULES_DIR/.last-update"
+```
+
+### 3. VS Code / Cursor 設定連携
+
+```json
+// .vscode/settings.json
+{
+  "cursor.rules.autoUpdate": true,
+  "cursor.rules.checkOnPR": true,
+  "cursor.rules.warnOnOutdated": true
+}
+```
+
+## トラブルシューティング
+
+### 自動更新が失敗する場合
+
+1. **権限確認**
+   ```bash
+   # GitHub Actions権限確認
+   gh auth status
+   ```
+
+2. **ワークフロー状態確認**
+   ```bash
+   # 最新のワークフロー実行確認
+   gh run list --workflow=update-cursor-rules.yml
+   ```
+
+3. **手動更新実行**
+   ```bash
+   # スクリプト実行権限確認
+   chmod +x scripts/update-cursor-rules.sh
+   ./scripts/update-cursor-rules.sh [PR_NUMBER] [LABELS]
+   ```
+
+### ルール競合の解決
+
+```bash
+# 競合するrulesファイルを確認
+git status .cursor/rules/
+
+# マージ競合解決後
+git add .cursor/rules/
+git commit -m "fix: Cursor Rules競合解決"
+```
+
+## ベストプラクティス
+
+1. **定期的な見直し** - 月1回のルール見直し会議
+2. **チーム合意** - ルール変更は必ずチーム内で合意形成
+3. **文書化** - 変更理由と影響範囲を明記
+4. **テスト** - ルール適用前の動作確認
+5. **ロールバック準備** - 問題発生時の復旧手順準備
+
+## 関連ファイル
+
+- `.github/workflows/cursor-rules-check.yml` - PR作成時チェック
+- `.github/workflows/update-cursor-rules.yml` - 自動更新ワークフロー
+- `scripts/update-cursor-rules.sh` - 更新スクリプト
+- `.cursor/rules/.last-update` - 最終更新時刻記録

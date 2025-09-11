@@ -268,6 +268,31 @@ pnpm dev
 docker compose up -d
 ```
 
+### Cursor Rules 管理
+
+#### 自動更新機能
+このプロジェクトでは、PR作成・マージ時にCursor Rulesが自動更新されます：
+
+- **PR作成時**: 変更内容を分析し、Cursor Rules更新の必要性をチェック
+- **PRマージ時**: プロジェクト構成の変更に応じて関連rulesファイルを自動更新
+
+#### 手動更新
+```bash
+# 手動でCursor Rulesを更新
+./scripts/update-cursor-rules.sh
+
+# PR番号とラベルを指定して更新
+./scripts/update-cursor-rules.sh 123 "minor"
+```
+
+#### Cursor Rules構成
+- `.cursor/rules/pr-management.mdc` - PR作成・管理ガイドライン
+- `.cursor/rules/coding-standards.mdc` - コーディング規約
+- `.cursor/rules/frontend-architecture.mdc` - フロントエンド構成
+- `.cursor/rules/deployment-infrastructure.mdc` - インフラ・デプロイ設定
+- `.cursor/rules/dataform-pipeline.mdc` - BigQueryデータパイプライン
+- `.cursor/rules/bigquery-integration.mdc` - BigQuery統合パターン
+
 ### GCRへのデプロイ
 
 #### 前提条件
