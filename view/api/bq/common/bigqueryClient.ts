@@ -1,5 +1,3 @@
-"use server";
-
 import { BigQuery, Query } from '@google-cloud/bigquery';
 
 /**

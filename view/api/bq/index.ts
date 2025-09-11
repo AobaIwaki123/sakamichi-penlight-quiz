@@ -13,8 +13,6 @@ export { getSakurazakaPenlight } from './getSakurazakaPenlight';
 
 // 共通ユーティリティとエラーハンドリングのエクスポート
 export {
-  fetchMemberData,
-  fetchPenlightData,
   type Group,
   TABLE_NAMES,
   BIGQUERY_CONFIG

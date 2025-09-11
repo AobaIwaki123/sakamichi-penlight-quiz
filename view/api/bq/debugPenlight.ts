@@ -9,7 +9,7 @@ import {
   createApiError,
   ApiErrorCode
 } from './common/errorHandling';
-import { validateGroup, BIGQUERY_CONFIG, TABLE_NAMES, type Group } from './common/queryUtils';
+import { BIGQUERY_CONFIG, TABLE_NAMES, type Group } from './common/queryUtils';
 
 /**
  * デバッグ結果のインターフェース
@@ -48,16 +48,23 @@ export interface DebugResult {
  * ```
  */
 export async function debugPenlightTable(group: Group): Promise<DebugResult> {
-  const validatedGroup = validateGroup(group);
-  const apiName = `debugPenlightTable:${validatedGroup}`;
+  // グループの簡単なバリデーション
+  if (!['hinatazaka', 'sakurazaka'].includes(group)) {
+    throw createApiError(
+      ApiErrorCode.DATA_VALIDATION_ERROR,
+      `無効なグループです: ${group}`
+    );
+  }
+  
+  const apiName = `debugPenlightTable:${group}`;
   const startTime = performance.now();
   
-  logApiStart(apiName, { group: validatedGroup });
-  console.log(`=== ${validatedGroup} ペンライトテーブルデバッグ開始 ===`);
+  logApiStart(apiName, { group });
+  console.log(`=== ${group} ペンライトテーブルデバッグ開始 ===`);
 
   try {
     // 1. テーブル存在確認
-    const tableName = TABLE_NAMES[validatedGroup].penlight;
+    const tableName = TABLE_NAMES[group].penlight;
     const exists = await checkTableExists(BIGQUERY_CONFIG.dataset, tableName);
     
     if (!exists) {
@@ -121,7 +128,7 @@ export async function debugPenlightTable(group: Group): Promise<DebugResult> {
     };
 
     logApiComplete(apiName, count, executionTime);
-    console.log(`=== ${validatedGroup} ペンライトテーブルデバッグ完了 ===`);
+    console.log(`=== ${group} ペンライトテーブルデバッグ完了 ===`);
     
     return result;
 

@@ -1,8 +1,23 @@
- "use server";
+"use server";
 
 import type { Member } from '@/types/Member';
 import { hinatazakaMemberMock } from './mockData/hinatazakaMemberMock';
-import { fetchMemberData } from './common/queryUtils';
+import { executeQuery, checkTableExists, type QueryResult } from './common/bigqueryClient';
+import { 
+  getApiEnvironment, 
+  handleApiError, 
+  logApiStart, 
+  logApiComplete, 
+  logMockUsage,
+  createApiError,
+  ApiErrorCode
+} from './common/errorHandling';
+import { 
+  buildMemberQuery, 
+  validateMemberData,
+  TABLE_NAMES,
+  BIGQUERY_CONFIG
+} from './common/queryUtils';
 
 /**
  * BigQueryから日向坂46のメンバー情報を取得する関数
@@ -18,5 +33,44 @@ import { fetchMemberData } from './common/queryUtils';
  * ```
  */
 export async function getHinatazakaMember(): Promise<Member[]> {
-  return fetchMemberData('hinatazaka', hinatazakaMemberMock);
+  const group = 'hinatazaka';
+  const apiName = 'getHinatazakaMember';
+  const environment = getApiEnvironment();
+  
+  logApiStart(apiName, { group });
+
+  // モック環境の場合は即座にモックデータを返す
+  if (environment.useMock) {
+    logMockUsage(apiName);
+    logApiComplete(apiName, hinatazakaMemberMock.length);
+    return hinatazakaMemberMock;
+  }
+
+  try {
+    // テーブル存在確認
+    const tableName = TABLE_NAMES[group].member;
+    const tableExists = await checkTableExists(BIGQUERY_CONFIG.dataset, tableName);
+    
+    if (!tableExists) {
+      throw createApiError(
+        ApiErrorCode.TABLE_NOT_FOUND,
+        `メンバーテーブルが存在しません: ${tableName}`,
+        undefined,
+        { group, tableName }
+      );
+    }
+
+    // BigQueryクエリ実行
+    const query = buildMemberQuery(group);
+    const result: QueryResult<any> = await executeQuery(query);
+    
+    // データ検証
+    const validatedData = validateMemberData(result.data);
+    
+    logApiComplete(apiName, validatedData.length, result.executionTime);
+    return validatedData;
+
+  } catch (error) {
+    return handleApiError(apiName, error as Error, hinatazakaMemberMock);
+  }
 }
