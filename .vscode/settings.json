@@ -1,25 +1,28 @@
 {
+  "cursor.rules.autoUpdate": true,
+  "cursor.rules.checkOnPR": true,
+  "cursor.rules.warnOnOutdated": true,
+  "cursor.rules.updateInterval": "weekly",
+  "files.watcherExclude": {
+    "**/.cursor/rules/.last-update": true,
+    "**/.cursor/rules/*.backup": true
+  },
+  "git.ignoredRepositories": [],
+  "githubActions.workflows.pinned.workflows": [
+    ".github/workflows/cursor-rules-check.yml",
+    ".github/workflows/update-cursor-rules.yml"
+  ],
+  "workbench.colorCustomizations": {
+    "statusBar.background": "#1e1e1e",
+    "statusBar.foreground": "#ffffff",
+    "statusBar.noFolderBackground": "#1e1e1e",
+    "statusBarItem.remoteBackground": "#16825d",
+    "statusBarItem.remoteForeground": "#ffffff"
+  },
   "editor.formatOnSave": true,
-  //   コマンドをいちいち実行しなくても常に lint/format が素早く実行される状態にする
-  "[typescript]": {
-    "editor.tabSize": 1,
-    "editor.formatOnSave": true,
-    "editor.defaultFormatter": "biomejs.biome"
-  },
   "editor.codeActionsOnSave": {
-    "source.organizeImports.biome": "explicit"
+    "source.fixAll.eslint": "explicit"
   },
-  "[typescriptreact]": {
-    "editor.defaultFormatter": "vscode.typescript-language-features"
-  },
-  "vscode-dataform-tools.gcpProjectId": "sakamichipenlightquiz",
-  "vscode-dataform-tools.formattingCli": "dataform",
-  "vscode-dataform-tools.showCompiledQueryInVerticalSplitOnSave": false,
-  "git.replaceTagsWhenPull": true,
-  "githubIssues.alwaysPromptForNewIssueRepo": true,
-  "cSpell.words": [
-    "sakamichipenlightquiz",
-    "sakurazaka",
-    "vulns"
-  ]
+  "typescript.preferences.importModuleSpecifier": "relative",
+  "javascript.preferences.importModuleSpecifier": "relative"
 }
