@@ -1,0 +1,14 @@
+config {
+  type: "table",
+  schema: "sakamichi",
+  name: "hinatazaka_penlight",
+  description: "日向坂46ペンライト色情報",
+}
+
+SELECT
+  id,
+  name_ja,
+  name_en,
+  color
+FROM
+  ${ref("hinatazaka", "penlight")}

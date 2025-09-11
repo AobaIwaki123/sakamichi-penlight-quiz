@@ -12,3 +12,4 @@ services:
       - "3000:3000"
     environment:
       GOOGLE_APPLICATION_CREDENTIALS: /app/secret/credentials.json
+      USE_MOCK: "true"

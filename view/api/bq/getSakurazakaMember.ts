@@ -1,17 +1,17 @@
- "use server";
+"use server";
 
 import { BigQuery } from '@google-cloud/bigquery';
 
 import type { Member } from '@/types/Member';
-import { hinatazakaMemberMock } from './mockData/hinatazakaMemberMock';  
+import { sakurazakaMemberMock } from './mockData/sakurazakaMemberMock';  
 
-export async function getHinatazakaMember(): Promise<Member[]> {
+export async function getSakurazakaMember(): Promise<Member[]> {
   // USE_MOCK環境変数をチェックしてモックデータの使用を決定
   const useMock = process.env.USE_MOCK === "true";
 
   if (useMock) {  
     console.log('モックデータを使用中（USE_MOCK=true）');  
-    return hinatazakaMemberMock;  
+    return sakurazakaMemberMock;  
   }  
   
   const bigquery = new BigQuery();
@@ -20,7 +20,7 @@ export async function getHinatazakaMember(): Promise<Member[]> {
    SELECT
      *
    FROM
-     sakamichipenlightquiz.sakamichi.hinatazaka_member_master
+     sakamichipenlightquiz.sakamichi.sakurazaka_member_master
   `;
 
   const options = {

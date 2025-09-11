@@ -1,9 +1,11 @@
 import { getHinatazakaMember } from "@/api/bq/getHinatazakaMember";
+import { getSakurazakaMember } from "@/api/bq/getSakurazakaMember";
 import { create } from 'zustand'
 
 import type { Generation } from "@/consts/hinatazakaFilters";
 import type { Group } from "@/types/Group";
 import type { Member } from "@/types/Member";
+import { usePenlightStore } from "./usePenlightStore";
 
 type State = {
   selectedGroup: Group
@@ -42,7 +44,12 @@ export const useSelectedMemberStore = create<State>((set, get) => ({
   setGroup: async (group) => {
     set({ isLoading: true, selectedGroup: group })
     try {
-      const members = await getGroupMembers(group)
+      // メンバーデータとペンライト色データを並行して取得
+      const [members] = await Promise.all([
+        getGroupMembers(group),
+        usePenlightStore.getState().fetchPenlightColors(group)
+      ]);
+      
       console.log("members", members)
       set({ allMembers: members })
       get().applyFilters()
@@ -130,6 +137,8 @@ export const useSelectedMemberStore = create<State>((set, get) => ({
 async function getGroupMembers(group: Group): Promise<Member[]> {
   if (group === 'hinatazaka') {
     return getHinatazakaMember()
+  } else if (group === 'sakurazaka') {
+    return getSakurazakaMember()
   }
 
   throw new Error(`未対応のグループ: ${group}`)

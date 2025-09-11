@@ -1,6 +1,6 @@
 config {
   type: "table",
-  schema: "hinatazaka",
+  schema: "sakurazaka",
   name: "member_master",
   description: "メンバー情報のマスター",
 }
@@ -17,12 +17,12 @@ SELECT
   info.type,
   info.url
 FROM
-  ${ref("hinatazaka", "member_with_image")} info
+  ${ref("sakurazaka", "member_with_image")} info
 JOIN
-  ${ref("hinatazaka", "penlight")} penlight1
+  ${ref("sakurazaka", "penlight")} penlight1
 ON
   info.penlight1 = penlight1.name_ja
 JOIN
-  ${ref("hinatazaka", "penlight")} penlight2
+  ${ref("sakurazaka", "penlight")} penlight2
 ON
   info.penlight2 = penlight2.name_ja
