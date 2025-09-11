@@ -166,7 +166,7 @@ export async function checkTableExists(
     
     return exists;
   } catch (error) {
-    console.error(`テーブル存在確認エラー: ${datasetId}.${tableId}`, error);
+    console.error('テーブル存在確認エラー: %s.%s', datasetId, tableId, error);
     return false;
   }
 }
