@@ -1,0 +1,35 @@
+-- 連続正解記録テーブルの作成
+-- ユーザーのクイズ連続正解記録を管理するテーブル
+config {
+  type: "table",
+  schema: "sakamichi",
+  name: "streak_records",
+  description: "ペンライトクイズの連続正解記録を保存するテーブル"
+}
+
+-- 初期データが存在しない場合のダミークエリ
+-- 実際の運用時はアプリケーションから INSERT される
+SELECT
+  'initial_record' AS id,
+  0 AS streak_count,
+  CURRENT_TIMESTAMP() AS started_at,
+  CURRENT_TIMESTAMP() AS ended_at,
+  CURRENT_TIMESTAMP() AS last_correct_at,
+  CURRENT_TIMESTAMP() AS created_at
+WHERE FALSE  -- 常にFALSEなので実際にはデータは挿入されない
+
+/*
+テーブルスキーマ説明:
+- id: STRING - 記録の一意識別子（UUID形式）
+- streak_count: INTEGER - 連続正解数
+- started_at: TIMESTAMP - 記録開始時刻
+- ended_at: TIMESTAMP - 記録終了時刻（記録継続中の場合はNULL）
+- last_correct_at: TIMESTAMP - 最後に正解した時刻
+- created_at: TIMESTAMP - レコード作成時刻
+
+使用例:
+INSERT INTO `sakamichipenlightquiz.sakamichi.streak_records`
+(id, streak_count, started_at, ended_at, last_correct_at, created_at)
+VALUES
+('streak_1694444400000_abc123def', 5, '2025-09-11T10:00:00Z', '2025-09-11T10:05:00Z', '2025-09-11T10:05:00Z', '2025-09-11T10:05:00Z');
+*/
