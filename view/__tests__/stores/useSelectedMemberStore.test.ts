@@ -2,6 +2,15 @@ import { useSelectedMemberStore } from '@/stores/useSelectedMemberStore';
 import type { Member } from '@/types/Member';
 import type { Generation } from '@/consts/hinatazakaFilters';
 
+// ペンライトストアのモック
+jest.mock('@/stores/usePenlightStore', () => ({
+  usePenlightStore: {
+    getState: () => ({
+      fetchPenlightColors: jest.fn().mockResolvedValue([])
+    })
+  }
+}));
+
 jest.mock('@/api/bq/getHinatazakaMember', () => ({
   getHinatazakaMember: jest.fn().mockResolvedValue([
     { 
@@ -95,7 +104,7 @@ describe('useSelectedMemberStore', () => {
     
     // 非同期処理の完了を待つため少し時間を置く
     await new Promise(resolve => setTimeout(resolve, 100));
-  }, 10000); // タイムアウトを10秒に延長
+  }, 10000); // タイムアウトを10秒に設定
 
   test('no duplicate members in one loop', () => {
     const store = useSelectedMemberStore.getState();
@@ -143,15 +152,11 @@ describe('useSelectedMemberStore', () => {
   });
 
   test('works correctly with different filter combinations', () => {
-    
     const store = useSelectedMemberStore.getState();
     const allMembers = store.allMembers;
     
     // モックデータに1st期生が存在することを確認
     const firstGenMembers = allMembers.filter(m => m.gen === '1st');
-    console.log('1st期生メンバー数:', firstGenMembers.length);
-    console.log('全メンバー:', allMembers.map(m => ({ id: m.id, gen: m.gen })));
-    
     expect(firstGenMembers.length).toBe(2); // Verify we have 2 first gen members
     
     const mockStore1 = {
