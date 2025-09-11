@@ -97,7 +97,7 @@ export async function executeQuery<T = any>(
   };
 
   try {
-    console.log(`BigQueryクエリ実行開始:`, {
+    console.log('BigQueryクエリ実行開始:', {
       query: query.trim(),
       location: config.location,
       dryRun: queryOptions.dryRun,
@@ -105,7 +105,7 @@ export async function executeQuery<T = any>(
     });
 
     const [job] = await bigquery.createQueryJob(queryOptions);
-    console.log(`BigQueryジョブ開始: ${job.id}`);
+    console.log('BigQueryジョブ開始: %s', job.id);
 
     const [rows] = await job.getQueryResults();
     const endTime = performance.now();
@@ -115,7 +115,7 @@ export async function executeQuery<T = any>(
     const [metadata] = await job.getMetadata();
     const totalBytesProcessed = metadata?.statistics?.query?.totalBytesProcessed;
 
-    console.log(`BigQueryクエリ完了:`, {
+    console.log('BigQueryクエリ完了:', {
       jobId: job.id,
       rowCount: rows.length,
       executionTime: `${executionTime.toFixed(2)}ms`,
@@ -133,7 +133,7 @@ export async function executeQuery<T = any>(
     const endTime = performance.now();
     const executionTime = endTime - startTime;
     
-    console.error(`BigQueryクエリエラー:`, {
+    console.error('BigQueryクエリエラー:', {
       query: query.trim(),
       executionTime: `${executionTime.toFixed(2)}ms`,
       error: error instanceof Error ? error.message : String(error)
@@ -162,7 +162,7 @@ export async function checkTableExists(
     const table = dataset.table(tableId);
     
     const [exists] = await table.exists();
-    console.log(`テーブル存在確認: ${projectId || DEFAULT_CONFIG.projectId}.${datasetId}.${tableId} - ${exists ? '存在' : '存在しない'}`);
+    console.log('テーブル存在確認: %s.%s.%s - %s', projectId || DEFAULT_CONFIG.projectId, datasetId, tableId, exists ? '存在' : '存在しない');
     
     return exists;
   } catch (error) {

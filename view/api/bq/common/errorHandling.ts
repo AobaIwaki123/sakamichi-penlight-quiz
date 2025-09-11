@@ -109,7 +109,7 @@ export function logSuccess(
   message: string,
   data?: Record<string, any>
 ): void {
-  console.log(`[${context}] ${message}`, data || {});
+  console.log('[%s] %s', context, message, data || {});
 }
 
 /**
@@ -125,7 +125,7 @@ export function logDebug(
   data?: Record<string, any>
 ): void {
   if (process.env.NODE_ENV === 'development') {
-    console.log(`[DEBUG:${context}] ${message}`, data || {});
+    console.log('[DEBUG:%s] %s', context, message, data || {});
   }
 }
 
@@ -177,7 +177,7 @@ export function logFallback(
   reason: string,
   fallbackType: string
 ): void {
-  console.warn(`[${apiName}] ${reason} - ${fallbackType}データにフォールバックします`);
+  console.warn('[%s] %s - %sデータにフォールバックします', apiName, reason, fallbackType);
 }
 
 /**
@@ -190,7 +190,7 @@ export function logMockUsage(
   apiName: string,
   reason: string = 'USE_MOCK=true'
 ): void {
-  console.log(`[${apiName}] モックデータを使用中（${reason}）`);
+  console.log('[%s] モックデータを使用中（%s）', apiName, reason);
 }
 
 /**
@@ -215,7 +215,7 @@ export function handleApiError<T>(
   
   // 開発環境ではより詳細な情報を出力
   if (environment.environment === 'development') {
-    console.error(`[${apiName}] 開発環境での詳細エラー情報:`, {
+    console.error('[%s] 開発環境での詳細エラー情報:', apiName, {
       stack: error.stack,
       name: error.name,
       message: error.message
