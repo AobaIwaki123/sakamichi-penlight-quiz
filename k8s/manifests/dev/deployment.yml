@@ -13,20 +13,20 @@ spec:
         app: penlight
     spec:
       imagePullSecrets:
-        - name: harbor-pull-secret
+      - name: gcr-pull-secret
       containers:
-        - name: penlight
-          image: harbor.aooba.net/penlight/prod-view-penlight:dev-f0b2236a
-          volumeMounts:
-            - name: gcp-sa-volume
-              mountPath: /app/secret
-              readOnly: true
-          env:
-            - name: GOOGLE_APPLICATION_CREDENTIALS
-              value: /app/secret/key.json
-          ports:
-            - containerPort: 3000
-      volumes:
+      - name: penlight
+        image: gcr.io/my-docker-471807/penlight/prod-view-penlight:dev
+        volumeMounts:
         - name: gcp-sa-volume
-          secret:
-            secretName: gcp-sa-key
+          mountPath: /app/secret
+          readOnly: true
+        env:
+        - name: GOOGLE_APPLICATION_CREDENTIALS
+          value: /app/secret/key.json
+        ports:
+        - containerPort: 3000
+      volumes:
+      - name: gcp-sa-volume
+        secret:
+          secretName: gcp-sa-key
