@@ -140,7 +140,7 @@ export function logApiStart(
   params?: Record<string, any>
 ): void {
   const environment = getApiEnvironment();
-  logDebug(apiName, `API呼び出し開始`, {
+  logDebug(apiName, 'API呼び出し開始', {
     useMock: environment.useMock,
     environment: environment.environment,
     params
@@ -159,7 +159,7 @@ export function logApiComplete(
   resultCount: number,
   executionTime?: number
 ): void {
-  logSuccess(apiName, `API呼び出し完了`, {
+  logSuccess(apiName, 'API呼び出し完了', {
     resultCount,
     executionTime: executionTime ? `${executionTime.toFixed(2)}ms` : undefined
   });
@@ -231,7 +231,7 @@ export function handleApiError<T>(
   // フォールバックデータがない場合はエラーを再スロー
   throw createApiError(
     ApiErrorCode.UNKNOWN_ERROR,
-    `${apiName}でエラーが発生し、フォールバックデータも利用できません`,
+    apiName + 'でエラーが発生し、フォールバックデータも利用できません',
     error
   );
 }
