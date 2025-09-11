@@ -201,3 +201,7 @@ NODE_ENV=development
 - `make push-gcr TAG=<tag>`: GCRへプッシュ
 - `make cd-gcr TAG=<tag>`: ビルド〜プッシュ一括実行
 - `make sync`: ArgoCD強制同期
+
+## インフラ更新履歴 (最終更新: 2025-09-11 14:07:05)
+
+- PR #71 による設定更新
