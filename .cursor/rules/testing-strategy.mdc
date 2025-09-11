@@ -257,8 +257,36 @@ test('ランダム選択の分散性（10回試行で8回以上異なる順序�
 
 ## テスト実行・CI戦略
 
-### ローカルテスト実行
+### Docker Composeでのテスト実行（推奨）
+このプロジェクトでは、一貫した環境でのテスト実行のためDocker Composeを使用する。
+
 ```bash
+# Docker Composeサービスの起動（初回のみ）
+docker compose up -d view
+
+# 全テスト実行
+docker compose exec view npm test
+
+# 特定のテストパターンを実行
+docker compose exec view npm test -- --testPathPattern=api/bq
+
+# ウォッチモード
+docker compose exec view npm test -- --watch
+
+# カバレッジ付き実行
+docker compose exec view npm test -- --coverage
+
+# Docker Composeサービスの停止
+docker compose down
+```
+
+### ローカル直接実行（非推奨）
+Docker環境が利用できない場合のみ使用する：
+
+```bash
+# view ディレクトリに移動
+cd view/
+
 # 全テスト実行
 pnpm test
 
@@ -268,6 +296,12 @@ pnpm test:watch
 # カバレッジ付き実行
 pnpm test --coverage
 ```
+
+### テスト実行時の注意事項
+- **必須**: テスト実行は `docker compose exec view` コマンドを使用する
+- **環境変数**: Docker Compose環境では `USE_MOCK=true` がデフォルトで設定される
+- **サービス起動**: テスト実行前に `docker compose up -d view` でサービスを起動する
+- **クリーンアップ**: 作業完了後は `docker compose down` でリソースを解放する
 
 ### テストファイル構成
 ```

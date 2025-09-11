@@ -155,6 +155,7 @@ jobs:
     needs:
       - docker-build-and-push-to-gcr
       - determine-image-tag
+      - determine-path
     steps:
       - name: Trigger ArgoCD sync via API
         env:

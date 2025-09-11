@@ -1,42 +1,76 @@
 "use server";
 
-import { BigQuery } from '@google-cloud/bigquery';
-
 import type { Member } from '@/types/Member';
-import { sakurazakaMemberMock } from './mockData/sakurazakaMemberMock';  
+import { sakurazakaMemberMock } from './mockData/sakurazakaMemberMock';
+import { executeQuery, checkTableExists, type QueryResult } from './common/bigqueryClient';
+import { 
+  getApiEnvironment, 
+  handleApiError, 
+  logApiStart, 
+  logApiComplete, 
+  logMockUsage,
+  createApiError,
+  ApiErrorCode
+} from './common/errorHandling';
+import { 
+  buildMemberQuery, 
+  validateMemberData,
+  TABLE_NAMES,
+  BIGQUERY_CONFIG
+} from './common/queryUtils';
 
+/**
+ * BigQueryから櫻坂46のメンバー情報を取得する関数
+ * USE_MOCK環境変数がtrueの場合はモックデータを返し、falseの場合はBigQueryから取得する
+ * 
+ * @returns Promise<Member[]> 櫻坂46メンバー情報の配列
+ * @throws Error BigQuery接続エラーまたはクエリ実行エラー
+ * 
+ * @example
+ * ```typescript
+ * const members = await getSakurazakaMember();
+ * console.log(`取得したメンバー数: ${members.length}`);
+ * ```
+ */
 export async function getSakurazakaMember(): Promise<Member[]> {
-  // USE_MOCK環境変数をチェックしてモックデータの使用を決定
-  const useMock = process.env.USE_MOCK === "true";
-
-  if (useMock) {  
-    console.log('モックデータを使用中（USE_MOCK=true）');  
-    return sakurazakaMemberMock;  
-  }  
+  const group = 'sakurazaka';
+  const apiName = 'getSakurazakaMember';
+  const environment = getApiEnvironment();
   
-  const bigquery = new BigQuery();
+  logApiStart(apiName, { group });
 
-  const query = `
-   SELECT
-     *
-   FROM
-     sakamichipenlightquiz.sakamichi.sakurazaka_member_master
-  `;
-
-  const options = {
-    query: query,
-    location: 'US', // 必要に応じて適切なロケーションに変更
-  };
-
-  const [job] = await bigquery.createQueryJob(options);
-  console.log(`Job ${job.id} started.`);
-
-  const [rows] = await job.getQueryResults();
-
-  console.log('Rows:');
-  for (const row of rows) {
-    console.log(row);
+  // モック環境の場合は即座にモックデータを返す
+  if (environment.useMock) {
+    logMockUsage(apiName);
+    logApiComplete(apiName, sakurazakaMemberMock.length);
+    return sakurazakaMemberMock;
   }
 
-  return rows as Member[];
+  try {
+    // テーブル存在確認
+    const tableName = TABLE_NAMES[group].member;
+    const tableExists = await checkTableExists(BIGQUERY_CONFIG.dataset, tableName);
+    
+    if (!tableExists) {
+      throw createApiError(
+        ApiErrorCode.TABLE_NOT_FOUND,
+        `メンバーテーブルが存在しません: ${tableName}`,
+        undefined,
+        { group, tableName }
+      );
+    }
+
+    // BigQueryクエリ実行
+    const query = buildMemberQuery(group);
+    const result: QueryResult<any> = await executeQuery(query);
+    
+    // データ検証
+    const validatedData = validateMemberData(result.data);
+    
+    logApiComplete(apiName, validatedData.length, result.executionTime);
+    return validatedData;
+
+  } catch (error) {
+    return handleApiError(apiName, error as Error, sakurazakaMemberMock);
+  }
 }

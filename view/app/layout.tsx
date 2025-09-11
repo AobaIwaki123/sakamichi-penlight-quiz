@@ -5,30 +5,80 @@ import {
   ColorSchemeScript,
   mantineHtmlProps,
 } from "@mantine/core";
+import type { Metadata, Viewport } from "next";
 import { theme } from "../theme";
 
-export const metadata = {
-  title: "Sakamichi Penlight Quiz",
-  description: "坂道グループのペンライトクイズ",
+/**
+ * アプリケーションのメタデータ設定
+ * 坂道ペンライトクイズアプリのSEO情報を定義
+ */
+export const metadata: Metadata = {
+  title: {
+    template: '%s | 坂道ペンライトクイズ',
+    default: '坂道ペンライトクイズ'
+  },
+  description: "日向坂46のペンライト色を当てるクイズアプリ。アイドルのペンライトカラーを覚えて楽しもう！",
+  keywords: ['日向坂46', 'ペンライト', 'クイズ', 'アイドル', '坂道グループ'],
+  authors: [{ name: 'AobaIwaki' }],
+  creator: 'AobaIwaki',
+  openGraph: {
+    type: 'website',
+    locale: 'ja_JP',
+    title: '坂道ペンライトクイズ',
+    description: '日向坂46のペンライト色を当てるクイズアプリ',
+    siteName: '坂道ペンライトクイズ'
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: '坂道ペンライトクイズ',
+    description: '日向坂46のペンライト色を当てるクイズアプリ'
+  },
+  manifest: '/manifest.json',
+  icons: {
+    icon: [
+      { url: '/icon512_rounded.jpg', sizes: '32x32', type: 'image/jpeg' },
+      { url: '/icon512_rounded.jpg', sizes: '16x16', type: 'image/jpeg' }
+    ],
+    shortcut: '/icon512_rounded.svg',
+    apple: '/icon512_rounded.jpg'
+  }
 };
 
-export default function RootLayout({ children }: { children: any }) {
+/**
+ * ビューポート設定
+ * モバイル最適化とPWA対応の設定
+ */
+export const viewport: Viewport = {
+  width: 'device-width',
+  initialScale: 1,
+  minimumScale: 1,
+  userScalable: false,
+  themeColor: [
+    { media: '(prefers-color-scheme: light)', color: '#ffffff' },
+    { media: '(prefers-color-scheme: dark)', color: '#1a1b1e' }
+  ]
+};
+
+/**
+ * ルートレイアウトコンポーネント
+ * アプリケーション全体の基本構造とMantineプロバイダーを提供
+ */
+export default function RootLayout({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
   return (
-    <html lang="en" {...mantineHtmlProps}>
+    <html lang="ja" {...mantineHtmlProps}>
       <head>
+        {/* Mantineのカラースキーム用スクリプト */}
         <ColorSchemeScript />
-        <link rel="shortcut icon" href="/icon512_rounded.svg" />
-        <link rel="manifest" href="/manifest.json" />
-        <link rel="apple-touch-icon" href="/icon512_rounded.jpg" />
-        <link rel="icon" type="image/jpeg" sizes="32x32" href="/icon512_rounded.jpg" />
-        <link rel="icon" type="image/jpeg" sizes="16x16" href="/icon512_rounded.jpg" />
-        <meta
-          name="viewport"
-          content="minimum-scale=1, initial-scale=1, width=device-width, user-scalable=no"
-        />
       </head>
       <body>
-        <MantineProvider theme={theme}>{children}</MantineProvider>
+        {/* Mantineテーマプロバイダーでアプリケーション全体をラップ */}
+        <MantineProvider theme={theme}>
+          {children}
+        </MantineProvider>
       </body>
     </html>
   );

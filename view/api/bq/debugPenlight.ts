@@ -1,91 +1,184 @@
 "use server";
 
-import { BigQuery } from '@google-cloud/bigquery';
+import { executeQuery, checkTableExists } from './common/bigqueryClient';
+import { 
+  logApiStart, 
+  logApiComplete, 
+  logError, 
+  logDebug,
+  createApiError,
+  ApiErrorCode
+} from './common/errorHandling';
+import { BIGQUERY_CONFIG, TABLE_NAMES, type Group } from './common/queryUtils';
+
+/**
+ * デバッグ結果のインターフェース
+ */
+export interface DebugResult {
+  /** テーブルが存在するかどうか */
+  exists: boolean;
+  /** テーブルスキーマ情報 */
+  schema?: any[];
+  /** データ件数 */
+  count?: number;
+  /** サンプルデータ */
+  sample?: any[];
+  /** カラム情報 */
+  columns?: any[];
+  /** エラー情報（存在する場合） */
+  error?: string;
+  /** 実行時間（ミリ秒） */
+  executionTime?: number;
+}
 
 /**
  * ペンライトテーブルのデバッグ用関数
  * テーブル構造とデータサンプルを確認する
+ * 
+ * @param group デバッグ対象のグループ（'hinatazaka' | 'sakurazaka'）
+ * @returns Promise<DebugResult> デバッグ結果
+ * 
+ * @example
+ * ```typescript
+ * const result = await debugPenlightTable('hinatazaka');
+ * if (result.exists) {
+ *   console.log(`データ件数: ${result.count}`);
+ *   console.log('サンプルデータ:', result.sample);
+ * }
+ * ```
  */
-export async function debugPenlightTable(dataset: 'hinatazaka' | 'sakurazaka') {
-  const bigquery = new BigQuery({
-    projectId: 'sakamichipenlightquiz'
-  });
-
-  console.log(`=== ${dataset} ペンライトテーブルデバッグ開始 ===`);
+export async function debugPenlightTable(group: Group): Promise<DebugResult> {
+  // グループの簡単なバリデーション
+  if (!['hinatazaka', 'sakurazaka'].includes(group)) {
+    throw createApiError(
+      ApiErrorCode.DATA_VALIDATION_ERROR,
+      `無効なグループです: ${group}`
+    );
+  }
+  
+  const apiName = `debugPenlightTable:${group}`;
+  const startTime = performance.now();
+  
+  logApiStart(apiName, { group });
+  console.log(`=== ${group} ペンライトテーブルデバッグ開始 ===`);
 
   try {
     // 1. テーブル存在確認
-    const bqDataset = bigquery.dataset(dataset);
-    const table = bqDataset.table('penlight');
-    
-    const [exists] = await table.exists();
-    console.log(`テーブル存在確認: ${exists ? '存在' : '存在しない'}`);
+    const tableName = TABLE_NAMES[group].penlight;
+    const exists = await checkTableExists(BIGQUERY_CONFIG.dataset, tableName);
     
     if (!exists) {
-      console.log('テーブルが存在しないため、デバッグを終了します');
-      return { exists: false };
+      logDebug(apiName, 'テーブルが存在しないため、デバッグを終了します');
+      return { 
+        exists: false, 
+        executionTime: performance.now() - startTime 
+      };
     }
 
-    // 2. テーブルメタデータ取得
-    const [metadata] = await table.getMetadata();
-    console.log('テーブルスキーマ:', metadata.schema?.fields?.map((f: any) => `${f.name}: ${f.type}`));
+    logDebug(apiName, 'テーブル存在を確認、詳細情報を取得中...');
 
-    // 3. データ件数確認
+    // 2. データ件数確認
     const countQuery = `
       SELECT COUNT(*) as count 
-      FROM sakamichipenlightquiz.sakamichi.${dataset}_penlight
+      FROM \`${BIGQUERY_CONFIG.projectId}.${BIGQUERY_CONFIG.dataset}.${tableName}\`
     `;
     
-    const [countJob] = await bigquery.createQueryJob({
-      query: countQuery,
-      location: 'US'
-    });
-    const [countRows] = await countJob.getQueryResults();
-    console.log(`データ件数: ${countRows[0]?.count || 0}件`);
+    const countResult = await executeQuery(countQuery);
+    const count = countResult.data[0]?.count || 0;
+    logDebug(apiName, `データ件数: ${count}件`);
 
-    // 4. サンプルデータ取得
+    // 3. サンプルデータ取得
     const sampleQuery = `
       SELECT * 
-      FROM sakamichipenlightquiz.sakamichi.${dataset}_penlight
+      FROM \`${BIGQUERY_CONFIG.projectId}.${BIGQUERY_CONFIG.dataset}.${tableName}\`
       ORDER BY id ASC
       LIMIT 5
     `;
     
-    const [sampleJob] = await bigquery.createQueryJob({
-      query: sampleQuery,
-      location: 'US'
-    });
-    const [sampleRows] = await sampleJob.getQueryResults();
-    console.log('サンプルデータ:', sampleRows);
+    const sampleResult = await executeQuery(sampleQuery);
+    logDebug(apiName, 'サンプルデータ:', sampleResult.data);
 
-    // 5. カラム名の確認
-    const columnQuery = `
-      SELECT column_name, data_type
-      FROM sakamichipenlightquiz.sakamichi.INFORMATION_SCHEMA.COLUMNS
-      WHERE table_name = 'penlight'
-      ORDER BY ordinal_position
-    `;
-    
+    // 4. カラム情報の確認（INFORMATION_SCHEMAを使用）
+    let columns: any[] = [];
     try {
-      const [columnJob] = await bigquery.createQueryJob({
-        query: columnQuery,
-        location: 'US'
-      });
-      const [columnRows] = await columnJob.getQueryResults();
-      console.log('カラム情報:', columnRows);
+      const columnQuery = `
+        SELECT column_name, data_type, is_nullable
+        FROM \`${BIGQUERY_CONFIG.projectId}.${BIGQUERY_CONFIG.dataset}.INFORMATION_SCHEMA.COLUMNS\`
+        WHERE table_name = '${tableName}'
+        ORDER BY ordinal_position
+      `;
+      
+      const columnResult = await executeQuery(columnQuery);
+      columns = columnResult.data;
+      logDebug(apiName, 'カラム情報:', columns);
     } catch (schemaError) {
-      console.log('INFORMATION_SCHEMAアクセスエラー（権限問題の可能性）:', schemaError);
+      logError(apiName, schemaError as Error, { 
+        message: 'INFORMATION_SCHEMAアクセスエラー（権限問題の可能性）' 
+      });
     }
 
-    return {
+    const executionTime = performance.now() - startTime;
+    
+    const result: DebugResult = {
       exists: true,
-      schema: metadata.schema?.fields,
-      count: countRows[0]?.count || 0,
-      sample: sampleRows
+      count,
+      sample: sampleResult.data,
+      columns,
+      executionTime
     };
 
+    logApiComplete(apiName, count, executionTime);
+    console.log(`=== ${group} ペンライトテーブルデバッグ完了 ===`);
+    
+    return result;
+
   } catch (error) {
-    console.error('%s ペンライトテーブルデバッグエラー:', dataset, error);
-    return { exists: false, error: String(error) };
+    const executionTime = performance.now() - startTime;
+    logError(apiName, error as Error);
+    
+    return { 
+      exists: false, 
+      error: String(error),
+      executionTime 
+    };
   }
+}
+
+/**
+ * 複数グループのペンライトテーブルを一括でデバッグする
+ * 
+ * @param groups デバッグ対象のグループ配列（省略時は全グループ）
+ * @returns Promise<Record<Group, DebugResult>> グループ別のデバッグ結果
+ * 
+ * @example
+ * ```typescript
+ * // 全グループをデバッグ
+ * const results = await debugAllPenlightTables();
+ * Object.entries(results).forEach(([group, result]) => {
+ *   console.log(`${group}: ${result.exists ? 'OK' : 'NG'}`);
+ * });
+ * 
+ * // 特定グループのみをデバッグ
+ * const specificResults = await debugAllPenlightTables(['hinatazaka']);
+ * ```
+ */
+export async function debugAllPenlightTables(
+  groups: Group[] = ['hinatazaka', 'sakurazaka']
+): Promise<Record<Group, DebugResult>> {
+  const apiName = 'debugAllPenlightTables';
+  logApiStart(apiName, { groups });
+
+  // 並列でデバッグを実行
+  const debugPromises = groups.map(async (group): Promise<[Group, DebugResult]> => {
+    const result = await debugPenlightTable(group);
+    return [group, result];
+  });
+
+  const results = await Promise.all(debugPromises);
+  const resultMap = Object.fromEntries(results) as Record<Group, DebugResult>;
+
+  const totalCount = Object.values(resultMap).reduce((sum, result) => sum + (result.count || 0), 0);
+  logApiComplete(apiName, totalCount);
+
+  return resultMap;
 }
