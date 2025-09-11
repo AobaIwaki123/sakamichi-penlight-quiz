@@ -1,15 +1,33 @@
+# =============================================================================
+# 坂道ペンライトクイズ - Docker Compose 開発環境設定
+# Next.js アプリケーションのローカル開発用設定
+# =============================================================================
+
 services:
+  # Next.js フロントエンドアプリケーション
   view:
     build:
-      context: ./view
-      dockerfile: Dockerfile
-      target: dev
+      context: ./view              # ビルドコンテキスト（viewディレクトリ）
+      dockerfile: Dockerfile       # Dockerファイルパス
+      target: dev                  # 開発用マルチステージターゲット
+    
+    # コンテナ内作業ディレクトリ
     working_dir: /app
+    
+    # 開発サーバー起動コマンド（ホットリロード有効）
     command: pnpm dev
+    
+    # ボリュームマウント（ホットリロード用）
     volumes:
-      - ./view:/app
+      - ./view:/app               # ホストのソースコードをコンテナにマウント
+    
+    # ポートマッピング（ホスト:コンテナ）
     ports:
-      - "3000:3000"
+      - "3000:3000"               # Next.js 開発サーバーポート
+    
+    # 環境変数設定
     environment:
+      # BigQuery 認証情報（開発環境用）
       GOOGLE_APPLICATION_CREDENTIALS: /app/secret/credentials.json
+      # モックデータ使用フラグ（BigQueryコスト削減）
       USE_MOCK: "true"
