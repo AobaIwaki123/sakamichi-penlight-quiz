@@ -13,6 +13,16 @@ interface MemberFilters {
   graduated?: boolean
 }
 
+/**
+ * グループ別キャッシュデータ
+ */
+interface CachedMemberData {
+  /** メンバーデータ */
+  data: Member[]
+  /** キャッシュ作成時刻 */
+  cachedAt: number
+}
+
 // メンバー選択ストアの状態定義
 interface MemberSelectionState {
   // 基本状態
@@ -22,6 +32,10 @@ interface MemberSelectionState {
   // メンバーデータ
   allMembers: Member[]
   filteredMembers: Member[]
+  
+  // キャッシュ管理
+  cache: Partial<Record<Group, CachedMemberData>>
+  cacheExpiry: number
   
   // シャッフル・選択状態
   shuffledMembers: Member[]
@@ -36,7 +50,7 @@ interface MemberSelectionState {
 // アクション定義
 interface MemberSelectionActions {
   // グループ設定
-  setGroup: (group: Group) => Promise<void>
+  setGroup: (group: Group, forceRefresh?: boolean) => Promise<void>
   
   // フィルター操作
   setFilters: (filters: MemberFilters) => void
@@ -45,6 +59,10 @@ interface MemberSelectionActions {
   // メンバー選択操作
   shuffleMembers: () => void
   pickRandomMember: () => Member | undefined
+  
+  // キャッシュ管理
+  clearCache: (group?: Group) => void
+  isCacheValid: (group: Group) => boolean
 }
 
 // 完全な型定義
@@ -55,23 +73,52 @@ export const useSelectedMemberStore = create<SelectedMemberStore>((set, get) => 
   allMembers: [],
   filters: {},
   filteredMembers: [],
+  cache: {},
+  cacheExpiry: 5 * 60 * 1000, // 5分間のキャッシュ
   shuffledMembers: [],
   currentShuffleIndex: 0,
   selectedMember: undefined,
   isLoading: false,
   hasInvalidFilter: false,
 
-  setGroup: async (group) => {
+  setGroup: async (group, forceRefresh = false) => {
+    const { isLoading, cache, cacheExpiry } = get();
+    
+    // ローディング中の場合はスキップ
+    if (isLoading) {
+      return;
+    }
+
     set({ isLoading: true, selectedGroup: group })
     
     try {
-      // メンバーデータとペンライト色データを並行して取得
-      const [members] = await Promise.all([
-        getGroupMembers(group),
-        usePenlightStore.getState().fetchPenlightColors(group)
-      ]);
-      
-      console.log(`${group}のメンバーデータを取得:`, members.length, '件')
+      let members: Member[];
+
+      // キャッシュチェック（強制更新でない場合）
+      if (!forceRefresh && isMemberCacheValidForGroup(cache, group, cacheExpiry)) {
+        members = cache[group]!.data;
+        console.log(`${group}のメンバーデータをキャッシュから取得: ${members.length}件`);
+      } else {
+        // API からデータを取得
+        members = await getGroupMembers(group);
+        const now = Date.now();
+
+        // キャッシュを更新
+        set(state => ({
+          cache: {
+            ...state.cache,
+            [group]: {
+              data: members,
+              cachedAt: now
+            }
+          }
+        }));
+
+        console.log(`${group}のメンバーデータ取得完了: ${members.length}件（キャッシュ更新）`);
+      }
+
+      // ペンライト色データを並行して取得
+      await usePenlightStore.getState().fetchPenlightColors(group);
       
       // メンバーデータを設定し、フィルターを適用
       set({ allMembers: members })
@@ -177,12 +224,55 @@ export const useSelectedMemberStore = create<SelectedMemberStore>((set, get) => 
     })
 
     return selectedMember
-  }
+  },
+
+  clearCache: (group?: Group) => {
+    if (group) {
+      // 指定グループのキャッシュのみクリア
+      set(state => {
+        const newCache = { ...state.cache };
+        delete newCache[group];
+        return { cache: newCache };
+      });
+      console.log(`${group}のメンバーキャッシュをクリアしました`);
+    } else {
+      // 全キャッシュをクリア
+      set({ cache: {} });
+      console.log('全てのメンバーキャッシュをクリアしました');
+    }
+  },
+
+  isCacheValid: (group: Group) => {
+    const { cache, cacheExpiry } = get();
+    return isMemberCacheValidForGroup(cache, group, cacheExpiry);
+  },
 }))
 
 // ============================================================================
 // ヘルパー関数
 // ============================================================================
+
+/**
+ * 指定グループのメンバーキャッシュが有効かを判定する
+ * @param cache キャッシュオブジェクト
+ * @param group 対象グループ
+ * @param cacheExpiry キャッシュ有効期限（ミリ秒）
+ * @returns キャッシュが有効な場合true
+ */
+function isMemberCacheValidForGroup(
+  cache: Partial<Record<Group, CachedMemberData>>,
+  group: Group,
+  cacheExpiry: number
+): boolean {
+  const cachedData = cache[group];
+  if (!cachedData || cachedData.data.length === 0) {
+    return false;
+  }
+  
+  const now = Date.now();
+  const cacheAge = now - cachedData.cachedAt;
+  return cacheAge < cacheExpiry;
+}
 
 /**
  * 指定されたグループのメンバー情報を取得する

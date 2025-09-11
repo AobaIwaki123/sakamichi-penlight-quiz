@@ -6,6 +6,16 @@ import { getHinatazakaPenlight } from '@/api/bq/getHinatazakaPenlight';
 import { getSakurazakaPenlight } from '@/api/bq/getSakurazakaPenlight';
 
 /**
+ * グループ別キャッシュデータ
+ */
+interface CachedPenlightData {
+  /** ペンライト色データ */
+  data: PenlightColor[];
+  /** キャッシュ作成時刻 */
+  cachedAt: number;
+}
+
+/**
  * ペンライト色情報の状態管理
  */
 interface PenlightState {
@@ -13,6 +23,10 @@ interface PenlightState {
   currentGroup: Group;
   /** ペンライト色のリスト */
   penlightColors: PenlightColor[];
+  /** グループ別キャッシュ */
+  cache: Partial<Record<Group, CachedPenlightData>>;
+  /** キャッシュ有効期限（ミリ秒） */
+  cacheExpiry: number;
   /** ローディング状態 */
   isLoading: boolean;
   /** エラー状態 */
@@ -24,11 +38,15 @@ interface PenlightState {
  */
 interface PenlightActions {
   /** 指定されたグループのペンライト色を取得する */
-  fetchPenlightColors: (group: Group) => Promise<void>;
+  fetchPenlightColors: (group: Group, forceRefresh?: boolean) => Promise<void>;
   /** IDからペンライト色情報を取得する */
   getPenlightById: (id: number) => PenlightColor | undefined;
   /** エラーをクリアする */
   clearError: () => void;
+  /** 指定グループのキャッシュをクリアする */
+  clearCache: (group?: Group) => void;
+  /** キャッシュが有効かチェックする */
+  isCacheValid: (group: Group) => boolean;
 }
 
 type PenlightStore = PenlightState & PenlightActions;
@@ -40,15 +58,29 @@ export const usePenlightStore = create<PenlightStore>((set, get) => ({
   // 初期状態
   currentGroup: 'hinatazaka',
   penlightColors: [],
+  cache: {},
+  cacheExpiry: 5 * 60 * 1000, // 5分間のキャッシュ
   isLoading: false,
   error: null,
 
   // アクション
-  fetchPenlightColors: async (group: Group) => {
-    const { currentGroup, penlightColors, isLoading } = get();
+  fetchPenlightColors: async (group: Group, forceRefresh = false) => {
+    const { isLoading, cache, cacheExpiry } = get();
     
-    // 重複取得の回避: 同じグループのデータが既に取得済みの場合はスキップ
-    if (shouldSkipFetch(currentGroup, group, penlightColors, isLoading)) {
+    // ローディング中の場合はスキップ
+    if (isLoading) {
+      return;
+    }
+
+    // キャッシュチェック（強制更新でない場合）
+    if (!forceRefresh && isCacheValidForGroup(cache, group, cacheExpiry)) {
+      const cachedData = cache[group]!.data;
+      set({ 
+        currentGroup: group, 
+        penlightColors: cachedData,
+        error: null
+      });
+      console.log(`${group}のペンライト色データをキャッシュから取得: ${cachedData.length}件`);
       return;
     }
 
@@ -58,15 +90,23 @@ export const usePenlightStore = create<PenlightStore>((set, get) => ({
     try {
       // グループに応じたペンライトデータを取得
       const penlightColors = await fetchPenlightDataByGroup(group);
+      const now = Date.now();
 
-      // 成功時の状態更新
-      set({ 
+      // 成功時の状態更新（キャッシュも更新）
+      set(state => ({ 
         penlightColors, 
         isLoading: false,
-        error: null
-      });
+        error: null,
+        cache: {
+          ...state.cache,
+          [group]: {
+            data: penlightColors,
+            cachedAt: now
+          }
+        }
+      }));
 
-      console.log(`${group}のペンライト色データ取得完了: ${penlightColors.length}件`);
+      console.log(`${group}のペンライト色データ取得完了: ${penlightColors.length}件（キャッシュ更新）`);
     } catch (error) {
       // エラー時の状態更新
       const errorMessage = extractErrorMessage(error);
@@ -88,6 +128,27 @@ export const usePenlightStore = create<PenlightStore>((set, get) => ({
   clearError: () => {
     set({ error: null });
   },
+
+  clearCache: (group?: Group) => {
+    if (group) {
+      // 指定グループのキャッシュのみクリア
+      set(state => {
+        const newCache = { ...state.cache };
+        delete newCache[group];
+        return { cache: newCache };
+      });
+      console.log(`${group}のキャッシュをクリアしました`);
+    } else {
+      // 全キャッシュをクリア
+      set({ cache: {} });
+      console.log('全てのキャッシュをクリアしました');
+    }
+  },
+
+  isCacheValid: (group: Group) => {
+    const { cache, cacheExpiry } = get();
+    return isCacheValidForGroup(cache, group, cacheExpiry);
+  },
 }));
 
 // ============================================================================
@@ -95,20 +156,25 @@ export const usePenlightStore = create<PenlightStore>((set, get) => ({
 // ============================================================================
 
 /**
- * 重複取得をスキップすべきかを判定する
- * @param currentGroup 現在のグループ
- * @param targetGroup 取得対象のグループ
- * @param penlightColors 現在のペンライト色データ
- * @param isLoading ローディング状態
- * @returns スキップすべき場合true
+ * 指定グループのキャッシュが有効かを判定する
+ * @param cache キャッシュオブジェクト
+ * @param group 対象グループ
+ * @param cacheExpiry キャッシュ有効期限（ミリ秒）
+ * @returns キャッシュが有効な場合true
  */
-function shouldSkipFetch(
-  currentGroup: Group, 
-  targetGroup: Group, 
-  penlightColors: PenlightColor[], 
-  isLoading: boolean
+function isCacheValidForGroup(
+  cache: Partial<Record<Group, CachedPenlightData>>,
+  group: Group,
+  cacheExpiry: number
 ): boolean {
-  return currentGroup === targetGroup && penlightColors.length > 0 && !isLoading;
+  const cachedData = cache[group];
+  if (!cachedData || cachedData.data.length === 0) {
+    return false;
+  }
+  
+  const now = Date.now();
+  const cacheAge = now - cachedData.cachedAt;
+  return cacheAge < cacheExpiry;
 }
 
 /**
