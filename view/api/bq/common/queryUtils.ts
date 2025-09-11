@@ -21,6 +21,9 @@ export const TABLE_NAMES = {
   sakurazaka: {
     member: 'sakurazaka_member_master', 
     penlight: 'sakurazaka_penlight'
+  },
+  common: {
+    correctAnswers: 'member_correct_answers'
   }
 } as const;
 

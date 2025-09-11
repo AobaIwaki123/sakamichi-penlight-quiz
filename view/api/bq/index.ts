@@ -47,9 +47,19 @@ export {
 // デバッグ関数のエクスポート
 export { debugPenlightTable } from './debugPenlight';
 
+// メンバー正答数記録API
+export { recordMemberAnswer } from './recordMemberAnswer';
+export { getMemberCorrectAnswers } from './getMemberCorrectAnswers';
+export { getMemberAnswerStats } from './getMemberAnswerStats';
+
 // 型定義のエクスポート
 export type { Member } from '@/types/Member';
 export type { PenlightColor } from '@/types/PenlightColor';
+export type { 
+  MemberCorrectAnswers, 
+  CreateOrUpdateCorrectAnswersRequest, 
+  CorrectAnswersStats 
+} from '@/types/MemberCorrectAnswers';
 
 /**
  * 指定されたグループのメンバー情報を取得する統合関数

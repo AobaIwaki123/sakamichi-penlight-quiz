@@ -1,0 +1,19 @@
+config {
+  type: "table",
+  schema: "sakamichi",
+  name: "member_correct_answers",
+  description: "メンバーごとのペンライトクイズ正答数記録テーブル",
+  partition: "updated_at",
+  cluster: ["group", "member_id"]
+}
+
+SELECT
+  -- 初期データとして空のテーブル構造を作成
+  CAST(NULL AS INT64) AS id,                    -- 記録ID（自動採番）
+  CAST(NULL AS INT64) AS member_id,             -- メンバーID（外部キー）
+  CAST(NULL AS STRING) AS group,                -- グループ名（hinatazaka/sakurazaka）
+  CAST(NULL AS INT64) AS correct_count,         -- 正答数
+  CAST(NULL AS INT64) AS total_count,           -- 総出題数
+  CAST(NULL AS TIMESTAMP) AS created_at,        -- 作成日時
+  CAST(NULL AS TIMESTAMP) AS updated_at         -- 更新日時
+WHERE FALSE -- 初期状態では空テーブル
