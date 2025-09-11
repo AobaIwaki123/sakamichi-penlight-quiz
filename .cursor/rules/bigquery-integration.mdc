@@ -230,3 +230,26 @@ export async function getPenlightColors(group: Group): Promise<PenlightColor[]> 
 - データ型不整合時の適切なエラーメッセージ
 - ペンライトデータのキャッシュ戦略（Zustandストア活用）
 - 必要に応じてペンライトデータの事前読み込み
+
+## テスト統合
+
+### BigQuery APIのモック戦略
+```typescript
+// テストでのBigQuery APIモック例
+jest.mock('@/api/bq/getHinatazakaMember', () => ({
+  getHinatazakaMember: jest.fn().mockResolvedValue([
+    {
+      id: 1,
+      name: 'Test Member',
+      penlight1_id: 1,
+      penlight2_id: 2,
+      // ... 他のプロパティ
+    }
+  ])
+}));
+```
+
+### 環境分離テスト
+- 開発モード時のモックデータ確認
+- 本番モード時のBigQuery接続テスト
+- API関数の正常系・異常系両方をテスト

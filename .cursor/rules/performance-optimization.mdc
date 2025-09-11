@@ -1,0 +1,546 @@
+---
+description: "Next.js、PWA、モバイル最適化のパフォーマンスガイド"
+globs: view/**,**/Dockerfile,**/next.config.*,**/manifest.json,**/theme.ts
+---
+
+# パフォーマンス最適化ガイド
+
+## Next.js パフォーマンス最適化
+
+### App Router最適化
+```typescript
+// app/layout.tsx でのメタデータ最適化
+export const metadata: Metadata = {
+  title: {
+    template: '%s | 坂道ペンライトクイズ',
+    default: '坂道ペンライトクイズ'
+  },
+  description: '日向坂46のペンライト色を当てるクイズアプリ',
+  keywords: ['日向坂46', 'ペンライト', 'クイズ', 'アイドル'],
+  openGraph: {
+    type: 'website',
+    locale: 'ja_JP',
+    url: 'https://penlight.aooba.net',
+    siteName: '坂道ペンライトクイズ'
+  }
+};
+```
+
+### 画像最適化
+```typescript
+// Next.js Image コンポーネントの使用
+import Image from 'next/image';
+
+export const MemberImage = ({ member }: { member: Member }) => (
+  <Image
+    src={member.url}
+    alt={`${member.name}のプロフィール画像`}
+    width={300}
+    height={400}
+    priority={true}                    // LCP改善のための優先読み込み
+    placeholder="blur"                 // 読み込み中のぼかし効果
+    blurDataURL="data:image/jpeg;base64,..."  // プレースホルダー画像
+    sizes="(max-width: 768px) 100vw, 300px"  // レスポンシブ画像サイズ
+  />
+);
+```
+
+### バンドル最適化
+```javascript
+// next.config.mjs での最適化設定
+const nextConfig = {
+  // 本番環境での最適化
+  compress: true,                      // gzip圧縮有効化
+  poweredByHeader: false,             // X-Powered-By ヘッダーを無効化
+  
+  // 画像最適化
+  images: {
+    formats: ['image/webp', 'image/avif'],  // 次世代画像フォーマット
+    deviceSizes: [640, 750, 828, 1080, 1200, 1920],
+    imageSizes: [16, 32, 48, 64, 96, 128, 256, 384]
+  },
+  
+  // バンドル分析
+  webpack: (config, { buildId, dev, isServer, defaultLoaders, webpack }) => {
+    if (!dev && !isServer) {
+      // Bundle Analyzerの設定
+      if (process.env.ANALYZE === 'true') {
+        const { BundleAnalyzerPlugin } = require('webpack-bundle-analyzer');
+        config.plugins.push(
+          new BundleAnalyzerPlugin({
+            analyzerMode: 'static',
+            openAnalyzer: false
+          })
+        );
+      }
+    }
+    return config;
+  }
+};
+```
+
+### コード分割とDynamic Import
+```typescript
+// コンポーネントの遅延読み込み
+import dynamic from 'next/dynamic';
+
+// デバッグコンポーネントの動的読み込み（開発時のみ）
+const PenlightDebug = dynamic(
+  () => import('@/components/Debug/PenlightDebug/PenlightDebug'),
+  { ssr: false, loading: () => <div>デバッグツール読み込み中...</div> }
+);
+
+// 条件付きでコンポーネントを読み込み
+const DebugTools = process.env.NODE_ENV === 'development' ? PenlightDebug : null;
+```
+
+## PWA最適化
+
+### Service Workerによるキャッシュ戦略
+```json
+// manifest.json での PWA設定
+{
+  "name": "坂道ペンライトクイズ",
+  "short_name": "ペンライトクイズ",
+  "description": "日向坂46のペンライト色を当てるクイズアプリ",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#007bff",
+  "orientation": "portrait-primary",
+  "icons": [
+    {
+      "src": "/icon512_rounded.jpg",
+      "sizes": "512x512",
+      "type": "image/jpeg",
+      "purpose": "any"
+    },
+    {
+      "src": "/icon512_maskable.jpg", 
+      "sizes": "512x512",
+      "type": "image/jpeg",
+      "purpose": "maskable"
+    }
+  ]
+}
+```
+
+### オフライン対応戦略
+```typescript
+// next-pwa の設定
+const withPWA = require('next-pwa')({
+  dest: 'public',
+  disable: process.env.NODE_ENV === 'development',  // 開発時は無効
+  register: true,
+  skipWaiting: true,
+  runtimeCaching: [
+    // API レスポンスのキャッシュ
+    {
+      urlPattern: /^https:\/\/.*\.googleapis\.com\/.*/i,
+      handler: 'CacheFirst',
+      options: {
+        cacheName: 'google-apis',
+        expiration: {
+          maxEntries: 50,
+          maxAgeSeconds: 30 * 24 * 60 * 60  // 30日
+        }
+      }
+    },
+    // 画像のキャッシュ
+    {
+      urlPattern: /\.(?:png|jpg|jpeg|svg|gif|webp)$/i,
+      handler: 'CacheFirst',
+      options: {
+        cacheName: 'images',
+        expiration: {
+          maxEntries: 100,
+          maxAgeSeconds: 7 * 24 * 60 * 60   // 7日
+        }
+      }
+    }
+  ]
+});
+```
+
+## Zustand状態管理の最適化
+
+### ストアの分割と最適化
+```typescript
+// 細分化されたストア設計
+export const useSelectedMemberStore = create<SelectedMemberState>((set, get) => ({
+  // 状態の初期化は最小限に
+  selectedGroup: 'hinatazaka',
+  allMembers: [],
+  filteredMembers: [],
+  selectedMember: null,
+  isLoading: false,
+  
+  // メモ化された計算値
+  get memberCount() {
+    return get().filteredMembers.length;
+  },
+  
+  // 効率的な状態更新
+  setGroup: async (group) => {
+    set({ isLoading: true });
+    try {
+      const members = await getGroupMembers(group);
+      set({ 
+        selectedGroup: group,
+        allMembers: members,
+        isLoading: false 
+      });
+      // フィルター再適用
+      get().applyFilters();
+    } catch (error) {
+      set({ isLoading: false });
+      throw error;
+    }
+  }
+}));
+```
+
+### セレクターの最適化
+```typescript
+// 不要な再レンダリングを防ぐセレクター
+const MemberComponent = () => {
+  // 必要な部分のみを購読
+  const selectedMember = useSelectedMemberStore(state => state.selectedMember);
+  const isLoading = useSelectedMemberStore(state => state.isLoading);
+  
+  // メモ化された計算
+  const memberInfo = useMemo(() => {
+    if (!selectedMember) return null;
+    return {
+      displayName: `${selectedMember.name} (${selectedMember.nickname})`,
+      penlightColors: [selectedMember.penlight1_id, selectedMember.penlight2_id]
+    };
+  }, [selectedMember]);
+  
+  return <div>{/* レンダリング */}</div>;
+};
+```
+
+## モバイル最適化
+
+### タッチインターフェース最適化
+```css
+/* モバイルタッチの最適化 */
+.answer-button {
+  /* タッチターゲットサイズの確保 */
+  min-height: 44px;
+  min-width: 44px;
+  
+  /* タッチフィードバックの改善 */
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+  
+  /* 高速なタッチレスポンス */
+  cursor: pointer;
+  transition: background-color 0.1s ease;
+}
+
+.answer-button:active {
+  /* タッチ時の視覚的フィードバック */
+  transform: scale(0.98);
+  background-color: var(--mantine-color-blue-light);
+}
+```
+
+### ビューポート最適化
+```typescript
+// layout.tsx でのビューポート設定
+export const viewport: Viewport = {
+  width: 'device-width',
+  initialScale: 1,
+  maximumScale: 1,
+  userScalable: false,           // ズームを無効化
+  viewportFit: 'cover',          // ノッチ対応
+  themeColor: [
+    { media: '(prefers-color-scheme: light)', color: '#ffffff' },
+    { media: '(prefers-color-scheme: dark)', color: '#1a1b1e' }
+  ]
+};
+```
+
+### レスポンシブ設計
+```css
+/* モバイルファーストのレスポンシブ */
+.quiz-container {
+  /* モバイル（縦画面）を基準とした設計 */
+  padding: 1rem;
+  max-width: 100vw;
+  min-height: 100vh;
+  
+  /* セーフエリア対応 */
+  padding-top: env(safe-area-inset-top);
+  padding-bottom: env(safe-area-inset-bottom);
+}
+
+/* 横画面での調整（限定的対応） */
+@media (orientation: landscape) and (max-height: 500px) {
+  .quiz-container {
+    padding: 0.5rem;
+    flex-direction: row;
+  }
+}
+```
+
+## Mantine UI の最適化
+
+### テーマ最適化
+```typescript
+// theme.ts でのパフォーマンス考慮
+export const theme: MantineTheme = {
+  // カスタムカラーパレットを最小限に
+  colors: {
+    hinatazaka: [
+      '#e3f2fd',  // 50
+      '#bbdefb',  // 100
+      '#90caf9',  // 200
+      '#64b5f6',  // 300
+      '#42a5f5',  // 400
+      '#2196f3',  // 500 - プライマリー
+      '#1e88e5',  // 600
+      '#1976d2',  // 700
+      '#1565c0',  // 800
+      '#0d47a1'   // 900
+    ]
+  },
+  
+  // フォントサイズを最適化
+  fontSizes: {
+    xs: '0.75rem',
+    sm: '0.875rem', 
+    md: '1rem',
+    lg: '1.125rem',
+    xl: '1.25rem'
+  },
+  
+  // スペーシングを統一
+  spacing: {
+    xs: '0.5rem',
+    sm: '0.75rem',
+    md: '1rem',
+    lg: '1.5rem',
+    xl: '2rem'
+  }
+};
+```
+
+### コンポーネントの最適化
+```typescript
+// 大きなコンポーネントのメモ化
+export const MemberInfo = memo(({ member, isLoading }: MemberInfoProps) => {
+  // レンダリング条件の早期判定
+  if (isLoading) {
+    return <Skeleton height={200} />;
+  }
+  
+  if (!member) {
+    return <Text>メンバーが選択されていません</Text>;
+  }
+  
+  return (
+    <Stack spacing="md">
+      {/* メンバー情報の表示 */}
+    </Stack>
+  );
+});
+
+MemberInfo.displayName = 'MemberInfo';
+```
+
+## データ取得の最適化
+
+### BigQuery APIの効率化
+```typescript
+// API呼び出しの最適化
+export async function getHinatazakaMember(): Promise<Member[]> {
+  const isDevMode = process.env.NODE_ENV === "development";
+  
+  if (isDevMode) {
+    // 開発モードでは即座にモックデータを返す
+    console.log('開発モード: モックデータを使用');
+    return hinatazakaMemberMock;
+  }
+  
+  // BigQueryクエリの最適化
+  const bigquery = new BigQuery();
+  const query = `
+    SELECT 
+      id, name, nickname, emoji, gen, graduated,
+      penlight1_id, penlight2_id, type, url
+    FROM \`sakamichipenlightquiz.sakamichi.hinatazaka_member_master\`
+    WHERE graduated = false  -- アクティブメンバーのみ
+    ORDER BY gen, id
+    LIMIT 100               -- 安全のための上限設定
+  `;
+  
+  const options = {
+    query: query,
+    location: 'US',
+    jobTimeoutMs: 30000,     // タイムアウト設定
+    dryRun: false,
+    useQueryCache: true      // クエリキャッシュを活用
+  };
+  
+  const [job] = await bigquery.createQueryJob(options);
+  console.log(`BigQueryジョブ開始: ${job.id}`);
+  
+  const [rows] = await job.getQueryResults();
+  console.log(`${rows.length}件のメンバーデータを取得`);
+  
+  return rows as Member[];
+}
+```
+
+### キャッシュ戦略
+```typescript
+// ペンライトカラーのキャッシュ戦略
+export const usePenlightStore = create<PenlightState>((set, get) => ({
+  colors: [],
+  cachedAt: null,
+  cacheExpiry: 5 * 60 * 1000,  // 5分間のキャッシュ
+  
+  loadColors: async (group: Group) => {
+    const now = Date.now();
+    const cached = get().cachedAt;
+    
+    // キャッシュが有効な場合はスキップ
+    if (cached && (now - cached) < get().cacheExpiry) {
+      console.log('キャッシュされたペンライトデータを使用');
+      return;
+    }
+    
+    set({ isLoading: true });
+    try {
+      const colors = await getPenlightColors(group);
+      set({ 
+        colors, 
+        cachedAt: now, 
+        isLoading: false 
+      });
+    } catch (error) {
+      console.error('ペンライトデータの取得に失敗:', error);
+      set({ isLoading: false });
+    }
+  }
+}));
+```
+
+## パフォーマンス監視
+
+### Web Vitalsの測定
+```typescript
+// app/layout.tsx でのWeb Vitals測定
+import { SpeedInsights } from '@vercel/speed-insights/next';
+import { Analytics } from '@vercel/analytics/react';
+
+export default function RootLayout({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
+  return (
+    <html lang="ja">
+      <body>
+        {children}
+        <SpeedInsights />
+        <Analytics />
+      </body>
+    </html>
+  );
+}
+```
+
+### カスタムパフォーマンス測定
+```typescript
+// hooks/usePerformanceMonitor.ts
+export const usePerformanceMonitor = () => {
+  useEffect(() => {
+    // ページ読み込み時間の測定
+    const measurePageLoad = () => {
+      const navigation = performance.getEntriesByType('navigation')[0] as PerformanceNavigationTiming;
+      console.log('ページ読み込み時間:', navigation.loadEventEnd - navigation.fetchStart, 'ms');
+    };
+    
+    // BigQuery API呼び出し時間の測定
+    const measureApiCall = async (apiFunction: () => Promise<any>) => {
+      const start = performance.now();
+      try {
+        const result = await apiFunction();
+        const end = performance.now();
+        console.log('API呼び出し時間:', end - start, 'ms');
+        return result;
+      } catch (error) {
+        const end = performance.now();
+        console.error('API呼び出し失敗:', end - start, 'ms', error);
+        throw error;
+      }
+    };
+    
+    measurePageLoad();
+  }, []);
+};
+```
+
+## Docker・デプロイメント最適化
+
+### マルチステージビルド最適化
+```dockerfile
+# Dockerfile でのビルド最適化
+FROM node:22-slim AS base
+WORKDIR /app
+
+# pnpm のグローバルインストール
+RUN npm install -g pnpm
+
+# 依存関係の分離
+FROM base AS deps
+COPY package.json pnpm-lock.yaml ./
+RUN pnpm install --frozen-lockfile
+
+# ビルドステージ
+FROM base AS builder
+COPY --from=deps /app/node_modules ./node_modules
+COPY . .
+
+# 本番ビルドの最適化
+ENV NODE_ENV=production
+ENV NEXT_TELEMETRY_DISABLED=1
+
+RUN pnpm build
+
+# 本番実行ステージ（最小限）
+FROM gcr.io/distroless/nodejs22-debian12:nonroot AS runner
+
+WORKDIR /app
+COPY --from=builder /app/public ./public
+COPY --from=builder /app/.next/standalone ./
+COPY --from=builder /app/.next/static ./.next/static
+
+EXPOSE 3000
+
+CMD ["server.js"]
+```
+
+## ベストプラクティス
+
+### 一般的な最適化原則
+1. **測定ファースト**: Core Web Vitalsを定期的に測定
+2. **段階的最適化**: 影響の大きい箇所から優先的に最適化
+3. **ユーザー体験重視**: モバイル縦画面でのUXを最優先
+4. **キャッシュ活用**: 適切なキャッシュ戦略でAPI呼び出しを削減
+
+### モバイル特化の考慮事項
+1. **タッチターゲット**: 最小44px×44pxのタッチエリア確保
+2. **フォントサイズ**: 16px以上でズーム防止
+3. **ローディング**: 初回表示を3秒以内に
+4. **オフライン**: 基本機能のオフライン対応
+
+### BigQuery最適化
+1. **クエリ効率**: 必要なカラムのみ選択
+2. **キャッシュ**: 結果の適切なキャッシュ
+3. **開発時コスト**: モックデータで開発コスト削減
+4. **エラーハンドリング**: タイムアウトと再試行の適切な実装

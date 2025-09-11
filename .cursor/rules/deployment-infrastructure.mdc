@@ -180,10 +180,24 @@ NODE_ENV=development
 
 ## インフラ更新履歴 (最終更新: 2025-09-11 19:41:51)
 
-- PR #manual による設定更新
-- 更新者: AobaIwaki
+### 最新のインフラ構成
+- **コンテナレジストリ**: gcr.io/my-docker-471807/penlight/
+- **イメージタグ**: v3.0.3（本番）、dev（開発）
+- **Kubernetesクラスター**: penlight namespace
+- **GitOps**: ArgoCD による自動同期（selfHeal, prune有効）
 
+### 現在のリソース構成
+- **Deployment**: penlight
+- **Service**: ClusterIP (port 3000)
+- **Ingress**: HTTPS対応
+- **Secret**: gcp-sa-key（BigQuery認証用）
 
-## インフラ更新履歴 (最終更新: 2025-09-11 10:45:10)
+### 更新履歴
+- **2025-09-11 19:41:51**: PR #manual による設定更新（更新者: AobaIwaki）
+- **2025-09-11 10:45:10**: PR #66 による設定更新
 
-- PR #66 による設定更新
+### Make targets
+- `make build`: Dockerイメージビルド
+- `make push-gcr TAG=<tag>`: GCRへプッシュ
+- `make cd-gcr TAG=<tag>`: ビルド〜プッシュ一括実行
+- `make sync`: ArgoCD強制同期
