@@ -1,0 +1,14 @@
+config {
+  type: "table",
+  schema: "nogizaka",
+  name: "member_image_master",
+  description: "乃木坂46メンバー画像情報の統合テーブル"
+}
+
+SELECT
+  id,
+  name,
+  type,
+  url
+FROM
+  ${ref("nogizaka", "member_image_official")}

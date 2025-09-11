@@ -1,0 +1,24 @@
+config {
+  type: "table",
+  schema: "sakamichi",
+  name: "nogizaka_member_master",
+  description: "乃木坂46メンバー情報のマスター",
+}
+
+SELECT
+  info.id,
+  info.name,                    -- メンバー名
+  info.nickname,                -- ニックネーム
+  info.emoji,                   -- 代表絵文字
+  info.gen,                     -- 所属期生
+  info.graduated,               -- 卒業状態
+  penlight1.id AS penlight1_id, -- ペンライト色1のID
+  penlight2.id AS penlight2_id, -- ペンライト色2のID
+  info.type,                    -- 画像タイプ
+  info.url                      -- 画像URL
+FROM
+  ${ref("nogizaka", "member_with_image")} info
+JOIN
+  ${ref("nogizaka", "penlight")} penlight1 ON info.penlight1 = penlight1.name_ja
+JOIN
+  ${ref("nogizaka", "penlight")} penlight2 ON info.penlight2 = penlight2.name_ja

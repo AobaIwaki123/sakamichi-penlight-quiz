@@ -8,7 +8,7 @@ import {
 /**
  * 坂道グループの種類
  */
-export type Group = 'hinatazaka' | 'sakurazaka';
+export type Group = 'hinatazaka' | 'sakurazaka' | 'nogizaka';
 
 /**
  * BigQueryテーブル名の設定
@@ -21,6 +21,10 @@ export const TABLE_NAMES = {
   sakurazaka: {
     member: 'sakurazaka_member_master', 
     penlight: 'sakurazaka_penlight'
+  },
+  nogizaka: {
+    member: 'nogizaka_member_master',
+    penlight: 'nogizaka_penlight'
   }
 } as const;
 
