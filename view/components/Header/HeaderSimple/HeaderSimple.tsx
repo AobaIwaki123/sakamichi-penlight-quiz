@@ -4,6 +4,7 @@ import { Container, Group } from '@mantine/core';
 import { FilterButton } from '../FilterButton/FilterButton';
 import { LightDarkToggle } from '../LightDarkToggle/LightDarkToggle';
 import { SakamichiPenlightQuizIcon } from '../SakamichiPenlightQuizIcon/SakamichiPenlightQuizIcon';
+import { StreakDisplay } from '../StreakDisplay/StreakDisplay';
 import classes from './HeaderSimple.module.css';
 
 export function HeaderSimple() {
@@ -14,6 +15,7 @@ export function HeaderSimple() {
 
         <Group>
           <FilterButton />
+          <StreakDisplay />
           <LightDarkToggle />
         </Group>
       </Container>
