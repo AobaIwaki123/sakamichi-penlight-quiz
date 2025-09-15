@@ -42,3 +42,4 @@ jobs:
 
       - name: Run tests
         run: cd view && pnpm test
+        timeout-minutes: 5
