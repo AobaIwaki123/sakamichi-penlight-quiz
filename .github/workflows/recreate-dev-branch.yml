@@ -1,0 +1,84 @@
+name: Recreate Dev Branch
+
+on:
+  pull_request:
+    types:
+      - closed
+    branches:
+      - main
+
+jobs:
+  recreate-dev-branch:
+    # devブランチがmainにマージされた場合のみ実行
+    if: github.event.pull_request.merged == true && github.event.pull_request.head.ref == 'dev'
+    runs-on: ubuntu-latest
+    
+    permissions:
+      contents: write
+      pull-requests: write
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          # 最新のmainブランチをチェックアウト
+          ref: main
+          fetch-depth: 0
+      
+      - name: Configure Git
+        run: |
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action"
+      
+      - name: Delete existing dev branch (if exists)
+        run: |
+          # リモートのdevブランチを削除（存在する場合）
+          if git ls-remote --heads origin dev | grep -q dev; then
+            echo "既存のdevブランチを削除します"
+            git push origin --delete dev
+          else
+            echo "devブランチは存在しません"
+          fi
+        continue-on-error: true
+      
+      - name: Create new dev branch
+        run: |
+          # mainブランチから新しいdevブランチを作成
+          echo "mainブランチから新しいdevブランチを作成します"
+          git checkout -b dev
+          git push origin dev
+      
+      - name: Create Pull Request
+        uses: peter-evans/create-pull-request@v6
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          branch: dev
+          base: main
+          title: "🚀 新しい開発サイクル開始"
+          body: |
+            ## 概要
+            devブランチがmainにマージされたため、新しい開発サイクル用のdevブランチを作成しました。
+            
+            ## 変更内容
+            - mainブランチの最新状態から新しいdevブランチを作成
+            - 次の開発サイクルの準備完了
+            
+            ## 影響度
+            **ラベル**: `minor`
+            
+            **理由**: 新しい開発環境の準備（機能追加の準備）
+            
+            ## 影響範囲
+            - 開発ワークフローの継続
+            - 新機能開発の開始準備
+            
+            ## 注意事項
+            - このPRは開発用ブランチの準備です
+            - 実際の機能開発はこのブランチ上で行ってください
+            
+            ---
+            *このPRは自動生成されました*
+          labels: |
+            minor
+            automated
+          draft: false
