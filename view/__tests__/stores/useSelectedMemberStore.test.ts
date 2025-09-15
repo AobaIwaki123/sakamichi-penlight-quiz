@@ -2,12 +2,12 @@ import { useSelectedMemberStore } from '@/stores/useSelectedMemberStore';
 import type { Member } from '@/types/Member';
 import type { Generation } from '@/consts/hinatazakaFilters';
 
-// ペンライトストアのモック
+// ペンライトストアのモック化
 jest.mock('@/stores/usePenlightStore', () => ({
   usePenlightStore: {
-    getState: () => ({
-      fetchPenlightColors: jest.fn().mockResolvedValue([])
-    })
+    getState: jest.fn(() => ({
+      fetchPenlightColors: jest.fn().mockResolvedValue(undefined)
+    }))
   }
 }));
 
@@ -89,22 +89,21 @@ jest.mock('@/api/bq/getHinatazakaMember', () => ({
 }));
 
 describe('useSelectedMemberStore', () => {
+  // 各テスト前のストア初期化（タイムアウト10秒）
   beforeEach(async () => {
+    // ストアの状態をリセット
     const store = useSelectedMemberStore.getState();
     
-    // ストアを初期状態にリセット
+    // キャッシュをクリアして確実にクリーンな状態にする
     store.clearCache();
     
-    // グループ設定と初期化を待つ
+    // グループ設定（モック化されたAPI呼び出し）
     await store.setGroup('hinatazaka');
     
-    // フィルターをリセット
+    // フィルターを初期化
     store.setFilters({});
     store.applyFilters();
-    
-    // 非同期処理の完了を待つため少し時間を置く
-    await new Promise(resolve => setTimeout(resolve, 100));
-  }, 10000); // タイムアウトを10秒に設定
+  }, 10000); // 10秒のタイムアウト設定
 
   test('no duplicate members in one loop', () => {
     const store = useSelectedMemberStore.getState();
