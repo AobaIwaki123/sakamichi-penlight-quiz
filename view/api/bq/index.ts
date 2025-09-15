@@ -20,6 +20,7 @@ export {
 
 export {
   executeQuery,
+  executeQueriesParallel,
   checkTableExists,
   getBigQueryClient,
   resetBigQueryClient,
@@ -143,4 +144,87 @@ export async function getCompleteDataByGroup(group: import('./common/queryUtils'
   logApiComplete('getCompleteDataByGroup', members.length + colors.length, executionTime);
   
   return { members, colors };
+}
+
+/**
+ * 指定されたグループの完全なデータセットを並列取得で高速化
+ * 
+ * @param group 取得対象のグループ（'hinatazaka' | 'sakurazaka'）
+ * @param options 取得オプション
+ * @returns Promise<{members: Member[], colors: PenlightColor[]}> 完全なデータセット
+ * @throws Error 無効なグループ名またはAPI呼び出しエラー
+ * 
+ * @example
+ * ```typescript
+ * // 日向坂46の完全なデータセットを高速取得
+ * const { members, colors } = await getCompleteDataByGroupOptimized('hinatazaka');
+ * console.log(`メンバー数: ${members.length}, 色数: ${colors.length}`);
+ * ```
+ */
+export async function getCompleteDataByGroupOptimized(
+  group: import('./common/queryUtils').Group,
+  options?: {
+    /** アクティブメンバーのみ取得 */
+    activeOnly?: boolean;
+    /** メンバー数の上限 */
+    memberLimit?: number;
+    /** ペンライト色数の上限 */
+    penlightLimit?: number;
+  }
+): Promise<{
+  members: import('@/types/Member').Member[];
+  colors: import('@/types/PenlightColor').PenlightColor[];
+}> {
+  const { logApiStart, logApiComplete, getApiEnvironment } = await import('./common/errorHandling');
+  const { buildMemberQuery, buildPenlightQuery, validateMemberData, validatePenlightData } = await import('./common/queryUtils');
+  const { executeQueriesParallel } = await import('./common/bigqueryClient');
+  
+  logApiStart('getCompleteDataByGroupOptimized', { group, options });
+  
+  const startTime = performance.now();
+  const environment = getApiEnvironment();
+  
+  // モック環境の場合は従来の方法を使用
+  if (environment.useMock) {
+    return await getCompleteDataByGroup(group);
+  }
+  
+  try {
+    // 並列クエリを準備
+    const queries = [
+      {
+        name: 'members',
+        query: buildMemberQuery(group, {
+          activeOnly: options?.activeOnly,
+          limit: options?.memberLimit
+        })
+      },
+      {
+        name: 'penlight',
+        query: buildPenlightQuery(group, {
+          limit: options?.penlightLimit
+        })
+      }
+    ];
+    
+    // 並列実行
+    const results = await executeQueriesParallel(queries);
+    
+    // データ検証
+    const members = validateMemberData(results.members.data);
+    const colors = validatePenlightData(results.penlight.data);
+    
+    const endTime = performance.now();
+    const executionTime = endTime - startTime;
+    
+    logApiComplete('getCompleteDataByGroupOptimized', members.length + colors.length, executionTime);
+    
+    return { members, colors };
+  } catch (error) {
+    const { handleApiError } = await import('./common/errorHandling');
+    
+    // エラー時は従来の方法でフォールバック
+    console.warn('並列取得に失敗、従来の方法でフォールバック:', error);
+    return await getCompleteDataByGroup(group);
+  }
 }

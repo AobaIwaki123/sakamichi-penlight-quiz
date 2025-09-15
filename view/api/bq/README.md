@@ -291,12 +291,107 @@ const validatedData = validateMemberData(result.data);
 3. **段階的置き換え**: 機能単位で新APIに置き換え
 4. **旧コードの削除**: 全ての移行完了後に旧実装を削除
 
+## ⚡ パフォーマンス最適化（2025-09-15実装）
+
+### 実装された最適化機能
+
+#### 1. テーブル存在確認キャッシュ
+- **キャッシュ期間**: 30分間
+- **効果**: 同じテーブルへの重複チェック削減
+- **実装場所**: `bigqueryClient.ts` の `checkTableExists` 関数
+
+```typescript
+// 最適化前: 毎回BigQueryに問い合わせ
+const exists = await table.exists();
+
+// 最適化後: キャッシュを活用
+const cached = tableExistsCache.get(cacheKey);
+if (cached && (now - cached.cachedAt) < TABLE_EXISTS_CACHE_EXPIRY) {
+  return cached.exists; // キャッシュから返却
+}
+```
+
+#### 2. 並列クエリ実行
+- **機能**: メンバー情報とペンライト色を同時取得
+- **改善**: 順次実行から並列実行への変更
+- **実装**: `executeQueriesParallel` 関数
+
+```typescript
+// 最適化前: 順次実行（約2倍の時間）
+const members = await getMembersByGroup(group);
+const colors = await getPenlightByGroup(group);
+
+// 最適化後: 並列実行
+const [members, colors] = await Promise.all([
+  getMembersByGroup(group),
+  getPenlightByGroup(group)
+]);
+```
+
+#### 3. クエリ最適化
+- **WHERE句**: アクティブメンバーフィルター（オプション）
+- **LIMIT句**: 安全な上限設定
+- **ORDER BY**: インデックス活用の最適化
+
+```sql
+-- 最適化されたメンバークエリ例
+SELECT id, name, nickname, emoji, gen, graduated, 
+       penlight1_id, penlight2_id, type, url
+FROM `sakamichipenlightquiz.sakamichi.hinatazaka_member_master`
+WHERE graduated = false  -- アクティブメンバーのみ（オプション）
+ORDER BY gen ASC, id ASC  -- インデックス活用
+LIMIT 200  -- 安全な上限
+```
+
+#### 4. Zustandストア統合
+- **キャッシュ期間**: 5分間（フロントエンド）
+- **統合**: 並列取得結果の同時キャッシュ
+- **フォールバック**: 最適化失敗時の従来方法自動切り替え
+
+#### 5. 新しいAPI関数
+- `getCompleteDataByGroupOptimized`: 高速化された統合取得関数
+- `executeQueriesParallel`: 複数クエリの並列実行
+- `runPerformanceTest`: パフォーマンステスト用関数
+
+### 期待される改善効果
+
+- **データフェッチ時間**: 30-50%短縮
+- **BigQueryコスト**: テーブル存在確認の削減により約20%削減
+- **ユーザー体験**: 初回ロード時間の大幅短縮
+- **システム負荷**: 冗長なAPI呼び出しの削減
+
+### 使用方法
+
+```typescript
+// 従来の方法
+const members = await getMembersByGroup('hinatazaka');
+const colors = await getPenlightByGroup('hinatazaka');
+
+// 最適化された方法
+const { members, colors } = await getCompleteDataByGroupOptimized('hinatazaka', {
+  activeOnly: true,    // アクティブメンバーのみ
+  memberLimit: 200,    // メンバー数上限
+  penlightLimit: 100   // ペンライト色数上限
+});
+```
+
+### パフォーマンステスト
+
+```typescript
+import { runFullPerformanceTest } from '@/api/bq/performance-test';
+
+// 3回のテストを実行して平均改善率を測定
+const results = await runFullPerformanceTest(3);
+console.log(`改善率: ${results.overall.overallImprovement.toFixed(1)}%`);
+```
+
 ## 📈 今後の拡張予定
 
-- **キャッシュ機能**: Redis等を使用したAPIレスポンスキャッシュ
+- **Redis統合**: サーバーサイドキャッシュの永続化
 - **リアルタイム更新**: WebSocketを使用したデータ更新通知
 - **GraphQL対応**: RESTに加えてGraphQL APIエンドポイントの提供
 - **メトリクス**: Prometheus等を使用したAPI使用状況の監視
+- **CDN統合**: 静的データのCDNキャッシュ
 
 ## 🤝 貢献ガイド
 

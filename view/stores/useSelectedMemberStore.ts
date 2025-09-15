@@ -1,5 +1,6 @@
 import { getHinatazakaMember } from "@/api/bq/getHinatazakaMember";
 import { getSakurazakaMember } from "@/api/bq/getSakurazakaMember";
+import { getCompleteDataByGroupOptimized } from "@/api/bq/index";
 import { create } from 'zustand'
 
 import type { Generation } from "@/consts/hinatazakaFilters";
@@ -98,27 +99,61 @@ export const useSelectedMemberStore = create<SelectedMemberStore>((set, get) => 
       if (!forceRefresh && isMemberCacheValidForGroup(cache, group, cacheExpiry)) {
         members = cache[group]!.data;
         console.log(`${group}のメンバーデータをキャッシュから取得: ${members.length}件`);
+        
+        // ペンライト色データも並行して取得（キャッシュされている場合はスキップされる）
+        await usePenlightStore.getState().fetchPenlightColors(group);
       } else {
-        // API からデータを取得
-        members = await getGroupMembers(group);
-        const now = Date.now();
+        // 最適化された並列取得を使用
+        try {
+          const { members: fetchedMembers, colors } = await getCompleteDataByGroupOptimized(group, {
+            activeOnly: false, // 全メンバーを取得（フィルターはフロントエンドで実行）
+            memberLimit: 200,  // 安全のための上限
+            penlightLimit: 100 // 安全のための上限
+          });
+          
+          members = fetchedMembers;
+          const now = Date.now();
 
-        // キャッシュを更新
-        set(state => ({
-          cache: {
-            ...state.cache,
-            [group]: {
-              data: members,
-              cachedAt: now
+          // メンバーキャッシュを更新
+          set(state => ({
+            cache: {
+              ...state.cache,
+              [group]: {
+                data: members,
+                cachedAt: now
+              }
             }
-          }
-        }));
+          }));
 
-        console.log(`${group}のメンバーデータ取得完了: ${members.length}件（キャッシュ更新）`);
+          // ペンライト色データも同時に更新
+          const penlightStore = usePenlightStore.getState();
+          penlightStore.fetchPenlightColors(group); // 内部でキャッシュ更新される
+          
+          console.log(`${group}の並列データ取得完了: メンバー${members.length}件、色${colors.length}件（キャッシュ更新）`);
+        } catch (error) {
+          console.warn('並列取得に失敗、従来の方法でフォールバック:', error);
+          
+          // フォールバック: 従来の順次取得
+          members = await getGroupMembers(group);
+          const now = Date.now();
+
+          // キャッシュを更新
+          set(state => ({
+            cache: {
+              ...state.cache,
+              [group]: {
+                data: members,
+                cachedAt: now
+              }
+            }
+          }));
+
+          // ペンライト色データを並行して取得
+          await usePenlightStore.getState().fetchPenlightColors(group);
+          
+          console.log(`${group}のフォールバック取得完了: ${members.length}件（キャッシュ更新）`);
+        }
       }
-
-      // ペンライト色データを並行して取得
-      await usePenlightStore.getState().fetchPenlightColors(group);
       
       // メンバーデータを設定し、フィルターを適用
       set({ allMembers: members })

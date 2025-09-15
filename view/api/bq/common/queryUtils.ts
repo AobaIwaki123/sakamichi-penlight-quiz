@@ -37,12 +37,19 @@ export const BIGQUERY_CONFIG = {
  * メンバーデータ取得用のSQLクエリを生成
  * 
  * @param group 対象グループ（hinatazaka | sakurazaka）
+ * @param options クエリオプション
  * @returns SQLクエリ文字列
  */
-export function buildMemberQuery(group: Group): string {
+export function buildMemberQuery(group: Group, options?: {
+  /** アクティブメンバーのみ取得 */
+  activeOnly?: boolean;
+  /** 結果の上限数 */
+  limit?: number;
+}): string {
   const tableName = TABLE_NAMES[group].member;
+  const { activeOnly = false, limit } = options || {};
   
-  return `
+  let query = `
     SELECT
       id,
       name,
@@ -56,21 +63,45 @@ export function buildMemberQuery(group: Group): string {
       url
     FROM
       \`${BIGQUERY_CONFIG.projectId}.${BIGQUERY_CONFIG.dataset}.${tableName}\`
-    ORDER BY
-      gen ASC, id ASC
-  `.trim();
+  `;
+  
+  // アクティブメンバーのみのフィルター
+  if (activeOnly) {
+    query += `
+    WHERE graduated = false
+    `;
+  }
+  
+  // 効率的なソート（インデックス活用）
+  query += `
+    ORDER BY gen ASC, id ASC
+  `;
+  
+  // 結果数制限
+  if (limit && limit > 0) {
+    query += `
+    LIMIT ${limit}
+    `;
+  }
+  
+  return query.trim();
 }
 
 /**
  * ペンライト色データ取得用のSQLクエリを生成
  * 
  * @param group 対象グループ（hinatazaka | sakurazaka）
+ * @param options クエリオプション
  * @returns SQLクエリ文字列
  */
-export function buildPenlightQuery(group: Group): string {
+export function buildPenlightQuery(group: Group, options?: {
+  /** 結果の上限数 */
+  limit?: number;
+}): string {
   const tableName = TABLE_NAMES[group].penlight;
+  const { limit } = options || {};
   
-  return `
+  let query = `
     SELECT
       id,
       name_ja,
@@ -80,7 +111,16 @@ export function buildPenlightQuery(group: Group): string {
       \`${BIGQUERY_CONFIG.projectId}.${BIGQUERY_CONFIG.dataset}.${tableName}\`
     ORDER BY
       id ASC
-  `.trim();
+  `;
+  
+  // 結果数制限（通常は不要だが、安全のため）
+  if (limit && limit > 0) {
+    query += `
+    LIMIT ${limit}
+    `;
+  }
+  
+  return query.trim();
 }
 
 /**
