@@ -8,6 +8,9 @@ import {
 import type { Metadata, Viewport } from "next";
 import { theme } from "../theme";
 
+// BigQueryクライアントの事前初期化
+import "../lib/bigquery-init";
+
 /**
  * アプリケーションのメタデータ設定
  * 坂道ペンライトクイズアプリのSEO情報を定義

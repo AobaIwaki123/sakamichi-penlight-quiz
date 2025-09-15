@@ -11,6 +11,14 @@ export { getSakurazakaMember } from './getSakurazakaMember';
 export { getHinatazakaPenlight } from './getHinatazakaPenlight';
 export { getSakurazakaPenlight } from './getSakurazakaPenlight';
 
+// バッチクエリ機能のエクスポート
+export { 
+  executeBatchQueries, 
+  fetchMemberAndPenlightData,
+  type BatchQueryOptions,
+  type BatchQueryResult 
+} from './common/batchQuery';
+
 // 共通ユーティリティとエラーハンドリングのエクスポート
 export {
   type Group,

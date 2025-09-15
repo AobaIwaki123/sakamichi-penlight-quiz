@@ -2,7 +2,7 @@
 
 import type { Member } from '@/types/Member';
 import { hinatazakaMemberMock } from './mockData/hinatazakaMemberMock';
-import { executeQuery, checkTableExists, type QueryResult } from './common/bigqueryClient';
+import { executeQuery, checkTableExists, type QueryResult, initializeBigQueryClient } from './common/bigqueryClient';
 import { 
   getApiEnvironment, 
   handleApiError, 
@@ -47,9 +47,15 @@ export async function getHinatazakaMember(): Promise<Member[]> {
   }
 
   try {
-    // テーブル存在確認
+    // パフォーマンス最適化: BigQueryクライアントを事前初期化し、テーブル確認とクエリを並列実行
     const tableName = TABLE_NAMES[group].member;
-    const tableExists = await checkTableExists(BIGQUERY_CONFIG.dataset, tableName);
+    const query = buildMemberQuery(group);
+    
+    // 事前初期化とテーブル確認を並列実行
+    const [, tableExists] = await Promise.all([
+      initializeBigQueryClient(), // クライアントの事前初期化
+      checkTableExists(BIGQUERY_CONFIG.dataset, tableName) // テーブル存在確認
+    ]);
     
     if (!tableExists) {
       throw createApiError(
@@ -60,9 +66,10 @@ export async function getHinatazakaMember(): Promise<Member[]> {
       );
     }
 
-    // BigQueryクエリ実行
-    const query = buildMemberQuery(group);
-    const result: QueryResult<any> = await executeQuery(query);
+    // BigQueryクエリ実行（最適化済みクライアントを使用）
+    const result: QueryResult<any> = await executeQuery(query, {
+      skipTableCheck: true // テーブル確認は既に完了しているのでスキップ
+    });
     
     // データ検証
     const validatedData = validateMemberData(result.data);
