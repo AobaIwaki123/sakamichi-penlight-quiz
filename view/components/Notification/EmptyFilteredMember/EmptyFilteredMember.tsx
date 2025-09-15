@@ -9,15 +9,23 @@ import classes from './EmptyFilteredMember.module.css';
 export function EmptyFilteredMember() {
   const [opened, setOpened] = useState(false);
   const hasInvalidFilter = useSelectedMemberStore((state) => state.hasInvalidFilter);
+  const isLoading = useSelectedMemberStore((state) => state.isLoading);
+  const allMembers = useSelectedMemberStore((state) => state.allMembers);
 
   useEffect(() => {
+    // ローディング中またはデータ未取得時はエラー表示しない
+    if (isLoading || allMembers.length === 0) {
+      setOpened(false);
+      return;
+    }
+
     if (hasInvalidFilter) {
       setOpened(true);
       console.log("フィルターが無効です");
     } else {
       setOpened(false);
     }
-  }, [hasInvalidFilter]);
+  }, [hasInvalidFilter, isLoading, allMembers.length]);
 
   return (
     <Transition mounted={opened} transition="fade-left">

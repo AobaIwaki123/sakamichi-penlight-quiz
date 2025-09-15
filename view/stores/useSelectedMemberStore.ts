@@ -143,7 +143,16 @@ export const useSelectedMemberStore = create<SelectedMemberStore>((set, get) => 
   },
 
   applyFilters: () => {
-    const { allMembers, filters } = get();
+    const { allMembers, filters, isLoading } = get();
+
+    // ローディング中またはメンバーデータが未取得の場合はフィルターエラーを表示しない
+    if (isLoading || allMembers.length === 0) {
+      set({
+        filteredMembers: [],
+        hasInvalidFilter: false  // データ未取得時はエラー表示を抑制
+      });
+      return;
+    }
 
     // フィルター条件の妥当性チェック
     const hasValidFilter = (filters.gen?.length ?? 0) > 0 || filters.graduated !== undefined;
@@ -162,6 +171,7 @@ export const useSelectedMemberStore = create<SelectedMemberStore>((set, get) => 
     });
 
     // フィルター無効状態の判定（有効なフィルターがあるのに結果が0件）
+    // データが正常に取得済みの場合のみ判定する
     const hasInvalidFilter = hasValidFilter && filteredMembers.length === 0;
 
     set({
