@@ -1,0 +1,146 @@
+# =============================================================================
+# 坂道ペンライトクイズ - Cloud Run 最適化版 Dockerfile
+# Next.js アプリケーションをCloud Run向けに最適化
+# =============================================================================
+
+# --- 共通環境変数定義 ---
+ARG NODE_VERSION=24
+ARG PNPM_VERSION=9.15.0
+
+# --- 依存関係インストールステージ ---
+FROM node:${NODE_VERSION}-slim AS deps
+
+# パッケージマネージャーの更新とキャッシュクリア
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    ca-certificates \
+    && rm -rf /var/lib/apt/lists/*
+
+# 作業ディレクトリの作成
+WORKDIR /app
+
+# pnpm のインストール（バージョン固定）
+RUN npm install -g pnpm@${PNPM_VERSION}
+
+# package.json と pnpm-lock.yaml のコピー
+COPY package.json pnpm-lock.yaml ./
+
+# 依存関係のインストール（本番用のみ）
+RUN pnpm install --frozen-lockfile --prod=false
+
+# --- ビルドステージ ---
+FROM node:${NODE_VERSION}-slim AS builder
+
+# 作業ディレクトリの作成
+WORKDIR /app
+
+# pnpm のインストール
+RUN npm install -g pnpm@${PNPM_VERSION}
+
+# 依存関係を前のステージからコピー
+COPY --from=deps /app/node_modules ./node_modules
+COPY --from=deps /app/package.json ./package.json
+COPY --from=deps /app/pnpm-lock.yaml ./pnpm-lock.yaml
+
+# ソースコードのコピー
+COPY . .
+
+# 本番環境変数の設定
+ENV NODE_ENV=production
+ENV NEXT_TELEMETRY_DISABLED=1
+
+# Next.js の standalone モード設定確認
+RUN grep -q "output.*standalone" next.config.mjs || echo "Warning: standalone mode not configured"
+
+# アプリケーションのビルド
+RUN pnpm build
+
+# ビルド結果の確認
+RUN ls -la .next/
+
+# --- Cloud Run 本番実行ステージ ---
+FROM gcr.io/distroless/nodejs24-debian12:nonroot AS cloudrun
+
+# Cloud Run 最適化のための環境変数
+ENV NODE_ENV=production
+ENV NEXT_TELEMETRY_DISABLED=1
+ENV HOSTNAME=0.0.0.0
+ENV PORT=3000
+
+# 作業ディレクトリの設定
+WORKDIR /app
+
+# 非rootユーザー（65532）でファイルをコピー
+COPY --from=builder --chown=65532:65532 /app/.next/standalone ./
+COPY --from=builder --chown=65532:65532 /app/.next/static ./.next/static
+COPY --from=builder --chown=65532:65532 /app/public ./public
+
+# Cloud Run 用のヘルスチェックエンドポイント設定用ファイル
+COPY --from=builder --chown=65532:65532 /app/next.config.mjs ./
+
+# ポートの公開
+EXPOSE 3000
+
+# ヘルスチェック設定（Cloud Run では不要だが、ローカルテスト用）
+HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
+    CMD node -e "require('http').get('http://localhost:3000/api/health', (res) => { process.exit(res.statusCode === 200 ? 0 : 1) })"
+
+# 起動コマンド
+ENTRYPOINT ["/nodejs/bin/node", "server.js"]
+
+# --- 開発用ステージ（Cloud Run でのテスト用） ---
+FROM node:${NODE_VERSION}-slim AS dev-cloudrun
+
+# 開発環境変数
+ENV NODE_ENV=development
+ENV HOSTNAME=0.0.0.0
+ENV PORT=3000
+
+# 作業ディレクトリ
+WORKDIR /app
+
+# pnpm のインストール
+RUN npm install -g pnpm@${PNPM_VERSION}
+
+# パッケージファイルのコピーと依存関係インストール
+COPY package.json pnpm-lock.yaml ./
+RUN pnpm install
+
+# ソースコードのコピー
+COPY . .
+
+# ポート公開
+EXPOSE 3000
+
+# 開発サーバー起動
+CMD ["pnpm", "dev"]
+
+# --- Cloud Run 用 init スクリプト追加版 ---
+FROM cloudrun AS cloudrun-with-init
+
+# init スクリプト用の一時ディレクトリ作成
+USER root
+RUN mkdir -p /tmp && chown 65532:65532 /tmp
+
+# 非rootユーザーに戻す
+USER 65532
+
+# Secret Manager からの認証情報取得用の起動スクリプト
+COPY --chown=65532:65532 <<EOF /app/init-secrets.sh
+#!/bin/bash
+
+# Secret Manager から BigQuery 認証情報を取得
+if [[ -n "\$GCP_SA_KEY" ]]; then
+    echo "Setting up BigQuery credentials from Secret Manager..."
+    echo "\$GCP_SA_KEY" | base64 -d > /tmp/gcp-key.json
+    export GOOGLE_APPLICATION_CREDENTIALS="/tmp/gcp-key.json"
+    echo "BigQuery credentials configured successfully"
+fi
+
+# Next.js サーバーを起動
+exec /nodejs/bin/node server.js
+EOF
+
+RUN chmod +x /app/init-secrets.sh
+
+# 初期化スクリプトを使用して起動
+ENTRYPOINT ["/app/init-secrets.sh"]

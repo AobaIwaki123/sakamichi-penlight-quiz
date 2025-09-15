@@ -1,0 +1,383 @@
+name: cloud-run-deploy
+run-name: Cloud Run デプロイ - ${{ github.ref_name }}
+
+# ブランチごとの自動デプロイメント設定
+on:
+  # 手動実行
+  workflow_dispatch:
+    inputs:
+      branch:
+        description: "デプロイするブランチ名"
+        required: true
+        default: "main"
+      force_deploy:
+        description: "強制デプロイ（既存サービスを上書き）"
+        type: boolean
+        default: false
+  
+  # プッシュ時の自動デプロイ
+  push:
+    branches:
+      - main
+      - develop
+      - "feature/**"
+      - "fix/**"
+      - "hotfix/**"
+  
+  # プルリクエスト時のプレビュー環境
+  pull_request:
+    branches:
+      - main
+      - develop
+    types: [opened, synchronize, reopened]
+
+permissions:
+  contents: read
+  id-token: write  # Workload Identity用
+
+env:
+  PROJECT_ID: ${{ secrets.GCP_PROJECT_ID }}
+  GAR_LOCATION: asia-northeast1  # Artifact Registry の場所
+  GAR_REPOSITORY: penlight       # Artifact Registry リポジトリ名
+  SERVICE_NAME_PREFIX: penlight  # Cloud Run サービス名のプレフィックス
+  REGION: asia-northeast1        # Cloud Run リージョン
+
+defaults:
+  run:
+    shell: bash
+
+jobs:
+  # 環境設定とサービス名の決定
+  setup:
+    runs-on: ubuntu-latest
+    outputs:
+      service_name: ${{ steps.service-config.outputs.service_name }}
+      image_tag: ${{ steps.service-config.outputs.image_tag }}
+      environment: ${{ steps.service-config.outputs.environment }}
+      should_deploy: ${{ steps.service-config.outputs.should_deploy }}
+      cleanup_required: ${{ steps.service-config.outputs.cleanup_required }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: サービス設定の決定
+        id: service-config
+        run: |
+          # ブランチ名の正規化（Cloud Runサービス名に使用可能な形式に変換）
+          BRANCH_NAME="${{ github.event.inputs.branch || github.ref_name }}"
+          NORMALIZED_BRANCH=$(echo "$BRANCH_NAME" | sed 's/[^a-z0-9-]/-/g' | tr '[:upper:]' '[:lower:]' | sed 's/--*/-/g' | sed 's/^-\|-$//g')
+          
+          # イベントタイプによる処理分岐
+          if [[ "${{ github.event_name }}" == "pull_request" ]]; then
+            # PR環境: pr-{番号} 形式
+            SERVICE_NAME="${SERVICE_NAME_PREFIX}-pr-${{ github.event.number }}"
+            IMAGE_TAG="pr-${{ github.event.number }}-$(git rev-parse --short HEAD)"
+            ENVIRONMENT="preview"
+            SHOULD_DEPLOY="true"
+            CLEANUP_REQUIRED="false"
+            
+          elif [[ "$NORMALIZED_BRANCH" == "main" ]]; then
+            # 本番環境
+            SERVICE_NAME="${SERVICE_NAME_PREFIX}-prod"
+            IMAGE_TAG="prod-$(git rev-parse --short HEAD)"
+            ENVIRONMENT="production"
+            SHOULD_DEPLOY="true"
+            CLEANUP_REQUIRED="false"
+            
+          elif [[ "$NORMALIZED_BRANCH" == "develop" ]]; then
+            # 開発環境
+            SERVICE_NAME="${SERVICE_NAME_PREFIX}-dev"
+            IMAGE_TAG="dev-$(git rev-parse --short HEAD)"
+            ENVIRONMENT="development"
+            SHOULD_DEPLOY="true"
+            CLEANUP_REQUIRED="false"
+            
+          else
+            # フィーチャーブランチ環境
+            SERVICE_NAME="${SERVICE_NAME_PREFIX}-${NORMALIZED_BRANCH}"
+            IMAGE_TAG="${NORMALIZED_BRANCH}-$(git rev-parse --short HEAD)"
+            ENVIRONMENT="feature"
+            SHOULD_DEPLOY="true"
+            CLEANUP_REQUIRED="true"  # フィーチャーブランチは後でクリーンアップ
+          fi
+          
+          # サービス名の長さ制限チェック（Cloud Runは63文字まで）
+          if [[ ${#SERVICE_NAME} -gt 63 ]]; then
+            # 長すぎる場合はハッシュで短縮
+            HASH=$(echo "$SERVICE_NAME" | sha256sum | cut -c1-8)
+            SERVICE_NAME="${SERVICE_NAME_PREFIX}-${HASH}"
+          fi
+          
+          echo "service_name=$SERVICE_NAME" >> $GITHUB_OUTPUT
+          echo "image_tag=$IMAGE_TAG" >> $GITHUB_OUTPUT
+          echo "environment=$ENVIRONMENT" >> $GITHUB_OUTPUT
+          echo "should_deploy=$SHOULD_DEPLOY" >> $GITHUB_OUTPUT
+          echo "cleanup_required=$CLEANUP_REQUIRED" >> $GITHUB_OUTPUT
+          
+          echo "🏷️ サービス名: $SERVICE_NAME"
+          echo "🏷️ イメージタグ: $IMAGE_TAG"
+          echo "🏷️ 環境: $ENVIRONMENT"
+
+  # Docker イメージのビルドとプッシュ
+  build-and-push:
+    runs-on: ubuntu-latest
+    needs: setup
+    if: needs.setup.outputs.should_deploy == 'true'
+    outputs:
+      image_url: ${{ steps.build-image.outputs.image_url }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Google Cloud 認証
+        id: auth
+        uses: google-github-actions/auth@v2
+        with:
+          credentials_json: ${{ secrets.GCP_SA_KEY }}
+
+      - name: Cloud SDK セットアップ
+        uses: google-github-actions/setup-gcloud@v2
+
+      - name: Docker 認証設定
+        run: gcloud auth configure-docker ${{ env.GAR_LOCATION }}-docker.pkg.dev --quiet
+
+      - name: Docker Buildx セットアップ
+        uses: docker/setup-buildx-action@v3
+
+      - name: Docker イメージのビルドとプッシュ
+        id: build-image
+        run: |
+          IMAGE_URL="${{ env.GAR_LOCATION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ env.GAR_REPOSITORY }}/${{ needs.setup.outputs.service_name }}:${{ needs.setup.outputs.image_tag }}"
+          
+          echo "🏗️ イメージビルド開始: $IMAGE_URL"
+          
+          docker build \
+            --target prod \
+            --platform linux/amd64 \
+            --tag "$IMAGE_URL" \
+            --file ./view/Dockerfile \
+            ./view
+          
+          echo "📦 イメージプッシュ開始"
+          docker push "$IMAGE_URL"
+          
+          echo "image_url=$IMAGE_URL" >> $GITHUB_OUTPUT
+          echo "✅ イメージビルド・プッシュ完了: $IMAGE_URL"
+
+  # Cloud Run へのデプロイ
+  deploy:
+    runs-on: ubuntu-latest
+    needs: [setup, build-and-push]
+    if: needs.setup.outputs.should_deploy == 'true'
+    outputs:
+      service_url: ${{ steps.deploy-service.outputs.service_url }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Google Cloud 認証
+        id: auth
+        uses: google-github-actions/auth@v2
+        with:
+          credentials_json: ${{ secrets.GCP_SA_KEY }}
+
+      - name: Cloud SDK セットアップ
+        uses: google-github-actions/setup-gcloud@v2
+
+      - name: Cloud Run サービスのデプロイ
+        id: deploy-service
+        run: |
+          SERVICE_NAME="${{ needs.setup.outputs.service_name }}"
+          IMAGE_URL="${{ needs.build-and-push.outputs.image_url }}"
+          ENVIRONMENT="${{ needs.setup.outputs.environment }}"
+          
+          echo "🚀 Cloud Run デプロイ開始"
+          echo "サービス名: $SERVICE_NAME"
+          echo "イメージ: $IMAGE_URL"
+          echo "環境: $ENVIRONMENT"
+          
+          # 環境別の設定
+          case "$ENVIRONMENT" in
+            "production")
+              MAX_INSTANCES=10
+              MIN_INSTANCES=1
+              CPU_LIMIT="2"
+              MEMORY_LIMIT="2Gi"
+              CONCURRENCY=100
+              ;;
+            "development")
+              MAX_INSTANCES=5
+              MIN_INSTANCES=0
+              CPU_LIMIT="1"
+              MEMORY_LIMIT="1Gi"
+              CONCURRENCY=50
+              ;;
+            "preview"|"feature")
+              MAX_INSTANCES=2
+              MIN_INSTANCES=0
+              CPU_LIMIT="1"
+              MEMORY_LIMIT="512Mi"
+              CONCURRENCY=20
+              ;;
+          esac
+          
+          # Cloud Run デプロイコマンド実行
+          gcloud run deploy "$SERVICE_NAME" \
+            --image="$IMAGE_URL" \
+            --region="${{ env.REGION }}" \
+            --platform=managed \
+            --allow-unauthenticated \
+            --port=3000 \
+            --max-instances="$MAX_INSTANCES" \
+            --min-instances="$MIN_INSTANCES" \
+            --cpu="$CPU_LIMIT" \
+            --memory="$MEMORY_LIMIT" \
+            --concurrency="$CONCURRENCY" \
+            --timeout=300s \
+            --execution-environment=gen2 \
+            --service-account="${{ secrets.CLOUD_RUN_SA_EMAIL }}" \
+            --set-env-vars="NODE_ENV=production" \
+            --set-env-vars="GOOGLE_APPLICATION_CREDENTIALS=/tmp/gcp-key.json" \
+            --set-secrets="GCP_SA_KEY=projects/${{ env.PROJECT_ID }}/secrets/bigquery-sa-key:latest" \
+            --labels="environment=$ENVIRONMENT,branch=${{ github.ref_name }},commit=${{ github.sha }}" \
+            --revision-suffix="$(date +%Y%m%d-%H%M%S)" \
+            --quiet
+          
+          # サービスURLの取得
+          SERVICE_URL=$(gcloud run services describe "$SERVICE_NAME" \
+            --region="${{ env.REGION }}" \
+            --format="value(status.url)")
+          
+          echo "service_url=$SERVICE_URL" >> $GITHUB_OUTPUT
+          echo "✅ デプロイ完了: $SERVICE_URL"
+
+  # デプロイ結果の通知とコメント
+  notify:
+    runs-on: ubuntu-latest
+    needs: [setup, deploy]
+    if: always() && needs.setup.outputs.should_deploy == 'true'
+    steps:
+      - name: デプロイ結果の通知
+        run: |
+          SERVICE_NAME="${{ needs.setup.outputs.service_name }}"
+          SERVICE_URL="${{ needs.deploy.outputs.service_url }}"
+          ENVIRONMENT="${{ needs.setup.outputs.environment }}"
+          
+          if [[ "${{ needs.deploy.result }}" == "success" ]]; then
+            echo "✅ デプロイ成功！"
+            echo "🌐 サービスURL: $SERVICE_URL"
+            echo "🏷️ サービス名: $SERVICE_NAME"
+            echo "🏷️ 環境: $ENVIRONMENT"
+            
+            # PR環境の場合はコメントを追加
+            if [[ "${{ github.event_name }}" == "pull_request" ]]; then
+              # PRコメント用のメッセージを作成（別のジョブで処理）
+              echo "PR_COMMENT_NEEDED=true" >> $GITHUB_ENV
+            fi
+          else
+            echo "❌ デプロイ失敗"
+            exit 1
+          fi
+
+      - name: PR コメントの追加
+        if: github.event_name == 'pull_request' && needs.deploy.result == 'success'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const serviceUrl = '${{ needs.deploy.outputs.service_url }}';
+            const serviceName = '${{ needs.setup.outputs.service_name }}';
+            const environment = '${{ needs.setup.outputs.environment }}';
+            
+            const comment = `## 🚀 プレビュー環境デプロイ完了
+            
+            **サービス情報:**
+            - 🌐 **URL**: ${serviceUrl}
+            - 🏷️ **サービス名**: \`${serviceName}\`
+            - 🏷️ **環境**: ${environment}
+            - 🏷️ **コミット**: ${context.sha.substring(0, 8)}
+            
+            **利用可能な機能:**
+            - 📱 モバイル最適化済み
+            - 🎯 日向坂46ペンライトクイズ
+            - 🔄 BigQueryデータ連携
+            
+            **注意事項:**
+            - このプレビュー環境はPRクローズ時に自動削除されます
+            - 本番データを使用しているため、適切にご利用ください
+            
+            ---
+            *このコメントは GitHub Actions により自動生成されました*`;
+            
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: comment
+            });
+
+  # PR クローズ時のクリーンアップ
+  cleanup:
+    runs-on: ubuntu-latest
+    if: github.event_name == 'pull_request' && github.event.action == 'closed'
+    steps:
+      - name: Google Cloud 認証
+        id: auth
+        uses: google-github-actions/auth@v2
+        with:
+          credentials_json: ${{ secrets.GCP_SA_KEY }}
+
+      - name: Cloud SDK セットアップ
+        uses: google-github-actions/setup-gcloud@v2
+
+      - name: PR環境のクリーンアップ
+        run: |
+          SERVICE_NAME="${{ env.SERVICE_NAME_PREFIX }}-pr-${{ github.event.number }}"
+          
+          echo "🧹 PR環境クリーンアップ開始: $SERVICE_NAME"
+          
+          # Cloud Run サービスの削除
+          if gcloud run services describe "$SERVICE_NAME" --region="${{ env.REGION }}" >/dev/null 2>&1; then
+            echo "🗑️ Cloud Runサービスを削除中..."
+            gcloud run services delete "$SERVICE_NAME" \
+              --region="${{ env.REGION }}" \
+              --quiet
+            echo "✅ サービス削除完了: $SERVICE_NAME"
+          else
+            echo "ℹ️ サービスが見つかりません（既に削除済み）: $SERVICE_NAME"
+          fi
+          
+          # Artifact Registry イメージの削除（オプション）
+          echo "🧹 古いイメージのクリーンアップ中..."
+          gcloud artifacts docker images list \
+            "${{ env.GAR_LOCATION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ env.GAR_REPOSITORY }}" \
+            --filter="tags:pr-${{ github.event.number }}-*" \
+            --format="value(IMAGE_URI)" | \
+          while read -r image; do
+            if [[ -n "$image" ]]; then
+              echo "🗑️ イメージ削除: $image"
+              gcloud artifacts docker images delete "$image" --quiet || true
+            fi
+          done
+          
+          echo "✅ PR環境クリーンアップ完了"
+
+      - name: クリーンアップ結果の通知
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const comment = `## 🧹 プレビュー環境クリーンアップ完了
+            
+            PR #${{ github.event.number }} に関連するリソースが削除されました：
+            
+            - 🗑️ Cloud Run サービス: \`${{ env.SERVICE_NAME_PREFIX }}-pr-${{ github.event.number }}\`
+            - 🗑️ Docker イメージ（関連するもの）
+            
+            ---
+            *このコメントは GitHub Actions により自動生成されました*`;
+            
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: comment
+            });

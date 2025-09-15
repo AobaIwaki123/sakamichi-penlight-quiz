@@ -1,0 +1,228 @@
+# Cloud Run サービステンプレート設定
+# 環境別のCloud Runサービス設定例
+
+---
+# 本番環境用 Cloud Run サービス設定
+apiVersion: serving.knative.dev/v1
+kind: Service
+metadata:
+  name: penlight-prod
+  labels:
+    environment: production
+    app: penlight
+    version: v3.2.1
+  annotations:
+    run.googleapis.com/ingress: all
+    run.googleapis.com/execution-environment: gen2
+spec:
+  template:
+    metadata:
+      labels:
+        environment: production
+        app: penlight
+      annotations:
+        # スケーリング設定
+        autoscaling.knative.dev/minScale: "1"
+        autoscaling.knative.dev/maxScale: "10"
+        
+        # リソース設定
+        run.googleapis.com/cpu-throttling: "false"
+        run.googleapis.com/execution-environment: gen2
+        
+        # ネットワーク設定
+        run.googleapis.com/vpc-access-connector: projects/PROJECT_ID/locations/REGION/connectors/penlight-connector
+        run.googleapis.com/vpc-access-egress: private-ranges-only
+    spec:
+      serviceAccountName: cloud-run-penlight@PROJECT_ID.iam.gserviceaccount.com
+      containerConcurrency: 100
+      timeoutSeconds: 300
+      
+      containers:
+      - name: penlight-app
+        image: asia-northeast1-docker.pkg.dev/PROJECT_ID/penlight/penlight-prod:latest
+        
+        ports:
+        - name: http1
+          containerPort: 3000
+        
+        # リソース制限
+        resources:
+          limits:
+            cpu: 2000m
+            memory: 2Gi
+          requests:
+            cpu: 1000m
+            memory: 1Gi
+        
+        # 環境変数
+        env:
+        - name: NODE_ENV
+          value: "production"
+        - name: PORT
+          value: "3000"
+        - name: HOSTNAME
+          value: "0.0.0.0"
+        - name: GOOGLE_APPLICATION_CREDENTIALS
+          value: "/tmp/gcp-key.json"
+        
+        # Secret Manager からの秘密情報取得
+        - name: GCP_SA_KEY
+          valueFrom:
+            secretKeyRef:
+              key: latest
+              name: bigquery-sa-key
+        
+        # ヘルスチェック設定
+        livenessProbe:
+          httpGet:
+            path: /api/health
+            port: 3000
+          initialDelaySeconds: 30
+          periodSeconds: 10
+          timeoutSeconds: 5
+          failureThreshold: 3
+        
+        readinessProbe:
+          httpGet:
+            path: /api/ready
+            port: 3000
+          initialDelaySeconds: 5
+          periodSeconds: 5
+          timeoutSeconds: 3
+          failureThreshold: 2
+        
+        # 起動時のコマンド（必要に応じて）
+        command:
+        - /nodejs/bin/node
+        args:
+        - server.js
+
+---
+# 開発環境用 Cloud Run サービス設定
+apiVersion: serving.knative.dev/v1
+kind: Service
+metadata:
+  name: penlight-dev
+  labels:
+    environment: development
+    app: penlight
+  annotations:
+    run.googleapis.com/ingress: all
+    run.googleapis.com/execution-environment: gen2
+spec:
+  template:
+    metadata:
+      labels:
+        environment: development
+        app: penlight
+      annotations:
+        # 開発環境は最小リソースでスケーリング
+        autoscaling.knative.dev/minScale: "0"
+        autoscaling.knative.dev/maxScale: "5"
+        run.googleapis.com/cpu-throttling: "true"
+        run.googleapis.com/execution-environment: gen2
+    spec:
+      serviceAccountName: cloud-run-penlight@PROJECT_ID.iam.gserviceaccount.com
+      containerConcurrency: 50
+      timeoutSeconds: 300
+      
+      containers:
+      - name: penlight-app
+        image: asia-northeast1-docker.pkg.dev/PROJECT_ID/penlight/penlight-dev:latest
+        
+        ports:
+        - name: http1
+          containerPort: 3000
+        
+        # 開発環境は控えめなリソース
+        resources:
+          limits:
+            cpu: 1000m
+            memory: 1Gi
+          requests:
+            cpu: 500m
+            memory: 512Mi
+        
+        env:
+        - name: NODE_ENV
+          value: "development"
+        - name: PORT
+          value: "3000"
+        - name: HOSTNAME
+          value: "0.0.0.0"
+        - name: USE_MOCK
+          value: "false"  # 開発環境でも実際のBigQueryを使用
+        - name: GOOGLE_APPLICATION_CREDENTIALS
+          value: "/tmp/gcp-key.json"
+        
+        - name: GCP_SA_KEY
+          valueFrom:
+            secretKeyRef:
+              key: latest
+              name: bigquery-sa-key
+
+---
+# プレビュー環境用 Cloud Run サービス設定テンプレート
+apiVersion: serving.knative.dev/v1
+kind: Service
+metadata:
+  name: penlight-pr-{PR_NUMBER}
+  labels:
+    environment: preview
+    app: penlight
+    pr-number: "{PR_NUMBER}"
+  annotations:
+    run.googleapis.com/ingress: all
+    run.googleapis.com/execution-environment: gen2
+spec:
+  template:
+    metadata:
+      labels:
+        environment: preview
+        app: penlight
+        pr-number: "{PR_NUMBER}"
+      annotations:
+        # プレビュー環境は最小構成
+        autoscaling.knative.dev/minScale: "0"
+        autoscaling.knative.dev/maxScale: "2"
+        run.googleapis.com/cpu-throttling: "true"
+        run.googleapis.com/execution-environment: gen2
+    spec:
+      serviceAccountName: cloud-run-penlight@PROJECT_ID.iam.gserviceaccount.com
+      containerConcurrency: 20
+      timeoutSeconds: 300
+      
+      containers:
+      - name: penlight-app
+        image: asia-northeast1-docker.pkg.dev/PROJECT_ID/penlight/penlight-pr-{PR_NUMBER}:latest
+        
+        ports:
+        - name: http1
+          containerPort: 3000
+        
+        # 最小リソース
+        resources:
+          limits:
+            cpu: 1000m
+            memory: 512Mi
+          requests:
+            cpu: 250m
+            memory: 256Mi
+        
+        env:
+        - name: NODE_ENV
+          value: "production"
+        - name: PORT
+          value: "3000"
+        - name: HOSTNAME
+          value: "0.0.0.0"
+        - name: USE_MOCK
+          value: "true"  # プレビュー環境はモックデータを使用
+        - name: GOOGLE_APPLICATION_CREDENTIALS
+          value: "/tmp/gcp-key.json"
+        
+        - name: GCP_SA_KEY
+          valueFrom:
+            secretKeyRef:
+              key: latest
+              name: bigquery-sa-key
