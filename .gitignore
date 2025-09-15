@@ -1,2 +1,6 @@
 node_modules/
 .df-credentials.json
+
+# pnpm build
+sw.js
+workbox-*.js

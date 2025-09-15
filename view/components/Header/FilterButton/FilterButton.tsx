@@ -36,7 +36,6 @@ export function FilterButton() {
       .filter(([, checked]) => checked)
       .map(([label]) => label);
 
-
     const selectedGenerations: Generation[] = []
     let graduatedFilter = false
 
@@ -60,7 +59,10 @@ export function FilterButton() {
       filterObj.gen = selectedGenerations
     }
 
-    filterObj.graduated = graduatedFilter
+    // 卒業生フィルターは明示的にチェックされた場合のみ設定
+    if (graduatedFilter) {
+      filterObj.graduated = graduatedFilter
+    }
 
     useSelectedMemberStore.getState().setFilters(filterObj)
   }, [checkedFilters])

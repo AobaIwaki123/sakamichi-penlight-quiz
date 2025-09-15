@@ -125,7 +125,10 @@ export const useSelectedMemberStore = create<SelectedMemberStore>((set, get) => 
       get().applyFilters()
       
       // 初回のランダムメンバー選択
-      get().pickRandomMember()
+      // フィルター適用後に確実にメンバーが選択されるよう少し遅延して実行
+      setTimeout(() => {
+        get().pickRandomMember()
+      }, 0)
       
       console.log(`${group}のデータ読み込み完了: ${members.length}件`)
     } catch (error) {
@@ -156,6 +159,17 @@ export const useSelectedMemberStore = create<SelectedMemberStore>((set, get) => 
 
     // フィルター条件の妥当性チェック
     const hasValidFilter = (filters.gen?.length ?? 0) > 0 || filters.graduated !== undefined;
+
+    // フィルターが全く設定されていない場合は、卒業生を除く全メンバーを表示
+    if (!hasValidFilter) {
+      const filteredMembers = allMembers.filter(member => !member.graduated);
+      set({
+        filteredMembers,
+        hasInvalidFilter: false
+      });
+      get().shuffleMembers();
+      return;
+    }
 
     // メンバーのフィルタリング実行
     const filteredMembers = allMembers.filter((member) => {

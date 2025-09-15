@@ -2,6 +2,8 @@
 
 import { useEffect } from 'react';
 import { useSelectedMemberStore } from '@/stores/useSelectedMemberStore';
+import { useFilterStore } from '@/stores/useFilterStore';
+import { hinatazakaFilters } from '@/consts/hinatazakaFilters';
 
 export const InitialLoader = () => {
   const selectedGroup = useSelectedMemberStore((state) => state.selectedGroup);
@@ -9,6 +11,11 @@ export const InitialLoader = () => {
   const setGroup = useSelectedMemberStore((state) => state.setGroup);
 
   useEffect(() => {
+    // フィルターの初期化を先に実行
+    for (const filter of hinatazakaFilters) {
+      useFilterStore.getState().setFilter(filter.type, filter.defaultChecked || false);
+    }
+
     if (allMembers.length === 0) {
       // 初回のみデータロード
       setGroup(selectedGroup);

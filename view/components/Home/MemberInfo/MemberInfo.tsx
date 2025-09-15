@@ -23,7 +23,8 @@ export function MemberInfo() {
       .filter(([, checked]) => checked)
       .map(([type]) => type);
 
-    if (selected.length > 0) {
+    // フィルターが選択されている場合、または初期状態（フィルターが未設定）の場合にメンバーを選択
+    if (selected.length > 0 || Object.keys(checkedFilters).length === 0) {
       const random = pickRandomMember()
 
       // if (random === undefined) {
