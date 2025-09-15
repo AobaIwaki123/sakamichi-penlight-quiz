@@ -14,11 +14,17 @@ export function AnswerButton() {
   const trigger = useAnswerTriggerStore((state) => state.trigger)
 
   const selectedMember = useSelectedMemberStore((state) => state.selectedMember);
+  const isLoading = useSelectedMemberStore((state) => state.isLoading);
 
   const { index: leftIndex, nameJa: leftNameJa } = useColorController("left");
   const { index: rightIndex, nameJa: rightNameJa } = useColorController("right");
 
   const handleClick = () => {
+    if (isLoading) {
+      console.log('データ読み込み中のため回答をスキップ');
+      return;
+    }
+    
     if (!selectedMember) {
       console.error('メンバーが選択されていません');
       return;
@@ -61,9 +67,15 @@ export function AnswerButton() {
 
   return (
     <>
-      <Button variant="outline" radius="xl" onClick={handleClick}>
+      <Button 
+        variant="outline" 
+        radius="xl" 
+        onClick={handleClick}
+        disabled={isLoading || !selectedMember}
+        loading={isLoading}
+      >
         <Text size="lg" fw={700}>
-          回答
+          {isLoading ? 'ローディング中...' : '回答'}
         </Text>
       </Button>
       <FullscreenNotification message={message} />

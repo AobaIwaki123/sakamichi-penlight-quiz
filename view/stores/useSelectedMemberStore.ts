@@ -143,7 +143,16 @@ export const useSelectedMemberStore = create<SelectedMemberStore>((set, get) => 
   },
 
   applyFilters: () => {
-    const { allMembers, filters } = get();
+    const { allMembers, filters, isLoading } = get();
+
+    // データフェッチ中はフィルターエラーを抑制
+    if (isLoading) {
+      set({
+        filteredMembers: [],
+        hasInvalidFilter: false
+      });
+      return;
+    }
 
     // フィルター条件の妥当性チェック
     const hasValidFilter = (filters.gen?.length ?? 0) > 0 || filters.graduated !== undefined;
