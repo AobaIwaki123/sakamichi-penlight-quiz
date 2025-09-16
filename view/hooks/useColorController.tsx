@@ -1,6 +1,7 @@
 import { useCallback } from 'react';
 import { useColorStore } from '@/stores/useColorStore';
 import { usePenlightStore } from '@/stores/usePenlightStore';
+import { useSelectedMemberStore } from '@/stores/useSelectedMemberStore';
 import type { PenlightColor } from '@/types/PenlightColor';
 
 /**
@@ -53,42 +54,47 @@ export function useColorController(id: string): ColorControllerReturn {
   const index = useColorStore((state) => state.colorMap[id]?.index ?? 0);
   const setIndex = useColorStore((state) => state.setIndex);
   const penlightColors = usePenlightStore((state) => state.penlightColors);
+  const isPenlightLoading = usePenlightStore((state) => state.isLoading);
+  const isMemberLoading = useSelectedMemberStore((state) => state.isLoading);
+
+  // いずれかのデータがローディング中の場合はローディング状態を返す
+  const isLoading = isPenlightLoading || isMemberLoading;
 
   // 次のペンライト色に切り替える関数（循環）
   const next = useCallback(() => {
-    if (penlightColors.length === 0) {
-      console.warn('ペンライトカラーデータが読み込まれていません');
+    if (isLoading || penlightColors.length === 0) {
+      console.warn('データ読み込み中またはペンライトカラーデータが未取得のため操作をスキップ');
       return;
     }
     setIndex(id, (prevIndex) => (prevIndex + 1) % penlightColors.length);
-  }, [id, setIndex, penlightColors.length]);
+  }, [id, setIndex, penlightColors.length, isLoading]);
 
   // 前のペンライト色に切り替える関数（循環）
   const prev = useCallback(() => {
-    if (penlightColors.length === 0) {
-      console.warn('ペンライトカラーデータが読み込まれていません');
+    if (isLoading || penlightColors.length === 0) {
+      console.warn('データ読み込み中またはペンライトカラーデータが未取得のため操作をスキップ');
       return;
     }
     setIndex(id, (prevIndex) =>
       (prevIndex - 1 + penlightColors.length) % penlightColors.length
     );
-  }, [id, setIndex, penlightColors.length]);
+  }, [id, setIndex, penlightColors.length, isLoading]);
 
   // 現在選択されているペンライト色
   const currentColor = penlightColors[index];
 
-  // ペンライト色データが未取得の場合はデフォルト値を返す
-  if (!currentColor || penlightColors.length === 0) {
+  // ローディング中またはペンライト色データが未取得の場合はデフォルト値を返す
+  if (isLoading || !currentColor || penlightColors.length === 0) {
     return {
       index: 0,
       color: '#cccccc',
-      nameJa: '未取得',
-      nameEn: 'not_loaded',
+      nameJa: isLoading ? 'ローディング中...' : '未取得',
+      nameEn: isLoading ? 'loading...' : 'not_loaded',
       next: () => {
-        console.warn('ペンライトカラーデータが読み込まれていないため、操作をスキップします');
+        console.warn('データ読み込み中またはペンライトカラーデータが未取得のため操作をスキップ');
       },
       prev: () => {
-        console.warn('ペンライトカラーデータが読み込まれていないため、操作をスキップします');
+        console.warn('データ読み込み中またはペンライトカラーデータが未取得のため操作をスキップ');
       },
       allColors: [],
     };

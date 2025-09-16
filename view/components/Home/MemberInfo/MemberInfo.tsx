@@ -26,10 +26,6 @@ export function MemberInfo() {
     if (selected.length > 0) {
       const random = pickRandomMember()
 
-      // if (random === undefined) {
-      //   alert("メンバーが選ばれませんでした。フィルターを確認してください。");
-      //   return;
-      // }
       console.log("選ばれたメンバー:", random);
     }
   }, [triggerCount, checkedFilters, pickRandomMember]);
