@@ -9,6 +9,7 @@ on:
       - reopened
     paths:
       - 'view/**'
+      - 'package.json'
 
 permissions:
   contents: read
