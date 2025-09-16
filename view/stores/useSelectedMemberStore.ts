@@ -135,6 +135,8 @@ export const useSelectedMemberStore = create<SelectedMemberStore>((set, get) => 
       console.error(`${group}のデータ取得に失敗:`, error)
       // エラー時は空の状態にリセット
       set({ allMembers: [], filteredMembers: [], shuffledMembers: [] })
+    } finally {
+      set({ isLoading: false })
     }
   },
 
