@@ -5,9 +5,15 @@ on:
   push:
     branches:
       - main
+    paths:
+      - 'view/**'
+      - 'package.json'
   pull_request:
     branches:
       - main
+    paths:
+      - 'view/**'
+      - 'package.json'
 
 permissions:
   contents: read
