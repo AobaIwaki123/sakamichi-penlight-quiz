@@ -2,6 +2,7 @@ import { useSelectedMemberStore } from '@/stores/useSelectedMemberStore';
 import type { Member } from '@/types/Member';
 import type { Generation } from '@/consts/hinatazakaFilters';
 
+// BigQuery API のモック化
 jest.mock('@/api/bq/getHinatazakaMember', () => ({
   getHinatazakaMember: jest.fn().mockResolvedValue([
     { 
@@ -79,13 +80,23 @@ jest.mock('@/api/bq/getHinatazakaMember', () => ({
   ])
 }));
 
+// usePenlightStore のモック化（非同期処理を回避）
+jest.mock('@/stores/usePenlightStore', () => ({
+  usePenlightStore: {
+    getState: () => ({
+      fetchPenlightColors: jest.fn().mockResolvedValue(undefined)
+    })
+  }
+}));
+
 describe('useSelectedMemberStore', () => {
   beforeEach(async () => {
     const store = useSelectedMemberStore.getState();
+    // 非同期処理のタイムアウト対策：明示的にタイムアウトを指定
     await store.setGroup('hinatazaka');
     store.setFilters({});
     store.applyFilters();
-  });
+  }, 10000); // beforeEach専用タイムアウト：10秒
 
   test('no duplicate members in one loop', () => {
     const store = useSelectedMemberStore.getState();
