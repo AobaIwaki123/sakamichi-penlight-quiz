@@ -1,0 +1,63 @@
+name: Recreate Dev Branch After Merge
+
+on:
+  pull_request:
+    types: [closed]
+    branches:
+      - main
+
+jobs:
+  recreate-dev-branch:
+    # dev branchからmain branchへのマージが完了した場合のみ実行
+    if: github.event.pull_request.merged == true && github.event.pull_request.head.ref == 'dev'
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: write
+      pull-requests: write
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Configure Git
+        run: |
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+
+      - name: Create new dev branch from main
+        run: |
+          # mainブランチから新しいdev branchを作成
+          git checkout main
+          git pull origin main
+          git checkout -b dev
+          git push origin dev
+
+      - name: Create Pull Request
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          # PRの本文をヒアドキュメントで定義
+          PR_BODY=$(cat << 'EOF'
+          ## Dev
+
+          このPRは前回のdev branchがmainにマージされた後に自動作成されました。
+
+          このPRは開発が完了次第、適切なセマンティックバージョニングラベル（`major`、`minor`、`patch`）を付与してマージしてください。
+
+          ---
+          *このPRは GitHub Actions により自動生成されました*
+          EOF
+          )
+
+          # ghコマンドでPRを作成（draft状態で）
+          gh pr create \
+            --title "dev" \
+            --body "$PR_BODY" \
+            --base main \
+            --head dev \
+            --draft \
+            --label "automated,development-cycle"
