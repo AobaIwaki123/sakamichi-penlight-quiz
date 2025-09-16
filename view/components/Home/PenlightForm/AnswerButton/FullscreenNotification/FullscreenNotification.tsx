@@ -2,7 +2,8 @@ import { useAnswerCloseTriggerStore } from '@/stores/useAnswerCloseTriggerStore'
 import { useAnswerTriggerStore } from '@/stores/useAnswerTriggerStore'
 import { useSelectedMemberStore } from '@/stores/useSelectedMemberStore';
 import { usePenlightStore } from '@/stores/usePenlightStore';
-import { Overlay, Portal, Text, Transition } from '@mantine/core';
+import { Overlay, Portal, Text, Transition, Button, Group, Stack } from '@mantine/core';
+import { IconRefresh, IconArrowRight } from '@tabler/icons-react';
 import { useEffect, useRef, useState } from 'react';
 import classes from './FullscreenNotification.module.css';
 
@@ -18,6 +19,7 @@ export function FullscreenNotification({ message }: FullscreenNotificationProps)
   const answerTriggerCount = useAnswerTriggerStore((state) => state.triggerCount);
   const answerCloseTrigger = useAnswerCloseTriggerStore((state) => state.trigger);
   const selectedMember = useSelectedMemberStore((state) => state.selectedMember);
+  const pickRandomMember = useSelectedMemberStore((state) => state.pickRandomMember);
   const getPenlightById = usePenlightStore((state) => state.getPenlightById);
   const selectedMemberRef = useRef<typeof selectedMember>(null);
 
@@ -46,12 +48,27 @@ export function FullscreenNotification({ message }: FullscreenNotificationProps)
     answerCloseTrigger();
   };
 
+  // リトライボタンのハンドラー（同じ問題を再度出題）
+  const onRetry = () => {
+    setVisible(false);
+    answerCloseTrigger();
+    // 現在のメンバーを維持するため、何もしない
+    // ペンライト選択がリセットされるだけで、同じメンバーで再挑戦可能
+  };
+
+  // 次へボタンのハンドラー（新しいメンバーを選択）
+  const onNext = () => {
+    setVisible(false);
+    answerCloseTrigger();
+    // 新しいメンバーを選択
+    pickRandomMember();
+  };
+
   return (
     <Portal> {/* 👈 Portal を使うことで body 直下に描画される */}
       <Transition mounted={visible} transition="fade" duration={0} timingFunction="ease">
         {(styles) => (
           <Overlay
-            onClick={onClose}
             style={{
               ...styles,
               position: 'fixed', // 👈 スクロールに追従しないように固定
@@ -62,15 +79,81 @@ export function FullscreenNotification({ message }: FullscreenNotificationProps)
             blur={2}
             color="#000"
           >
-            <Text c="white" size="xl" ta="center" mt="30vh" className={classes.message}>
-              {message}
-            </Text>
-            <Text c="white" size="xl" ta="center" className={classes.penlight}>
-              {penlight1}
-            </Text>
-            <Text c="white" size="xl" ta="center" className={classes.penlight}>
-              {penlight2}
-            </Text>
+            <Stack
+              align="center"
+              justify="center"
+              style={{
+                height: '100vh',
+                padding: '2rem',
+                position: 'relative'
+              }}
+            >
+              {/* 正解・不正解メッセージ */}
+              <Text c="white" size="xl" ta="center" className={classes.message}>
+                {message}
+              </Text>
+              
+              {/* ペンライト色表示 */}
+              <Stack align="center" gap="xs">
+                <Text c="white" size="lg" ta="center" className={classes.penlight}>
+                  {penlight1}
+                </Text>
+                <Text c="white" size="lg" ta="center" className={classes.penlight}>
+                  {penlight2}
+                </Text>
+              </Stack>
+
+              {/* ボタン群 - 画面下部に配置 */}
+              <Group
+                justify="space-between"
+                className={classes.buttonContainer}
+                style={{
+                  position: 'absolute',
+                  bottom: '2rem',
+                  left: '2rem',
+                  right: '2rem',
+                  width: 'calc(100% - 4rem)'
+                }}
+              >
+                {/* 左下: リトライボタン */}
+                <Button
+                  variant="filled"
+                  color="orange"
+                  size="lg"
+                  radius="xl"
+                  leftSection={<IconRefresh size={20} />}
+                  onClick={onRetry}
+                  className={classes.retryButton}
+                  style={{
+                    minWidth: '140px',
+                    minHeight: '50px',
+                    fontSize: '16px',
+                    fontWeight: 600
+                  }}
+                >
+                  リトライ
+                </Button>
+
+                {/* 右下: 次へボタン */}
+                <Button
+                  variant="filled"
+                  color="blue"
+                  size="lg"
+                  radius="xl"
+                  rightSection={<IconArrowRight size={20} />}
+                  onClick={onNext}
+                  className={classes.nextButton}
+                  style={{
+                    minWidth: '140px',
+                    minHeight: '50px',
+                    fontSize: '16px',
+                    fontWeight: 600
+                  }}
+                >
+                  次へ
+                </Button>
+              </Group>
+            </Stack>
           </Overlay>
         )}
       </Transition>
