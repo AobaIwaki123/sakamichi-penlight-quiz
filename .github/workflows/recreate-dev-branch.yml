@@ -1,19 +1,14 @@
 name: Recreate Dev Branch After Merge
 
 on:
-  pull_request:
-    types: [closed]
+  push:
     branches:
-      - main
+      - dev
 
 jobs:
-  recreate-dev-branch:
-    # dev branchからmain branchへのマージが完了した場合のみ実行
-    if: github.event.pull_request.merged == true && github.event.pull_request.head.ref == 'dev'
+  create-pr:
     runs-on: ubuntu-latest
-
     permissions:
-      contents: write
       pull-requests: write
 
     steps:
@@ -27,6 +22,16 @@ jobs:
         run: |
           git config --global user.name "github-actions[bot]"
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
+      
+      - name: Check PR from dev to main exists
+        run: |
+          if gh pr list --base main --head dev --state open --json title --jq '.[].title' | grep -q "dev"; then
+            echo "PR from dev to main exists"
+            exit 0
+          else
+            echo "PR from dev to main does not exist"
+            exit 1
+          fi
 
       - name: Create Pull Request
         env:
@@ -35,8 +40,6 @@ jobs:
           # PRの本文をヒアドキュメントで定義
           PR_BODY=$(cat << 'EOF'
           ## Dev
-
-          このPRは前回のdev branchがmainにマージされた後に自動作成されました。
 
           このPRは開発が完了次第、適切なセマンティックバージョニングラベル（`major`、`minor`、`patch`）を付与してマージしてください。
 
