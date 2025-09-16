@@ -28,14 +28,6 @@ jobs:
           git config --global user.name "github-actions[bot]"
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
 
-      - name: Create new dev branch from main
-        run: |
-          # mainブランチから新しいdev branchを作成
-          git checkout main
-          git pull origin main
-          git checkout -b dev
-          git push origin dev
-
       - name: Create Pull Request
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -60,4 +52,4 @@ jobs:
             --base main \
             --head dev \
             --draft \
-            --label "automated,development-cycle"
+            --label "automated"
