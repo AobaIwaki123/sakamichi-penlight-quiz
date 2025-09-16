@@ -90,7 +90,7 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
         with:
-          ref: main
+          ref: ${{ needs.determine-path.outputs.release }}
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
@@ -119,6 +119,8 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
+        with:
+          ref: ${{ needs.determine-path.outputs.release }}
 
       - name: Update deployment YAML with new image tag
         uses: mikefarah/yq@v4

@@ -12,20 +12,21 @@ export type MemberInfoHeaderProps = {
 
 export function MemberInfoHeader() {
   const selectedMember = useSelectedMemberStore((state) => state.selectedMember);
+  const isLoading = useSelectedMemberStore((state) => state.isLoading);
 
   return (
     <Container className={classes.header} size="100%">
       <Group justify="center">
         <Group justify="center" className={classes.name}>
-          {selectedMember ? (
+          {isLoading || !selectedMember ? (
+            <Skeleton height={30} width={200} radius="xl" />
+          ) : (
             <>
               <Text inherit>{selectedMember.emoji}</Text>
               <Text inherit variant="gradient" component="span" gradient={{ from: 'pink', to: 'yellow' }}>
                 {selectedMember.name}
               </Text>
             </>
-          ) : (
-            <Skeleton height={30} width={200} radius="xl" />
           )}
         </Group>
       </Group>

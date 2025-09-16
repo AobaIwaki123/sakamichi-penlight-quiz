@@ -117,6 +117,9 @@ export const useSelectedMemberStore = create<SelectedMemberStore>((set, get) => 
         console.log(`${group}のメンバーデータ取得完了: ${members.length}件（キャッシュ更新）`);
       }
 
+      // ローディングを終了
+      set({ isLoading: false })
+
       // ペンライト色データを並行して取得
       await usePenlightStore.getState().fetchPenlightColors(group);
       
@@ -132,8 +135,6 @@ export const useSelectedMemberStore = create<SelectedMemberStore>((set, get) => 
       console.error(`${group}のデータ取得に失敗:`, error)
       // エラー時は空の状態にリセット
       set({ allMembers: [], filteredMembers: [], shuffledMembers: [] })
-    } finally {
-      set({ isLoading: false })
     }
   },
 
@@ -143,7 +144,16 @@ export const useSelectedMemberStore = create<SelectedMemberStore>((set, get) => 
   },
 
   applyFilters: () => {
-    const { allMembers, filters } = get();
+    const { allMembers, filters, isLoading } = get();
+
+    // データフェッチ中はフィルターエラーを抑制
+    if (isLoading) {
+      set({
+        filteredMembers: [],
+        hasInvalidFilter: false
+      });
+      return;
+    }
 
     // フィルター条件の妥当性チェック
     const hasValidFilter = (filters.gen?.length ?? 0) > 0 || filters.graduated !== undefined;
