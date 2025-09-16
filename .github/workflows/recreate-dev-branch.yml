@@ -11,31 +11,23 @@ jobs:
     # dev branchからmain branchへのマージが完了した場合のみ実行
     if: github.event.pull_request.merged == true && github.event.pull_request.head.ref == 'dev'
     runs-on: ubuntu-latest
-    
+
     permissions:
       contents: write
       pull-requests: write
-      
+
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
           token: ${{ secrets.GITHUB_TOKEN }}
-      
+
       - name: Configure Git
         run: |
           git config --global user.name "github-actions[bot]"
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
-      
-      - name: Delete existing dev branch
-        run: |
-          # ローカルのdev branchを削除（存在する場合）
-          git branch -D dev || true
-          # リモートのdev branchを削除
-          git push origin --delete dev || true
-        continue-on-error: true
-      
+
       - name: Create new dev branch from main
         run: |
           # mainブランチから新しいdev branchを作成
@@ -43,43 +35,29 @@ jobs:
           git pull origin main
           git checkout -b dev
           git push origin dev
-      
+
       - name: Create Pull Request
-        uses: actions/github-script@v7
-        with:
-          script: |
-            const { data: pr } = await github.rest.pulls.create({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              title: 'feat: 新しい開発サイクルの開始',
-              head: 'dev',
-              base: 'main',
-              body: `## 新しい開発サイクルの開始
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          # PRの本文をヒアドキュメントで定義
+          PR_BODY=$(cat << 'EOF'
+          ## Dev
 
-このPRは前回のdev branchがmainにマージされた後に自動作成されました。
+          このPRは前回のdev branchがmainにマージされた後に自動作成されました。
 
-### 変更内容
-- 新しい開発サイクル用のdev branchを作成
-- main branchの最新状態をベースに開発を開始
+          このPRは開発が完了次第、適切なセマンティックバージョニングラベル（`major`、`minor`、`patch`）を付与してマージしてください。
 
-### 次のステップ
-- [ ] 新機能の開発
-- [ ] バグ修正
-- [ ] ドキュメント更新
+          ---
+          *このPRは GitHub Actions により自動生成されました*
+          EOF
+          )
 
-このPRは開発が完了次第、適切なセマンティックバージョニングラベル（\`major\`、\`minor\`、\`patch\`）を付与してマージしてください。
-
----
-*このPRは GitHub Actions により自動生成されました*`,
-              draft: true
-            });
-            
-            console.log(`Created PR #${pr.number}: ${pr.html_url}`);
-            
-            // ラベルを追加（プロジェクトに応じて調整）
-            await github.rest.issues.addLabels({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              issue_number: pr.number,
-              labels: ['automated', 'development-cycle']
-            });
+          # ghコマンドでPRを作成（draft状態で）
+          gh pr create \
+            --title "dev" \
+            --body "$PR_BODY" \
+            --base main \
+            --head dev \
+            --draft \
+            --label "automated,development-cycle"
