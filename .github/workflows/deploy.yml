@@ -84,6 +84,7 @@ jobs:
   docker-build-and-push-to-gcr:
     runs-on: ubuntu-latest
     needs:
+      - determine-path
       - determine-image-tag
       - update-deployment-manifest
     steps:
