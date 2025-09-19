@@ -343,6 +343,59 @@ make cd  # 一括実行
 
 ### 認証設定
 
+#### GitHub Actions Personal Access Token (PAT)
+
+GitHub Actionsでのタグ作成時に他のワークフローを起動するため、Personal Access Tokenが必要です。
+
+##### PAT作成手順
+1. GitHub設定 → Developer settings → Personal access tokens → Tokens (classic)
+2. "Generate new token (classic)" をクリック
+3. 以下の権限を選択：
+   - `repo` (Full control of private repositories)
+   - `workflow` (Update GitHub Action workflows)
+4. トークンを生成し、安全な場所に保存
+
+##### リポジトリSecrets設定
+1. GitHubリポジトリ → Settings → Secrets and variables → Actions
+2. "New repository secret" をクリック
+3. Name: `PAT_TOKEN`、Value: 生成したPersonal Access Tokenを入力
+4. "Add secret" で保存
+
+##### 動作確認
+```bash
+# PRマージ後、以下のワークフローが自動実行されることを確認
+# 1. release-action (タグ作成)
+# 2. create-release-note (リリースノート作成)
+# 3. deploy (デプロイメント)
+```
+
+##### PAT権限テスト用ワークフロー
+
+PAT_TOKENが正しく設定され、GitHub Actions間の連携が機能するかをテストするためのワークフローを提供しています：
+
+**テスト手順**:
+1. GitHubリポジトリの「Actions」タブを開く
+2. 「test-pat-trigger」ワークフローを選択
+3. 「Run workflow」をクリック
+4. テスト用タグ名を入力（例: `test-v1.0.0`）
+5. ワークフローを実行
+
+**期待される動作**:
+1. `test-pat-trigger` がPAT_TOKENを使用してテストタグを作成・プッシュ
+2. タグプッシュイベントにより `test-pat-target` が自動起動
+3. 両方のワークフローが正常に完了すれば、PAT権限での連携が成功
+
+**テスト後のクリーンアップ**:
+```bash
+# テストタグをローカルで削除
+git tag -d test-v1.0.0
+
+# リモートでテストタグを削除
+git push origin :refs/tags/test-v1.0.0
+```
+
+**注意**: `PAT_TOKEN` が設定されていない場合、タグ作成後にリリースノート作成ワークフローが起動しません。
+
 #### gcloud CLI認証
 ```bash
 # ログイン

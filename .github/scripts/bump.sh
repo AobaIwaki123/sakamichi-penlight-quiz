@@ -11,7 +11,14 @@ case "$1" in
     patch) patch="$((patch + 1))" ;;
 esac
 
+# Personal Access Tokenを使用してタグを作成・プッシュ
 git tag "v${major}.${minor}.${patch}"
 git tag --force "v${major}" >/dev/null 2>&1
+
+# Personal Access Tokenを使用してリモートURLを設定
+if [ -n "${GITHUB_TOKEN}" ]; then
+    git remote set-url origin "https://x-access-token:${GITHUB_TOKEN}@github.com/${GITHUB_REPOSITORY}.git"
+fi
+
 git push --force --tags >/dev/null 2>&1
 echo "v${major}.${minor}.${patch}"
