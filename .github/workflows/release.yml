@@ -63,12 +63,15 @@ jobs:
             echo "No valid label found. Exiting."
             exit 1
           fi
-      - env:
+      - name: Create and Push Tag
+        env:
           USERNAME: github-actions[bot]
           EMAIL: github-actions[bot]@users.noreply.github.com
           BUMP_LEVEL: ${{ steps.determine-bump.outputs.bump_level }}
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          # Personal Access Tokenを使用してタグ作成時に他のワークフローを起動可能にする
+          GITHUB_TOKEN: ${{ secrets.PAT_TOKEN }}
         run: |
           git config --global user.name "${USERNAME}"
           git config --global user.email "${EMAIL}"
           version="$(.github/scripts/bump.sh "${BUMP_LEVEL}")"
+          echo "Created version: ${version}"
