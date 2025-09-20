@@ -4,6 +4,7 @@
   font-weight: 900;
   letter-spacing: rem(-2px);
   padding: rem(10px);
+  margin-bottom: rem(20px);
 
   @media (max-width: $mantine-breakpoint-md) {
     font-size: rem(100px);
@@ -19,5 +20,43 @@
 
   @media (max-width: $mantine-breakpoint-md) {
     font-size: rem(40px);
+  }
+}
+
+/* ボタンコンテナのアニメーション */
+.buttonContainer {
+  animation: slideUp 0.3s ease-out;
+}
+
+@keyframes slideUp {
+  from {
+    transform: translateY(20px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+/* ボタンのホバー効果 */
+.retryButton:hover {
+  transform: scale(1.05);
+  transition: transform 0.2s ease;
+}
+
+.nextButton:hover {
+  transform: scale(1.05);
+  transition: transform 0.2s ease;
+}
+
+/* モバイル用のタッチ効果 */
+@media (hover: none) and (pointer: coarse) {
+  .retryButton:active {
+    transform: scale(0.95);
+  }
+  
+  .nextButton:active {
+    transform: scale(0.95);
   }
 }
