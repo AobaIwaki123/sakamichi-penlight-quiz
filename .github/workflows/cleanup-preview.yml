@@ -1,0 +1,267 @@
+name: Cleanup Preview Environment
+run-name: Cleanup preview for ${{ github.event.ref || github.event.pull_request.head.ref }}
+
+on:
+  pull_request:
+    types: [closed]
+  delete:
+    # ブランチ削除時に実行
+  workflow_dispatch:
+    inputs:
+      service_name:
+        description: "削除するCloud Runサービス名（例: penlight-pr-123, penlight-feature-test）"
+        required: true
+        type: string
+      force_delete:
+        description: "強制削除（確認をスキップ）"
+        required: false
+        type: boolean
+        default: false
+
+permissions:
+  contents: read
+  id-token: write
+  pull-requests: write
+
+env:
+  GCP_PROJECT_ID: ${{ secrets.GCP_PROJECT_ID }}
+  GCP_REGION: asia-northeast1
+
+defaults:
+  run:
+    shell: bash
+
+jobs:
+  # クリーンアップ対象の特定
+  identify-services:
+    runs-on: ubuntu-latest
+    outputs:
+      services_to_delete: ${{ steps.identify.outputs.services }}
+      has_services: ${{ steps.identify.outputs.has_services }}
+    steps:
+      - name: Authenticate to Google Cloud
+        uses: google-github-actions/auth@v2
+        with:
+          credentials_json: ${{ secrets.GCP_SA_KEY }}
+
+      - name: Set up Cloud SDK
+        uses: google-github-actions/setup-gcloud@v2
+
+      - name: Identify services to delete
+        id: identify
+        run: |
+          SERVICES_JSON="[]"
+          HAS_SERVICES="false"
+          
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            # 手動実行の場合は指定されたサービス名を使用
+            SERVICE_NAME="${{ github.event.inputs.service_name }}"
+            echo "🎯 手動指定されたサービス: ${SERVICE_NAME}"
+            
+            # サービスが存在するかチェック
+            if gcloud run services describe "${SERVICE_NAME}" \
+                --region="${{ env.GCP_REGION }}" \
+                --format="value(metadata.name)" \
+                --quiet >/dev/null 2>&1; then
+              SERVICES_JSON="[\"${SERVICE_NAME}\"]"
+              HAS_SERVICES="true"
+              echo "✅ サービスが見つかりました: ${SERVICE_NAME}"
+            else
+              echo "⚠️ サービスが見つかりません: ${SERVICE_NAME}"
+            fi
+            
+          elif [ "${{ github.event_name }}" = "pull_request" ]; then
+            # PR クローズ時
+            PR_NUMBER="${{ github.event.number }}"
+            SERVICE_NAME="penlight-pr-${PR_NUMBER}"
+            echo "🔍 PR #${PR_NUMBER} に関連するサービスを確認中..."
+            
+            if gcloud run services describe "${SERVICE_NAME}" \
+                --region="${{ env.GCP_REGION }}" \
+                --format="value(metadata.name)" \
+                --quiet >/dev/null 2>&1; then
+              SERVICES_JSON="[\"${SERVICE_NAME}\"]"
+              HAS_SERVICES="true"
+              echo "✅ PR関連サービスが見つかりました: ${SERVICE_NAME}"
+            else
+              echo "ℹ️ PR関連サービスは見つかりませんでした"
+            fi
+            
+          elif [ "${{ github.event_name }}" = "delete" ]; then
+            # ブランチ削除時
+            DELETED_REF="${{ github.event.ref }}"
+            echo "🔍 削除されたブランチ: ${DELETED_REF}"
+            
+            # ブランチ名をサービス名に変換
+            SAFE_BRANCH=$(echo "$DELETED_REF" | \
+              sed 's/[^a-zA-Z0-9-]/-/g' | \
+              sed 's/--*/-/g' | \
+              sed 's/^-\|-$//g' | \
+              tr '[:upper:]' '[:lower:]' | \
+              cut -c1-50)
+            SERVICE_NAME="penlight-${SAFE_BRANCH}"
+            
+            echo "🎯 推定サービス名: ${SERVICE_NAME}"
+            
+            if gcloud run services describe "${SERVICE_NAME}" \
+                --region="${{ env.GCP_REGION }}" \
+                --format="value(metadata.name)" \
+                --quiet >/dev/null 2>&1; then
+              SERVICES_JSON="[\"${SERVICE_NAME}\"]"
+              HAS_SERVICES="true"
+              echo "✅ ブランチ関連サービスが見つかりました: ${SERVICE_NAME}"
+            else
+              echo "ℹ️ ブランチ関連サービスは見つかりませんでした"
+            fi
+          fi
+          
+          echo "services=${SERVICES_JSON}" >> $GITHUB_OUTPUT
+          echo "has_services=${HAS_SERVICES}" >> $GITHUB_OUTPUT
+          
+          echo "📋 削除対象サービス: ${SERVICES_JSON}"
+
+  # Cloud Runサービスの削除
+  delete-services:
+    runs-on: ubuntu-latest
+    needs: identify-services
+    if: needs.identify-services.outputs.has_services == 'true'
+    strategy:
+      matrix:
+        service: ${{ fromJson(needs.identify-services.outputs.services_to_delete) }}
+    steps:
+      - name: Authenticate to Google Cloud
+        uses: google-github-actions/auth@v2
+        with:
+          credentials_json: ${{ secrets.GCP_SA_KEY }}
+
+      - name: Set up Cloud SDK
+        uses: google-github-actions/setup-gcloud@v2
+
+      - name: Delete Cloud Run service
+        run: |
+          SERVICE_NAME="${{ matrix.service }}"
+          
+          echo "🗑️ Cloud Runサービスを削除中: ${SERVICE_NAME}"
+          
+          # サービスの詳細情報を取得（削除前）
+          echo "📋 削除対象サービスの情報:"
+          gcloud run services describe "${SERVICE_NAME}" \
+            --region="${{ env.GCP_REGION }}" \
+            --format="table(
+              metadata.name:label=SERVICE_NAME,
+              spec.template.spec.containers[0].image:label=IMAGE,
+              metadata.labels.branch:label=BRANCH,
+              metadata.labels.type:label=TYPE,
+              metadata.creationTimestamp:label=CREATED
+            )" || echo "⚠️ サービス詳細の取得に失敗"
+          
+          # サービスを削除
+          if gcloud run services delete "${SERVICE_NAME}" \
+              --region="${{ env.GCP_REGION }}" \
+              --quiet; then
+            echo "✅ サービス削除完了: ${SERVICE_NAME}"
+          else
+            echo "❌ サービス削除に失敗: ${SERVICE_NAME}"
+            exit 1
+          fi
+
+  # 関連するDockerイメージの削除（オプション）
+  cleanup-images:
+    runs-on: ubuntu-latest
+    needs: [identify-services, delete-services]
+    if: needs.identify-services.outputs.has_services == 'true'
+    steps:
+      - name: Authenticate to Google Cloud
+        uses: google-github-actions/auth@v2
+        with:
+          credentials_json: ${{ secrets.GCP_SA_KEY }}
+
+      - name: Set up Cloud SDK
+        uses: google-github-actions/setup-gcloud@v2
+
+      - name: Cleanup old preview images
+        run: |
+          echo "🧹 古いプレビューイメージのクリーンアップ中..."
+          
+          # 30日以上古いプレビューイメージを削除
+          CUTOFF_DATE=$(date -d '30 days ago' -u +%Y-%m-%dT%H:%M:%S)
+          
+          # プレビュー用イメージのリストを取得
+          IMAGES=$(gcloud container images list-tags \
+            "gcr.io/${{ env.GCP_PROJECT_ID }}/penlight-preview" \
+            --format="value(digest,timestamp.datetime)" \
+            --filter="timestamp.datetime < '${CUTOFF_DATE}'" \
+            --limit=50 2>/dev/null || echo "")
+          
+          if [ -z "$IMAGES" ]; then
+            echo "ℹ️ 削除対象の古いイメージはありません"
+            exit 0
+          fi
+          
+          echo "📋 削除対象イメージ（30日以上前）:"
+          echo "$IMAGES"
+          
+          # イメージを削除
+          echo "$IMAGES" | while read -r digest timestamp; do
+            if [ -n "$digest" ]; then
+              echo "🗑️ イメージ削除中: $digest ($timestamp)"
+              gcloud container images delete \
+                "gcr.io/${{ env.GCP_PROJECT_ID }}/penlight-preview@$digest" \
+                --quiet || echo "⚠️ イメージ削除に失敗: $digest"
+            fi
+          done
+          
+          echo "✅ イメージクリーンアップ完了"
+
+  # PRにクリーンアップ完了をコメント（PRクローズ時のみ）
+  comment-cleanup:
+    runs-on: ubuntu-latest
+    needs: [identify-services, delete-services]
+    if: github.event_name == 'pull_request' && needs.identify-services.outputs.has_services == 'true'
+    steps:
+      - name: Comment cleanup on PR
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const services = ${{ needs.identify-services.outputs.services_to_delete }};
+            const serviceList = services.map(s => `- \`${s}\``).join('\n');
+            
+            const body = `## 🧹 プレビュー環境クリーンアップ完了
+            
+            PRのクローズに伴い、以下のプレビュー環境を削除しました：
+            
+            ${serviceList}
+            
+            ### 📋 クリーンアップ内容
+            - ✅ Cloud Runサービスの削除
+            - ✅ 関連リソースの削除
+            - 🧹 古いDockerイメージの削除（30日以上前）
+            
+            ---
+            *このコメントは自動生成されました*`;
+            
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: body
+            });
+
+  # クリーンアップ結果の通知
+  notify-cleanup-result:
+    runs-on: ubuntu-latest
+    needs: [identify-services, delete-services]
+    if: always()
+    steps:
+      - name: Notify cleanup result
+        run: |
+          if [ "${{ needs.identify-services.outputs.has_services }}" = "false" ]; then
+            echo "ℹ️ 削除対象のプレビュー環境はありませんでした"
+          elif [ "${{ needs.delete-services.result }}" = "success" ]; then
+            echo "✅ プレビュー環境のクリーンアップが完了しました"
+            SERVICES='${{ needs.identify-services.outputs.services_to_delete }}'
+            echo "🗑️ 削除されたサービス: ${SERVICES}"
+          else
+            echo "❌ プレビュー環境のクリーンアップに失敗しました"
+            exit 1
+          fi

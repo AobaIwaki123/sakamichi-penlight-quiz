@@ -258,6 +258,38 @@ sakamichi-penlight-quiz/
 
 ## 開発・デプロイ
 
+### ブランチプレビュー機能 🆕
+
+プルリクエストや開発ブランチに対して、自動的にCloud Runでプレビュー環境を作成します。
+
+#### 対応ブランチ
+- `feature/**` - 新機能開発
+- `fix/**` - バグ修正  
+- `refactor/**` - リファクタリング
+- `develop` - 開発統合ブランチ
+- PR（Pull Request）
+
+#### 自動作成される環境
+- **URL例**: `https://penlight-pr-123-xxxxxxxxxx-an.a.run.app`
+- **設定**: 開発モード（モックデータ使用）
+- **自動削除**: PRクローズ時、ブランチ削除時
+
+#### 使用方法
+```bash
+# 1. 機能ブランチを作成してプッシュ
+git checkout -b feature/awesome-feature
+git push origin feature/awesome-feature
+# → 自動的にプレビュー環境が作成される
+
+# 2. PRを作成
+# → PRコメントにプレビューURLが自動投稿される
+
+# 3. PRをクローズ
+# → プレビュー環境が自動削除される
+```
+
+詳細は [GitHub Actions ワークフロー](.github/workflows/README.md) を参照してください。
+
 ### ローカル開発
 ```bash
 # 開発サーバー起動

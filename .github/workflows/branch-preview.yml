@@ -1,0 +1,237 @@
+name: Branch Preview Environment
+run-name: Deploy preview for ${{ github.ref_name }}
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+    paths:
+      - 'view/**'
+      - '.github/workflows/branch-preview.yml'
+  push:
+    branches:
+      - 'feature/**'
+      - 'fix/**'
+      - 'refactor/**'
+      - 'develop'
+    paths:
+      - 'view/**'
+      - '.github/workflows/branch-preview.yml'
+
+permissions:
+  contents: read
+  id-token: write
+  pull-requests: write
+
+env:
+  GCP_PROJECT_ID: ${{ secrets.GCP_PROJECT_ID }}
+  GCP_REGION: asia-northeast1
+  SERVICE_NAME_PREFIX: penlight-preview
+  
+defaults:
+  run:
+    shell: bash
+
+jobs:
+  # ブランチ名を安全な形式に変換
+  prepare:
+    runs-on: ubuntu-latest
+    outputs:
+      branch_name: ${{ steps.branch.outputs.name }}
+      service_name: ${{ steps.branch.outputs.service_name }}
+      image_tag: ${{ steps.branch.outputs.image_tag }}
+      is_pr: ${{ steps.branch.outputs.is_pr }}
+    steps:
+      - name: Extract branch information
+        id: branch
+        run: |
+          # ブランチ名の取得（PR の場合は head_ref を使用）
+          if [ "${{ github.event_name }}" = "pull_request" ]; then
+            BRANCH_NAME="${{ github.head_ref }}"
+            IS_PR="true"
+            PR_NUMBER="${{ github.event.number }}"
+          else
+            BRANCH_NAME="${GITHUB_REF#refs/heads/}"
+            IS_PR="false"
+            PR_NUMBER=""
+          fi
+          
+          # ブランチ名をCloud Run サービス名として有効な形式に変換
+          # - 英数字とハイフンのみ許可
+          # - 最大63文字
+          # - 先頭と末尾は英数字
+          SAFE_BRANCH=$(echo "$BRANCH_NAME" | \
+            sed 's/[^a-zA-Z0-9-]/-/g' | \
+            sed 's/--*/-/g' | \
+            sed 's/^-\|-$//g' | \
+            tr '[:upper:]' '[:lower:]' | \
+            cut -c1-50)
+          
+          # PR番号がある場合は追加
+          if [ -n "$PR_NUMBER" ]; then
+            SERVICE_NAME="penlight-pr-${PR_NUMBER}"
+            IMAGE_TAG="pr-${PR_NUMBER}-$(echo ${{ github.sha }} | cut -c1-8)"
+          else
+            SERVICE_NAME="penlight-${SAFE_BRANCH}"
+            IMAGE_TAG="${SAFE_BRANCH}-$(echo ${{ github.sha }} | cut -c1-8)"
+          fi
+          
+          echo "name=${BRANCH_NAME}" >> $GITHUB_OUTPUT
+          echo "service_name=${SERVICE_NAME}" >> $GITHUB_OUTPUT
+          echo "image_tag=${IMAGE_TAG}" >> $GITHUB_OUTPUT
+          echo "is_pr=${IS_PR}" >> $GITHUB_OUTPUT
+          
+          echo "📋 ブランチ情報:"
+          echo "  - ブランチ名: ${BRANCH_NAME}"
+          echo "  - サービス名: ${SERVICE_NAME}"
+          echo "  - イメージタグ: ${IMAGE_TAG}"
+          echo "  - PR: ${IS_PR}"
+
+  # Dockerイメージのビルドとプッシュ
+  build-and-push:
+    runs-on: ubuntu-latest
+    needs: prepare
+    outputs:
+      image_url: ${{ steps.image.outputs.url }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Authenticate to Google Cloud
+        uses: google-github-actions/auth@v2
+        with:
+          credentials_json: ${{ secrets.GCP_SA_KEY }}
+
+      - name: Configure Docker for GCR
+        run: gcloud auth configure-docker --quiet
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build and push Docker image
+        id: image
+        run: |
+          IMAGE_URL="gcr.io/${{ env.GCP_PROJECT_ID }}/penlight-preview:${{ needs.prepare.outputs.image_tag }}"
+          
+          echo "🏗️ Dockerイメージをビルド中..."
+          docker build \
+            --target prod \
+            --tag "${IMAGE_URL}" \
+            ./view
+          
+          echo "📦 GCRにプッシュ中..."
+          docker push "${IMAGE_URL}"
+          
+          echo "url=${IMAGE_URL}" >> $GITHUB_OUTPUT
+          echo "✅ イメージプッシュ完了: ${IMAGE_URL}"
+
+  # Cloud Runサービスのデプロイ
+  deploy-to-cloud-run:
+    runs-on: ubuntu-latest
+    needs: [prepare, build-and-push]
+    outputs:
+      service_url: ${{ steps.deploy.outputs.url }}
+    steps:
+      - name: Authenticate to Google Cloud
+        uses: google-github-actions/auth@v2
+        with:
+          credentials_json: ${{ secrets.GCP_SA_KEY }}
+
+      - name: Set up Cloud SDK
+        uses: google-github-actions/setup-gcloud@v2
+
+      - name: Deploy to Cloud Run
+        id: deploy
+        run: |
+          SERVICE_NAME="${{ needs.prepare.outputs.service_name }}"
+          IMAGE_URL="${{ needs.build-and-push.outputs.image_url }}"
+          
+          echo "🚀 Cloud Runにデプロイ中..."
+          echo "  - サービス名: ${SERVICE_NAME}"
+          echo "  - イメージ: ${IMAGE_URL}"
+          echo "  - リージョン: ${{ env.GCP_REGION }}"
+          
+          # Cloud Runサービスをデプロイ
+          gcloud run deploy "${SERVICE_NAME}" \
+            --image="${IMAGE_URL}" \
+            --region="${{ env.GCP_REGION }}" \
+            --platform=managed \
+            --allow-unauthenticated \
+            --port=3000 \
+            --memory=1Gi \
+            --cpu=1 \
+            --min-instances=0 \
+            --max-instances=2 \
+            --timeout=300s \
+            --concurrency=100 \
+            --set-env-vars="NODE_ENV=development,USE_MOCK=true" \
+            --labels="environment=preview,branch=${{ needs.prepare.outputs.branch_name }},type=preview" \
+            --tag="${{ needs.prepare.outputs.image_tag }}" \
+            --quiet
+          
+          # デプロイされたサービスのURLを取得
+          SERVICE_URL=$(gcloud run services describe "${SERVICE_NAME}" \
+            --region="${{ env.GCP_REGION }}" \
+            --format="value(status.url)")
+          
+          echo "url=${SERVICE_URL}" >> $GITHUB_OUTPUT
+          echo "✅ デプロイ完了: ${SERVICE_URL}"
+
+  # PRにコメントを追加（PRの場合のみ）
+  comment-on-pr:
+    runs-on: ubuntu-latest
+    needs: [prepare, deploy-to-cloud-run]
+    if: needs.prepare.outputs.is_pr == 'true'
+    steps:
+      - name: Comment on PR
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const serviceUrl = '${{ needs.deploy-to-cloud-run.outputs.service_url }}';
+            const serviceName = '${{ needs.prepare.outputs.service_name }}';
+            const imageTag = '${{ needs.prepare.outputs.image_tag }}';
+            
+            const body = `## 🚀 プレビュー環境デプロイ完了
+            
+            **プレビューURL**: ${serviceUrl}
+            
+            ### 📋 デプロイ情報
+            - **サービス名**: \`${serviceName}\`
+            - **イメージタグ**: \`${imageTag}\`
+            - **リージョン**: \`${{ env.GCP_REGION }}\`
+            - **環境**: 開発モード（モックデータ使用）
+            
+            ### 🔗 便利なリンク
+            - [Cloud Run コンソール](https://console.cloud.google.com/run/detail/${{ env.GCP_REGION }}/${serviceName})
+            - [ログ確認](https://console.cloud.google.com/logs/query;query=resource.type%3D%22cloud_run_revision%22%0Aresource.labels.service_name%3D%22${serviceName}%22)
+            
+            ### ⚠️ 注意事項
+            - このプレビュー環境はPRクローズ時に自動削除されます
+            - BigQueryの代わりにモックデータを使用しています
+            - パフォーマンステスト用途には適していません
+            
+            ---
+            *このコメントは自動生成されました*`;
+            
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: body
+            });
+
+  # デプロイ結果の通知
+  notify-result:
+    runs-on: ubuntu-latest
+    needs: [prepare, deploy-to-cloud-run]
+    if: always()
+    steps:
+      - name: Notify deployment result
+        run: |
+          if [ "${{ needs.deploy-to-cloud-run.result }}" = "success" ]; then
+            echo "✅ プレビュー環境のデプロイが成功しました"
+            echo "🌐 URL: ${{ needs.deploy-to-cloud-run.outputs.service_url }}"
+            echo "📋 サービス名: ${{ needs.prepare.outputs.service_name }}"
+          else
+            echo "❌ プレビュー環境のデプロイに失敗しました"
+            exit 1
+          fi
