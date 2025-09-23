@@ -30,11 +30,17 @@ WORKDIR /app
 
 # パッケージファイルのコピーと依存関係のインストール（--frozen-lockfile でロックファイル厳守）
 COPY package.json pnpm-lock.yaml ./
-RUN npm install -g pnpm && pnpm install --frozen-lockfile
+RUN npm install -g pnpm
+RUN pnpm config set global-bin-dir /usr/local/bin
+
+RUN pnpm add -g @aikidosec/safe-chain
+RUN safe-chain setup
+
+RUN aikido-pnpm install --frozen-lockfile
 
 # ソースコードのコピーとビルドの実行
 COPY . .
-RUN pnpm run build
+RUN aikido-pnpm run build
 
 # --- 本番ステージ（軽量かつ安全なDistrolessイメージ） ---
 FROM gcr.io/distroless/nodejs24-debian12:nonroot AS prod
