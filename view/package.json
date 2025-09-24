@@ -11,8 +11,9 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint",
     "test": "jest",
+    "lint": "ultracite lint",
+    "format": "ultracite format",
     "test:watch": "jest --watch"
   },
   "dependencies": {
@@ -21,7 +22,7 @@
     "@mantine/hooks": "8.3.1",
     "@mantinex/mantine-logo": "2.0.0",
     "@next/bundle-analyzer": "15.5.3",
-    "@tabler/icons-react": "^3.34.1",
+    "@tabler/icons-react": "^3.35.0",
     "clsx": "^2.1.1",
     "next": "15.5.3",
     "next-pwa": "5.6.0",
@@ -31,20 +32,22 @@
     "zustand": "^5.0.3"
   },
   "devDependencies": {
+    "@biomejs/biome": "2.2.4",
     "@testing-library/jest-dom": "^6.8.0",
     "@testing-library/react": "^16.3.0",
     "@types/jest": "30.0.0",
     "@types/node": "24.4.0",
     "@types/react": "19.0.12",
     "@types/react-dom": "19.0.4",
-    "eslint": "9.35.0",
+    "eslint": "9.36.0",
     "eslint-config-next": "15.5.3",
     "jest": "30.1.3",
     "jest-environment-jsdom": "30.1.2",
     "postcss": "^8.5.3",
-    "postcss-preset-mantine": "1.17.0",
+    "postcss-preset-mantine": "1.18.0",
     "postcss-simple-vars": "^7.0.1",
-    "ts-jest": "^29.3.2",
-    "typescript": "5.8.3"
+    "ts-jest": "^29.4.4",
+    "typescript": "5.8.3",
+    "ultracite": "5.4.4"
   }
 }

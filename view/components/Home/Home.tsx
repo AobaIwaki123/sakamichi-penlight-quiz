@@ -1,8 +1,7 @@
 "use client";
-import { InitialLoader } from '@/components/Helper/ModeIconWrapper/initialMemberLoader';
-
-import { Notification } from '@/components/Notification/Notification';
-import { Container, Grid } from '@mantine/core';
+import { Container, Grid } from "@mantine/core";
+import { InitialLoader } from "@/components/Helper/ModeIconWrapper/initialMemberLoader";
+import { Notification } from "@/components/Notification/Notification";
 import { MemberInfo } from "./MemberInfo/MemberInfo";
 import { PenlightForm } from "./PenlightForm/PenlightForm";
 

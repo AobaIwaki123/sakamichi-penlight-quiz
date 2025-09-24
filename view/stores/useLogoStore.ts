@@ -1,4 +1,4 @@
-import { create } from 'zustand'
+import { create } from "zustand";
 
 import type { Group } from "@/types/Group";
 
@@ -11,18 +11,27 @@ import type { Group } from "@/types/Group";
  */
 interface Logo {
   /** グループ名 */
-  name: Group
+  name: Group;
   /** ロゴ画像のURL */
-  url: string
+  url: string;
 }
 
 /**
  * 利用可能なロゴ一覧
  */
 const AVAILABLE_LOGOS: Logo[] = [
-  { name: 'hinatazaka', url: 'https://upload.wikimedia.org/wikipedia/commons/0/0b/Hinatazaka46_logo.svg' },
-  { name: 'sakurazaka', url: 'https://upload.wikimedia.org/wikipedia/commons/7/7a/Sakurazaka46_logo.svg' },
-  { name: 'nogizaka', url: 'https://upload.wikimedia.org/wikipedia/commons/6/65/Nogizaka46_logo.svg' },
+  {
+    name: "hinatazaka",
+    url: "https://upload.wikimedia.org/wikipedia/commons/0/0b/Hinatazaka46_logo.svg",
+  },
+  {
+    name: "sakurazaka",
+    url: "https://upload.wikimedia.org/wikipedia/commons/7/7a/Sakurazaka46_logo.svg",
+  },
+  {
+    name: "nogizaka",
+    url: "https://upload.wikimedia.org/wikipedia/commons/6/65/Nogizaka46_logo.svg",
+  },
 ] as const;
 
 /**
@@ -30,9 +39,9 @@ const AVAILABLE_LOGOS: Logo[] = [
  */
 interface LogoState {
   /** 現在のロゴインデックス */
-  index: number
+  index: number;
   /** 現在表示中のロゴ */
-  current: Logo
+  current: Logo;
 }
 
 /**
@@ -40,9 +49,9 @@ interface LogoState {
  */
 interface LogoActions {
   /** 次のロゴに切り替える */
-  next: () => Logo
+  next: () => Logo;
   /** 最初のロゴにリセットする */
-  reset: () => void
+  reset: () => void;
 }
 
 type LogoStore = LogoState & LogoActions;
@@ -61,20 +70,20 @@ export const useLogoStore = create<LogoStore>((set, get) => ({
     const { index } = get();
     const nextIndex = (index + 1) % AVAILABLE_LOGOS.length;
     const nextLogo = AVAILABLE_LOGOS[nextIndex];
-    
-    set({ 
-      index: nextIndex, 
-      current: nextLogo 
+
+    set({
+      index: nextIndex,
+      current: nextLogo,
     });
-    
+
     return nextLogo;
   },
 
   // 最初のロゴにリセット
   reset: () => {
-    set({ 
-      index: 0, 
-      current: AVAILABLE_LOGOS[0] 
+    set({
+      index: 0,
+      current: AVAILABLE_LOGOS[0],
     });
   },
-}))
+}));

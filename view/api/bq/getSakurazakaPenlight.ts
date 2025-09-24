@@ -1,31 +1,35 @@
 "use server";
 
-import type { PenlightColor } from '@/types/PenlightColor';
-import { sakurazakaPenlightMock } from './mockData/sakurazakaPenlightMock';
-import { executeQuery, checkTableExists, type QueryResult } from './common/bigqueryClient';
-import { 
-  getApiEnvironment, 
-  handleApiError, 
-  logApiStart, 
-  logApiComplete, 
-  logMockUsage,
+import type { PenlightColor } from "@/types/PenlightColor";
+import {
+  checkTableExists,
+  executeQuery,
+  type QueryResult,
+} from "./common/bigqueryClient";
+import {
+  ApiErrorCode,
   createApiError,
-  ApiErrorCode
-} from './common/errorHandling';
-import { 
-  buildPenlightQuery, 
-  validatePenlightData,
+  getApiEnvironment,
+  handleApiError,
+  logApiComplete,
+  logApiStart,
+  logMockUsage,
+} from "./common/errorHandling";
+import {
+  BIGQUERY_CONFIG,
+  buildPenlightQuery,
   TABLE_NAMES,
-  BIGQUERY_CONFIG
-} from './common/queryUtils';
+  validatePenlightData,
+} from "./common/queryUtils";
+import { sakurazakaPenlightMock } from "./mockData/sakurazakaPenlightMock";
 
 /**
  * BigQueryから櫻坂46のペンライト色情報を取得する関数
  * USE_MOCK環境変数がtrueの場合はモックデータを返し、falseの場合はBigQueryから取得する
- * 
+ *
  * @returns Promise<PenlightColor[]> 櫻坂46ペンライト色情報の配列
  * @throws Error BigQuery接続エラーまたはクエリ実行エラー
- * 
+ *
  * @example
  * ```typescript
  * const colors = await getSakurazakaPenlight();
@@ -34,10 +38,10 @@ import {
  * ```
  */
 export async function getSakurazakaPenlight(): Promise<PenlightColor[]> {
-  const group = 'sakurazaka';
-  const apiName = 'getSakurazakaPenlight';
+  const group = "sakurazaka";
+  const apiName = "getSakurazakaPenlight";
   const environment = getApiEnvironment();
-  
+
   logApiStart(apiName, { group });
 
   // モック環境の場合は即座にモックデータを返す
@@ -50,8 +54,11 @@ export async function getSakurazakaPenlight(): Promise<PenlightColor[]> {
   try {
     // テーブル存在確認
     const tableName = TABLE_NAMES[group].penlight;
-    const tableExists = await checkTableExists(BIGQUERY_CONFIG.dataset, tableName);
-    
+    const tableExists = await checkTableExists(
+      BIGQUERY_CONFIG.dataset,
+      tableName
+    );
+
     if (!tableExists) {
       throw createApiError(
         ApiErrorCode.TABLE_NOT_FOUND,
@@ -64,13 +71,12 @@ export async function getSakurazakaPenlight(): Promise<PenlightColor[]> {
     // BigQueryクエリ実行
     const query = buildPenlightQuery(group);
     const result: QueryResult<any> = await executeQuery(query);
-    
+
     // データ検証
     const validatedData = validatePenlightData(result.data);
-    
+
     logApiComplete(apiName, validatedData.length, result.executionTime);
     return validatedData;
-
   } catch (error) {
     return handleApiError(apiName, error as Error, sakurazakaPenlightMock);
   }

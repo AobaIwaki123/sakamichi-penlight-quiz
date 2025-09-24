@@ -6,7 +6,5 @@ import { NotFoundImage } from "@/components/Error/ClientError/NotFoundImage";
  * Next.js App Routerの自動的な404ハンドリング機能を利用
  */
 export default function NotFound() {
-  return (
-    <NotFoundImage />
-  );
+  return <NotFoundImage />;
 }

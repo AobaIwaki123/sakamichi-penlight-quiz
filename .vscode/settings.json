@@ -1,22 +1,41 @@
 {
-  "editor.formatOnSave": true,
-  //   コマンドをいちいち実行しなくても常に lint/format が素早く実行される状態にする
-  "[typescript]": {
-    "editor.tabSize": 1,
-    "editor.formatOnSave": true,
-    "editor.defaultFormatter": "biomejs.biome"
-  },
-  "editor.codeActionsOnSave": {
-    "source.organizeImports.biome": "explicit"
-  },
-  "[typescriptreact]": {
-    "editor.defaultFormatter": "vscode.typescript-language-features"
-  },
-  "git.replaceTagsWhenPull": true,
-  "githubIssues.alwaysPromptForNewIssueRepo": true,
-  "cSpell.words": [
-    "sakamichipenlightquiz",
-    "sakurazaka",
-    "vulns"
-  ]
+	"editor.formatOnSave": true,
+	//   コマンドをいちいち実行しなくても常に lint/format が素早く実行される状態にする
+	"[typescript]": {
+		"editor.tabSize": 1,
+		"editor.formatOnSave": true,
+		"editor.defaultFormatter": "biomejs.biome"
+	},
+	"editor.codeActionsOnSave": {
+		"source.fixAll.biome": "explicit",
+		"source.organizeImports.biome": "explicit"
+	},
+	"[typescriptreact]": {
+		"editor.defaultFormatter": "biomejs.biome"
+	},
+	"[javascriptreact]": {
+		"editor.defaultFormatter": "biomejs.biome"
+	},
+	"[json]": {
+		"editor.defaultFormatter": "biomejs.biome"
+	},
+	"[jsonc]": {
+		"editor.defaultFormatter": "biomejs.biome"
+	},
+	"[css]": {
+		"editor.defaultFormatter": "biomejs.biome"
+	},
+	"[graphql]": {
+		"editor.defaultFormatter": "biomejs.biome"
+	},
+	"git.replaceTagsWhenPull": true,
+	"githubIssues.alwaysPromptForNewIssueRepo": true,
+	"cSpell.words": ["sakamichipenlightquiz", "sakurazaka", "vulns"],
+	"editor.defaultFormatter": "esbenp.prettier-vscode",
+	"[javascript]": {
+		"editor.defaultFormatter": "biomejs.biome"
+	},
+	"typescript.tsdk": "node_modules/typescript/lib",
+	"editor.formatOnPaste": true,
+	"emmet.showExpandedAbbreviation": "never"
 }

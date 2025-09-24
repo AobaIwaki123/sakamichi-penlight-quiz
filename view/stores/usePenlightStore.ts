@@ -1,9 +1,8 @@
-import { create } from 'zustand';
-
-import type { PenlightColor } from '@/types/PenlightColor';
-import type { Group } from '@/types/Group';
-import { getHinatazakaPenlight } from '@/api/bq/getHinatazakaPenlight';
-import { getSakurazakaPenlight } from '@/api/bq/getSakurazakaPenlight';
+import { create } from "zustand";
+import { getHinatazakaPenlight } from "@/api/bq/getHinatazakaPenlight";
+import { getSakurazakaPenlight } from "@/api/bq/getSakurazakaPenlight";
+import type { Group } from "@/types/Group";
+import type { PenlightColor } from "@/types/PenlightColor";
 
 /**
  * グループ別キャッシュデータ
@@ -56,7 +55,7 @@ type PenlightStore = PenlightState & PenlightActions;
  */
 export const usePenlightStore = create<PenlightStore>((set, get) => ({
   // 初期状態
-  currentGroup: 'hinatazaka',
+  currentGroup: "hinatazaka",
   penlightColors: [],
   cache: {},
   cacheExpiry: 5 * 60 * 1000, // 5分間のキャッシュ
@@ -66,7 +65,7 @@ export const usePenlightStore = create<PenlightStore>((set, get) => ({
   // アクション
   fetchPenlightColors: async (group: Group, forceRefresh = false) => {
     const { isLoading, cache, cacheExpiry } = get();
-    
+
     // ローディング中の場合はスキップ
     if (isLoading) {
       return;
@@ -75,12 +74,14 @@ export const usePenlightStore = create<PenlightStore>((set, get) => ({
     // キャッシュチェック（強制更新でない場合）
     if (!forceRefresh && isCacheValidForGroup(cache, group, cacheExpiry)) {
       const cachedData = cache[group]!.data;
-      set({ 
-        currentGroup: group, 
+      set({
+        currentGroup: group,
         penlightColors: cachedData,
-        error: null
+        error: null,
       });
-      console.log(`${group}のペンライト色データをキャッシュから取得: ${cachedData.length}件`);
+      console.log(
+        `${group}のペンライト色データをキャッシュから取得: ${cachedData.length}件`
+      );
       return;
     }
 
@@ -93,36 +94,38 @@ export const usePenlightStore = create<PenlightStore>((set, get) => ({
       const now = Date.now();
 
       // 成功時の状態更新（キャッシュも更新）
-      set(state => ({ 
-        penlightColors, 
+      set((state) => ({
+        penlightColors,
         isLoading: false,
         error: null,
         cache: {
           ...state.cache,
           [group]: {
             data: penlightColors,
-            cachedAt: now
-          }
-        }
+            cachedAt: now,
+          },
+        },
       }));
 
-      console.log(`${group}のペンライト色データ取得完了: ${penlightColors.length}件（キャッシュ更新）`);
+      console.log(
+        `${group}のペンライト色データ取得完了: ${penlightColors.length}件（キャッシュ更新）`
+      );
     } catch (error) {
       // エラー時の状態更新
       const errorMessage = extractErrorMessage(error);
       console.error(`${group}のペンライト色取得失敗:`, error);
-      
-      set({ 
-        penlightColors: [], 
-        isLoading: false, 
-        error: errorMessage 
+
+      set({
+        penlightColors: [],
+        isLoading: false,
+        error: errorMessage,
       });
     }
   },
 
   getPenlightById: (id: number) => {
     const { penlightColors } = get();
-    return penlightColors.find(color => color.id === id);
+    return penlightColors.find((color) => color.id === id);
   },
 
   clearError: () => {
@@ -132,7 +135,7 @@ export const usePenlightStore = create<PenlightStore>((set, get) => ({
   clearCache: (group?: Group) => {
     if (group) {
       // 指定グループのキャッシュのみクリア
-      set(state => {
+      set((state) => {
         const newCache = { ...state.cache };
         delete newCache[group];
         return { cache: newCache };
@@ -141,7 +144,7 @@ export const usePenlightStore = create<PenlightStore>((set, get) => ({
     } else {
       // 全キャッシュをクリア
       set({ cache: {} });
-      console.log('全てのキャッシュをクリアしました');
+      console.log("全てのキャッシュをクリアしました");
     }
   },
 
@@ -171,7 +174,7 @@ function isCacheValidForGroup(
   if (!cachedData || cachedData.data.length === 0) {
     return false;
   }
-  
+
   const now = Date.now();
   const cacheAge = now - cachedData.cachedAt;
   return cacheAge < cacheExpiry;
@@ -183,11 +186,13 @@ function isCacheValidForGroup(
  * @returns ペンライト色データの配列
  * @throws 未対応のグループの場合エラー
  */
-async function fetchPenlightDataByGroup(group: Group): Promise<PenlightColor[]> {
+async function fetchPenlightDataByGroup(
+  group: Group
+): Promise<PenlightColor[]> {
   switch (group) {
-    case 'hinatazaka':
+    case "hinatazaka":
       return getHinatazakaPenlight();
-    case 'sakurazaka':
+    case "sakurazaka":
       return getSakurazakaPenlight();
     default:
       throw new Error(`サポートされていないグループです: ${group}`);
@@ -200,5 +205,7 @@ async function fetchPenlightDataByGroup(group: Group): Promise<PenlightColor[]> 
  * @returns ユーザー向けエラーメッセージ
  */
 function extractErrorMessage(error: unknown): string {
-  return error instanceof Error ? error.message : 'ペンライト色の取得に失敗しました';
+  return error instanceof Error
+    ? error.message
+    : "ペンライト色の取得に失敗しました";
 }

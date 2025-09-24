@@ -1,14 +1,16 @@
 "use client";
 
-import { useSelectedMemberStore } from '@/stores/useSelectedMemberStore';
-import { Notification, Overlay, Transition } from '@mantine/core';
-import { useEffect, useState } from 'react';
+import { Notification, Overlay, Transition } from "@mantine/core";
+import { useEffect, useState } from "react";
+import { useSelectedMemberStore } from "@/stores/useSelectedMemberStore";
 
-import classes from './EmptyFilteredMember.module.css';
+import classes from "./EmptyFilteredMember.module.css";
 
 export function EmptyFilteredMember() {
   const [opened, setOpened] = useState(false);
-  const hasInvalidFilter = useSelectedMemberStore((state) => state.hasInvalidFilter);
+  const hasInvalidFilter = useSelectedMemberStore(
+    (state) => state.hasInvalidFilter
+  );
 
   useEffect(() => {
     if (hasInvalidFilter) {
@@ -22,11 +24,12 @@ export function EmptyFilteredMember() {
   return (
     <Transition mounted={opened} transition="fade-left">
       {(styles) => (
-        <Overlay mt="90vh" backgroundOpacity={0}>
-          <Notification style={styles}
-            title="フィルターが無効です"
-            onClose={() => setOpened(false)}
+        <Overlay backgroundOpacity={0} mt="90vh">
+          <Notification
             className={classes.base}
+            onClose={() => setOpened(false)}
+            style={styles}
+            title="フィルターが無効です"
             withCloseButton={false}
           >
             <span>フィルターを変更してください</span>

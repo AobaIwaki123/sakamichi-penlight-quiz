@@ -1,7 +1,6 @@
-
 import { useMantineColorScheme } from "@mantine/core";
-import { useEffect, useState } from "react";
 import type { ComponentProps, ElementType } from "react";
+import { useEffect, useState } from "react";
 
 interface IconProps extends ComponentProps<any> {
   icon: ElementType;

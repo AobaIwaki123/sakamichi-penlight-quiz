@@ -1,9 +1,9 @@
 "use client";
 
-import { useColorController } from '@/hooks/useColorController';
-import { ActionIcon, AspectRatio, Box, Card, Text } from '@mantine/core';
-import { IconCaretLeft, IconCaretRight } from '@tabler/icons-react';
-import classes from './Penlight.module.css';
+import { ActionIcon, AspectRatio, Box, Card, Text } from "@mantine/core";
+import { IconCaretLeft, IconCaretRight } from "@tabler/icons-react";
+import { useColorController } from "@/hooks/useColorController";
+import classes from "./Penlight.module.css";
 
 export function Penlight({ id }: { id: string }) {
   const { color, nameJa, next, prev } = useColorController(id);
@@ -12,16 +12,30 @@ export function Penlight({ id }: { id: string }) {
     <Card className={classes.base}>
       <Card.Section className={classes.penlight}>
         <AspectRatio ratio={100 / 270}>
-          <Box bg={color} w={50} className={classes.penlight_box} />
+          <Box bg={color} className={classes.penlight_box} w={50} />
         </AspectRatio>
       </Card.Section>
-      <Text ta="center" mt="xs" mb="xs" size="md" c="dimmed" fw={700}>{nameJa}</Text>
+      <Text c="dimmed" fw={700} mb="xs" mt="xs" size="md" ta="center">
+        {nameJa}
+      </Text>
 
       <Card.Section className={classes.button}>
-        <ActionIcon variant="light" color="blue" size="xl" className={classes.icon} onClick={prev}>
+        <ActionIcon
+          className={classes.icon}
+          color="blue"
+          onClick={prev}
+          size="xl"
+          variant="light"
+        >
           <IconCaretLeft size={35} />
         </ActionIcon>
-        <ActionIcon variant="light" color="blue" size="xl" className={classes.icon} onClick={next}>
+        <ActionIcon
+          className={classes.icon}
+          color="blue"
+          onClick={next}
+          size="xl"
+          variant="light"
+        >
           <IconCaretRight size={35} />
         </ActionIcon>
       </Card.Section>
