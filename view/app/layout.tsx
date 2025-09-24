@@ -1,11 +1,11 @@
 import "@mantine/core/styles.css";
-import React from "react";
 import {
-  MantineProvider,
   ColorSchemeScript,
+  MantineProvider,
   mantineHtmlProps,
 } from "@mantine/core";
 import type { Metadata, Viewport } from "next";
+import type React from "react";
 import { theme } from "../theme";
 
 /**
@@ -14,34 +14,35 @@ import { theme } from "../theme";
  */
 export const metadata: Metadata = {
   title: {
-    template: '%s | 坂道ペンライトクイズ',
-    default: '坂道ペンライトクイズ'
+    template: "%s | 坂道ペンライトクイズ",
+    default: "坂道ペンライトクイズ",
   },
-  description: "日向坂46のペンライト色を当てるクイズアプリ。アイドルのペンライトカラーを覚えて楽しもう！",
-  keywords: ['日向坂46', 'ペンライト', 'クイズ', 'アイドル', '坂道グループ'],
-  authors: [{ name: 'AobaIwaki' }],
-  creator: 'AobaIwaki',
+  description:
+    "日向坂46のペンライト色を当てるクイズアプリ。アイドルのペンライトカラーを覚えて楽しもう！",
+  keywords: ["日向坂46", "ペンライト", "クイズ", "アイドル", "坂道グループ"],
+  authors: [{ name: "AobaIwaki" }],
+  creator: "AobaIwaki",
   openGraph: {
-    type: 'website',
-    locale: 'ja_JP',
-    title: '坂道ペンライトクイズ',
-    description: '日向坂46のペンライト色を当てるクイズアプリ',
-    siteName: '坂道ペンライトクイズ'
+    type: "website",
+    locale: "ja_JP",
+    title: "坂道ペンライトクイズ",
+    description: "日向坂46のペンライト色を当てるクイズアプリ",
+    siteName: "坂道ペンライトクイズ",
   },
   twitter: {
-    card: 'summary_large_image',
-    title: '坂道ペンライトクイズ',
-    description: '日向坂46のペンライト色を当てるクイズアプリ'
+    card: "summary_large_image",
+    title: "坂道ペンライトクイズ",
+    description: "日向坂46のペンライト色を当てるクイズアプリ",
   },
-  manifest: '/manifest.json',
+  manifest: "/manifest.json",
   icons: {
     icon: [
-      { url: '/icon512_rounded.jpg', sizes: '32x32', type: 'image/jpeg' },
-      { url: '/icon512_rounded.jpg', sizes: '16x16', type: 'image/jpeg' }
+      { url: "/icon512_rounded.jpg", sizes: "32x32", type: "image/jpeg" },
+      { url: "/icon512_rounded.jpg", sizes: "16x16", type: "image/jpeg" },
     ],
-    shortcut: '/icon512_rounded.svg',
-    apple: '/icon512_rounded.jpg'
-  }
+    shortcut: "/icon512_rounded.svg",
+    apple: "/icon512_rounded.jpg",
+  },
 };
 
 /**
@@ -49,14 +50,14 @@ export const metadata: Metadata = {
  * モバイル最適化とPWA対応の設定
  */
 export const viewport: Viewport = {
-  width: 'device-width',
+  width: "device-width",
   initialScale: 1,
   minimumScale: 1,
   userScalable: false,
   themeColor: [
-    { media: '(prefers-color-scheme: light)', color: '#ffffff' },
-    { media: '(prefers-color-scheme: dark)', color: '#1a1b1e' }
-  ]
+    { media: "(prefers-color-scheme: light)", color: "#ffffff" },
+    { media: "(prefers-color-scheme: dark)", color: "#1a1b1e" },
+  ],
 };
 
 /**
@@ -76,9 +77,7 @@ export default function RootLayout({
       </head>
       <body>
         {/* Mantineテーマプロバイダーでアプリケーション全体をラップ */}
-        <MantineProvider theme={theme}>
-          {children}
-        </MantineProvider>
+        <MantineProvider theme={theme}>{children}</MantineProvider>
       </body>
     </html>
   );

@@ -1,8 +1,8 @@
-import { Container, Group, Text } from '@mantine/core';
-import { GitHubIcon } from '../GitHubIcon/GitHubIcon';
-import { getAppVersion } from '@/lib/getVersion';
+import { Container, Group, Text } from "@mantine/core";
+import { getAppVersion } from "@/lib/getVersion";
+import { GitHubIcon } from "../GitHubIcon/GitHubIcon";
 
-import classes from './FooterSocial.module.css';
+import classes from "./FooterSocial.module.css";
 
 export function FooterSocial() {
   const version = getAppVersion();
@@ -10,15 +10,20 @@ export function FooterSocial() {
   return (
     <div className={classes.footer}>
       <Container className={classes.inner}>
-        <Group gap={0} className={classes.links} justify="flex-end" wrap="nowrap">
+        <Group
+          className={classes.links}
+          gap={0}
+          justify="flex-end"
+          wrap="nowrap"
+        >
           <GitHubIcon />
-          <Text ta="center" mt="xs" mb="xs" size="md" c="dimmed">
+          <Text c="dimmed" mb="xs" mt="xs" size="md" ta="center">
             AobaIwaki123 All Rights Reserved
           </Text>
         </Group>
-          <Text ta="center" mt="xs" mb="xs" size="md" c="dimmed">
-            v{version}
-          </Text>
+        <Text c="dimmed" mb="xs" mt="xs" size="md" ta="center">
+          v{version}
+        </Text>
       </Container>
     </div>
   );

@@ -1,4 +1,4 @@
-import { create } from 'zustand'
+import { create } from "zustand";
 
 // ============================================================================
 // 型定義
@@ -9,9 +9,9 @@ import { create } from 'zustand'
  */
 interface AnswerTriggerStore {
   /** トリガー発火回数 */
-  triggerCount: number
+  triggerCount: number;
   /** 回答トリガーを発火する */
-  trigger: () => void
+  trigger: () => void;
 }
 
 /**
@@ -21,9 +21,10 @@ interface AnswerTriggerStore {
 export const useAnswerTriggerStore = create<AnswerTriggerStore>((set) => ({
   // 初期状態
   triggerCount: 0,
-  
+
   // トリガー発火
-  trigger: () => set((state) => ({ 
-    triggerCount: state.triggerCount + 1 
-  })),
-}))
+  trigger: () =>
+    set((state) => ({
+      triggerCount: state.triggerCount + 1,
+    })),
+}));

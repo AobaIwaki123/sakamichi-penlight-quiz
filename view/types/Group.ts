@@ -1,1 +1,1 @@
-export type Group = 'nogizaka' | 'sakurazaka' | 'hinatazaka'
+export type Group = "nogizaka" | "sakurazaka" | "hinatazaka";

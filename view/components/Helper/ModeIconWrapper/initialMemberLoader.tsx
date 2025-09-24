@@ -1,7 +1,7 @@
 "use client";
 
-import { useEffect } from 'react';
-import { useSelectedMemberStore } from '@/stores/useSelectedMemberStore';
+import { useEffect } from "react";
+import { useSelectedMemberStore } from "@/stores/useSelectedMemberStore";
 
 export const InitialLoader = () => {
   const selectedGroup = useSelectedMemberStore((state) => state.selectedGroup);

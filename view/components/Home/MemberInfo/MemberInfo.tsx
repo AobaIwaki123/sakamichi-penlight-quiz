@@ -1,21 +1,23 @@
 "use client";
 
-import { useAnswerCloseTriggerStore } from '@/stores/useAnswerCloseTriggerStore'
-import { useFilterStore } from '@/stores/useFilterStore';
-import { useSelectedMemberStore } from '@/stores/useSelectedMemberStore';
+import { useEffect } from "react";
+import { useAnswerCloseTriggerStore } from "@/stores/useAnswerCloseTriggerStore";
+import { useFilterStore } from "@/stores/useFilterStore";
+import { useSelectedMemberStore } from "@/stores/useSelectedMemberStore";
 import type { Member } from "@/types/Member";
-
 import { MemberImage } from "./MemberImage/MemberImage";
 import { MemberInfoHeader } from "./MemberInfoHeader/MemberInfoHeader";
-
-import { useEffect } from "react";
 
 export function MemberInfo() {
   const checkedFilters = useFilterStore((state) => state.checkedFilters);
 
-  const triggerCount = useAnswerCloseTriggerStore((state) => state.triggerCount);
+  const triggerCount = useAnswerCloseTriggerStore(
+    (state) => state.triggerCount
+  );
 
-  const pickRandomMember = useSelectedMemberStore((state) => state.pickRandomMember) as () => Member | undefined;
+  const pickRandomMember = useSelectedMemberStore(
+    (state) => state.pickRandomMember
+  ) as () => Member | undefined;
 
   useEffect(() => {
     const _ = triggerCount;
@@ -24,7 +26,7 @@ export function MemberInfo() {
       .map(([type]) => type);
 
     if (selected.length > 0) {
-      const random = pickRandomMember()
+      const random = pickRandomMember();
 
       console.log("選ばれたメンバー:", random);
     }

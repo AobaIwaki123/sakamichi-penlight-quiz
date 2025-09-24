@@ -11,8 +11,9 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint",
     "test": "jest",
+    "lint": "ultracite lint",
+    "format": "ultracite format",
     "test:watch": "jest --watch"
   },
   "dependencies": {

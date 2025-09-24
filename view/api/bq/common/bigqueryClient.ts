@@ -1,4 +1,4 @@
-import { BigQuery, Query } from '@google-cloud/bigquery';
+import { BigQuery, type Query } from "@google-cloud/bigquery";
 
 /**
  * BigQuery設定インターフェース
@@ -18,10 +18,10 @@ export interface BigQueryConfig {
  * デフォルトBigQuery設定
  */
 const DEFAULT_CONFIG: BigQueryConfig = {
-  projectId: 'sakamichipenlightquiz',
-  location: 'US',
-  timeoutMs: 30000,
-  useQueryCache: true
+  projectId: "sakamichipenlightquiz",
+  location: "US",
+  timeoutMs: 30_000,
+  useQueryCache: true,
 };
 
 /**
@@ -31,7 +31,7 @@ let bigqueryInstance: BigQuery | null = null;
 
 /**
  * BigQueryクライアントのシングルトンインスタンスを取得
- * 
+ *
  * @param config BigQuery設定（オプション）
  * @returns BigQueryクライアントインスタンス
  */
@@ -39,7 +39,7 @@ export function getBigQueryClient(config?: Partial<BigQueryConfig>): BigQuery {
   if (!bigqueryInstance) {
     const finalConfig = { ...DEFAULT_CONFIG, ...config };
     bigqueryInstance = new BigQuery({
-      projectId: finalConfig.projectId
+      projectId: finalConfig.projectId,
     });
   }
   return bigqueryInstance;
@@ -71,7 +71,7 @@ export interface QueryResult<T = any> {
 
 /**
  * 安全にBigQueryクエリを実行する共通関数
- * 
+ *
  * @param query 実行するSQLクエリ
  * @param options クエリ実行オプション
  * @returns クエリ実行結果
@@ -89,21 +89,21 @@ export async function executeQuery<T = any>(
     query: query.trim(),
     location: config.location,
     jobTimeoutMs: config.timeoutMs,
-    dryRun: options?.dryRun || false,
+    dryRun: options?.dryRun,
     useQueryCache: config.useQueryCache,
-    maxResults: options?.maxResults
+    maxResults: options?.maxResults,
   };
 
   try {
-    console.log('BigQueryクエリ実行開始:', {
+    console.log("BigQueryクエリ実行開始:", {
       query: query.trim(),
       location: config.location,
       dryRun: queryOptions.dryRun,
-      maxResults: queryOptions.maxResults
+      maxResults: queryOptions.maxResults,
     });
 
     const [job] = await bigquery.createQueryJob(queryOptions);
-    console.log('BigQueryジョブ開始: %s', job.id);
+    console.log("BigQueryジョブ開始: %s", job.id);
 
     const [rows] = await job.getQueryResults();
     const endTime = performance.now();
@@ -111,39 +111,41 @@ export async function executeQuery<T = any>(
 
     // ジョブの統計情報を取得
     const [metadata] = await job.getMetadata();
-    const totalBytesProcessed = metadata?.statistics?.query?.totalBytesProcessed;
+    const totalBytesProcessed =
+      metadata?.statistics?.query?.totalBytesProcessed;
 
-    console.log('BigQueryクエリ完了:', {
+    console.log("BigQueryクエリ完了:", {
       jobId: job.id,
       rowCount: rows.length,
       executionTime: `${executionTime.toFixed(2)}ms`,
-      totalBytesProcessed
+      totalBytesProcessed,
     });
 
     return {
       data: rows as T[],
       jobId: job.id,
       executionTime,
-      totalBytesProcessed
+      totalBytesProcessed,
     };
-
   } catch (error) {
     const endTime = performance.now();
     const executionTime = endTime - startTime;
-    
-    console.error('BigQueryクエリエラー:', {
+
+    console.error("BigQueryクエリエラー:", {
       query: query.trim(),
       executionTime: `${executionTime.toFixed(2)}ms`,
-      error: error instanceof Error ? error.message : String(error)
+      error: error instanceof Error ? error.message : String(error),
     });
-    
-    throw new Error(`BigQueryクエリの実行に失敗しました: ${error instanceof Error ? error.message : String(error)}`);
+
+    throw new Error(
+      `BigQueryクエリの実行に失敗しました: ${error instanceof Error ? error.message : String(error)}`
+    );
   }
 }
 
 /**
  * テーブルの存在確認を行う関数
- * 
+ *
  * @param datasetId データセットID
  * @param tableId テーブルID
  * @param projectId プロジェクトID（オプション、デフォルトは設定値）
@@ -158,13 +160,19 @@ export async function checkTableExists(
     const bigquery = getBigQueryClient(projectId ? { projectId } : undefined);
     const dataset = bigquery.dataset(datasetId);
     const table = dataset.table(tableId);
-    
+
     const [exists] = await table.exists();
-    console.log('テーブル存在確認: %s.%s.%s - %s', projectId || DEFAULT_CONFIG.projectId, datasetId, tableId, exists ? '存在' : '存在しない');
-    
+    console.log(
+      "テーブル存在確認: %s.%s.%s - %s",
+      projectId || DEFAULT_CONFIG.projectId,
+      datasetId,
+      tableId,
+      exists ? "存在" : "存在しない"
+    );
+
     return exists;
   } catch (error) {
-    console.error('テーブル存在確認エラー: %s.%s', datasetId, tableId, error);
+    console.error("テーブル存在確認エラー: %s.%s", datasetId, tableId, error);
     return false;
   }
 }

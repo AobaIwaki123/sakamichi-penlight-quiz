@@ -1,13 +1,12 @@
 "use client";
 
-import { hinatazakaFilters } from '@/consts/hinatazakaFilters';
-import type { Generation } from "@/consts/hinatazakaFilters";
-import { GenerationMap } from "@/consts/hinatazakaFilters";
-import { useFilterStore } from '@/stores/useFilterStore';
-import { useSelectedMemberStore } from "@/stores/useSelectedMemberStore";
-import { ActionIcon, Checkbox, Menu, Stack } from '@mantine/core';
-import { IconFilter, IconFilterFilled } from '@tabler/icons-react';
+import { ActionIcon, Checkbox, Menu, Stack } from "@mantine/core";
+import { IconFilter, IconFilterFilled } from "@tabler/icons-react";
 import { useEffect, useState } from "react";
+import type { Generation } from "@/consts/hinatazakaFilters";
+import { GenerationMap, hinatazakaFilters } from "@/consts/hinatazakaFilters";
+import { useFilterStore } from "@/stores/useFilterStore";
+import { useSelectedMemberStore } from "@/stores/useSelectedMemberStore";
 
 export function FilterButton() {
   const [isOpened, setIsOpened] = useState(false);
@@ -19,16 +18,15 @@ export function FilterButton() {
   // ✅ 初期化（マウント時にフィルター状態を設定）
   useEffect(() => {
     for (const filter of hinatazakaFilters) {
-      useFilterStore.getState().setFilter(filter.type, filter.defaultChecked || false);
+      useFilterStore.getState().setFilter(filter.type, filter.defaultChecked);
     }
   }, []);
 
   // ✅ チェックボックス変更時
   const handleCheckboxChange = (type: string, checked: boolean) => {
     setFilter(type, checked);
-    console.log(`${type} is ${checked ? 'checked' : 'unchecked'}`);
+    console.log(`${type} is ${checked ? "checked" : "unchecked"}`);
   };
-
 
   // ✅ checkedFilters → Generation[] に変換してzustandに反映
   useEffect(() => {
@@ -36,51 +34,52 @@ export function FilterButton() {
       .filter(([, checked]) => checked)
       .map(([label]) => label);
 
-
-    const selectedGenerations: Generation[] = []
-    let graduatedFilter = false
+    const selectedGenerations: Generation[] = [];
+    let graduatedFilter = false;
 
     for (const label of selectedLabels) {
-      const mapped = GenerationMap[label]
-      if (!mapped) continue
+      const mapped = GenerationMap[label];
+      if (!mapped) continue;
 
-      if (mapped === 'graduated') {
-        graduatedFilter = true
+      if (mapped === "graduated") {
+        graduatedFilter = true;
       } else {
-        selectedGenerations.push(mapped)
+        selectedGenerations.push(mapped);
       }
     }
 
     const filterObj: {
       gen?: Generation[];
       graduated?: boolean;
-    } = {}
+    } = {};
 
     if (selectedGenerations.length > 0) {
-      filterObj.gen = selectedGenerations
+      filterObj.gen = selectedGenerations;
     }
 
-    filterObj.graduated = graduatedFilter
+    filterObj.graduated = graduatedFilter;
 
-    useSelectedMemberStore.getState().setFilters(filterObj)
-  }, [checkedFilters])
-
-
+    useSelectedMemberStore.getState().setFilters(filterObj);
+  }, [checkedFilters]);
 
   return (
     <Menu
-      opened={isOpened}
-      onChange={setIsOpened}
       closeOnClickOutside={false}
       closeOnItemClick={false}
+      onChange={setIsOpened}
+      opened={isOpened}
     >
       <Menu.Target>
         <ActionIcon
           onClick={() => setIsOpened((prev) => !prev)}
-          variant="light"
           size="xl"
+          variant="light"
         >
-          {isOpened ? <IconFilterFilled stroke={1.5} /> : <IconFilter stroke={1.5} />}
+          {isOpened ? (
+            <IconFilterFilled stroke={1.5} />
+          ) : (
+            <IconFilter stroke={1.5} />
+          )}
         </ActionIcon>
       </Menu.Target>
       <Menu.Dropdown>
@@ -89,9 +88,9 @@ export function FilterButton() {
           <Stack>
             {hinatazakaFilters.map((filter) => (
               <Checkbox
+                checked={checkedFilters[filter.type]}
                 key={filter.type}
                 label={filter.type}
-                checked={checkedFilters[filter.type]}
                 onChange={(event) =>
                   handleCheckboxChange(filter.type, event.currentTarget.checked)
                 }
@@ -101,6 +100,5 @@ export function FilterButton() {
         </Menu.Item>
       </Menu.Dropdown>
     </Menu>
-
   );
 }

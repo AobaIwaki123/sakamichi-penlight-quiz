@@ -1,12 +1,12 @@
 .base {
-	background-color: #ecf4ff;
+  background-color: #ecf4ff;
 }
 
 .title {
-	font-size: rem(16px);
-	font-weight: bold;
+  font-size: rem(16px);
+  font-weight: bold;
 }
 
 .content {
-	font-size: rem(15px);
+  font-size: rem(15px);
 }

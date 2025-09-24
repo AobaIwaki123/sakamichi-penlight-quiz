@@ -6,10 +6,10 @@ export function PenlightForm() {
   return (
     <Grid>
       <Grid.Col span={{ base: 6 }}>
-        <Penlight id="left"/>
+        <Penlight id="left" />
       </Grid.Col>
       <Grid.Col span={{ base: 6 }}>
-        <Penlight id="right"/>
+        <Penlight id="right" />
       </Grid.Col>
       <Grid.Col span={{ base: 12 }}>
         <Center>
@@ -17,5 +17,5 @@ export function PenlightForm() {
         </Center>
       </Grid.Col>
     </Grid>
-  )
+  );
 }
