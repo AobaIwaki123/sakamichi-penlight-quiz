@@ -1,5 +1,5 @@
-import { NotImplemented } from '@/components/Notification/NotImplemented/NotImplemented';
-import { EmptyFilteredMember } from '@/components/Notification/EmptyFilteredMember/EmptyFilteredMember';
+import { EmptyFilteredMember } from "@/components/Notification/EmptyFilteredMember/EmptyFilteredMember";
+import { NotImplemented } from "@/components/Notification/NotImplemented/NotImplemented";
 
 export function Notification() {
   return (
@@ -7,5 +7,5 @@ export function Notification() {
       <NotImplemented />
       <EmptyFilteredMember />
     </>
-  )
+  );
 }

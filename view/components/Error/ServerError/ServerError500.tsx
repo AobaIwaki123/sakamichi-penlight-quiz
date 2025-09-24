@@ -1,6 +1,5 @@
-
-import { Button, Container, Group, Text, Title } from '@mantine/core';
-import classes from './ServerError500.module.css';
+import { Button, Container, Group, Text, Title } from "@mantine/core";
+import classes from "./ServerError500.module.css";
 
 export function ServerError500() {
   return (
@@ -8,16 +7,18 @@ export function ServerError500() {
       <Container>
         <div className={classes.label}>500</div>
         <Title className={classes.title}>Something bad just happened...</Title>
-        <Text size="lg" ta="center" className={classes.description}>
-          Our servers could not handle your request. Don&apos;t worry, our development team was
-          already notified. Try refreshing the page.
+        <Text className={classes.description} size="lg" ta="center">
+          Our servers could not handle your request. Don&apos;t worry, our
+          development team was already notified. Try refreshing the page.
         </Text>
         <Group justify="center">
-          <Button variant="white" size="md" onClick={
-            () => {
+          <Button
+            onClick={() => {
               window.location.reload();
-            }
-          }>
+            }}
+            size="md"
+            variant="white"
+          >
             Refresh the page
           </Button>
         </Group>

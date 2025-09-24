@@ -10,16 +10,16 @@ export interface ApiEnvironment {
 
 /**
  * 現在のAPI実行環境を取得する
- * 
+ *
  * @returns API実行環境の設定
  */
 export function getApiEnvironment(): ApiEnvironment {
   const useMock = process.env.USE_MOCK === "true";
   const environment = process.env.NODE_ENV || "development";
-  
+
   return {
     useMock,
-    environment
+    environment,
   };
 }
 
@@ -40,20 +40,20 @@ export interface ApiError extends Error {
  */
 export enum ApiErrorCode {
   /** BigQuery接続エラー */
-  BIGQUERY_CONNECTION_ERROR = 'BIGQUERY_CONNECTION_ERROR',
+  BIGQUERY_CONNECTION_ERROR = "BIGQUERY_CONNECTION_ERROR",
   /** BigQueryクエリエラー */
-  BIGQUERY_QUERY_ERROR = 'BIGQUERY_QUERY_ERROR',
+  BIGQUERY_QUERY_ERROR = "BIGQUERY_QUERY_ERROR",
   /** テーブル存在しないエラー */
-  TABLE_NOT_FOUND = 'TABLE_NOT_FOUND',
+  TABLE_NOT_FOUND = "TABLE_NOT_FOUND",
   /** データ検証エラー */
-  DATA_VALIDATION_ERROR = 'DATA_VALIDATION_ERROR',
+  DATA_VALIDATION_ERROR = "DATA_VALIDATION_ERROR",
   /** 不明なエラー */
-  UNKNOWN_ERROR = 'UNKNOWN_ERROR'
+  UNKNOWN_ERROR = "UNKNOWN_ERROR",
 }
 
 /**
  * APIエラーを作成する関数
- * 
+ *
  * @param code エラーコード
  * @param message エラーメッセージ
  * @param cause 元のエラー（オプション）
@@ -75,7 +75,7 @@ export function createApiError(
 
 /**
  * エラーログ出力の共通関数
- * 
+ *
  * @param context エラーが発生したコンテキスト
  * @param error 発生したエラー
  * @param additionalInfo 追加の情報（オプション）
@@ -85,19 +85,19 @@ export function logError(
   error: Error | ApiError,
   additionalInfo?: Record<string, any>
 ): void {
-  console.error('[%s] エラーが発生しました:', context, {
+  console.error("[%s] エラーが発生しました:", context, {
     message: error.message,
-    code: (error as ApiError).code || 'UNKNOWN',
+    code: (error as ApiError).code || "UNKNOWN",
     cause: (error as ApiError).cause?.message,
     details: (error as ApiError).details,
     additionalInfo,
-    stack: error.stack
+    stack: error.stack,
   });
 }
 
 /**
  * 成功ログ出力の共通関数
- * 
+ *
  * @param context 処理が完了したコンテキスト
  * @param message 成功メッセージ
  * @param data 関連データ（オプション）
@@ -107,12 +107,12 @@ export function logSuccess(
   message: string,
   data?: Record<string, any>
 ): void {
-  console.log('[%s] %s', context, message, data || {});
+  console.log("[%s] %s", context, message, data || {});
 }
 
 /**
  * デバッグログ出力の共通関数
- * 
+ *
  * @param context デバッグ対象のコンテキスト
  * @param message デバッグメッセージ
  * @param data 関連データ（オプション）
@@ -122,14 +122,14 @@ export function logDebug(
   message: string,
   data?: Record<string, any>
 ): void {
-  if (process.env.NODE_ENV === 'development') {
-    console.log('[DEBUG:%s] %s', context, message, data || {});
+  if (process.env.NODE_ENV === "development") {
+    console.log("[DEBUG:%s] %s", context, message, data || {});
   }
 }
 
 /**
  * APIコールの開始ログを出力
- * 
+ *
  * @param apiName API名
  * @param params APIパラメータ（オプション）
  */
@@ -138,16 +138,16 @@ export function logApiStart(
   params?: Record<string, any>
 ): void {
   const environment = getApiEnvironment();
-  logDebug(apiName, 'API呼び出し開始', {
+  logDebug(apiName, "API呼び出し開始", {
     useMock: environment.useMock,
     environment: environment.environment,
-    params
+    params,
   });
 }
 
 /**
  * APIコールの完了ログを出力
- * 
+ *
  * @param apiName API名
  * @param resultCount 取得結果件数
  * @param executionTime 実行時間（ミリ秒、オプション）
@@ -157,15 +157,15 @@ export function logApiComplete(
   resultCount: number,
   executionTime?: number
 ): void {
-  logSuccess(apiName, 'API呼び出し完了', {
+  logSuccess(apiName, "API呼び出し完了", {
     resultCount,
-    executionTime: executionTime ? `${executionTime.toFixed(2)}ms` : undefined
+    executionTime: executionTime ? `${executionTime.toFixed(2)}ms` : undefined,
   });
 }
 
 /**
  * フォールバック実行のログ出力
- * 
+ *
  * @param apiName API名
  * @param reason フォールバックの理由
  * @param fallbackType フォールバック先（'mock', 'cache'等）
@@ -175,27 +175,29 @@ export function logFallback(
   reason: string,
   fallbackType: string
 ): void {
-  console.warn('[%s] %s - %sデータにフォールバックします', apiName, reason, fallbackType);
+  console.warn(
+    "[%s] %s - %sデータにフォールバックします",
+    apiName,
+    reason,
+    fallbackType
+  );
 }
 
 /**
  * モックデータ使用のログ出力
- * 
+ *
  * @param apiName API名
  * @param reason モックデータを使用する理由
  */
-export function logMockUsage(
-  apiName: string,
-  reason: string = 'USE_MOCK=true'
-): void {
-  console.log('[%s] モックデータを使用中（%s）', apiName, reason);
+export function logMockUsage(apiName: string, reason = "USE_MOCK=true"): void {
+  console.log("[%s] モックデータを使用中（%s）", apiName, reason);
 }
 
 /**
  * 共通のエラーハンドリング関数
  * 本番環境では適切なフォールバック処理を実行し、
  * 開発環境では詳細なエラー情報を出力する
- * 
+ *
  * @param apiName API名
  * @param error 発生したエラー
  * @param fallbackData フォールバックデータ
@@ -207,29 +209,29 @@ export function handleApiError<T>(
   fallbackData: T
 ): T {
   const environment = getApiEnvironment();
-  
+
   // エラーログを出力
   logError(apiName, error, { environment });
-  
+
   // 開発環境ではより詳細な情報を出力
-  if (environment.environment === 'development') {
-    console.error('[%s] 開発環境での詳細エラー情報:', apiName, {
+  if (environment.environment === "development") {
+    console.error("[%s] 開発環境での詳細エラー情報:", apiName, {
       stack: error.stack,
       name: error.name,
-      message: error.message
+      message: error.message,
     });
   }
-  
+
   // フォールバックデータが提供されている場合は使用
   if (fallbackData !== undefined) {
-    logFallback(apiName, error.message, 'mock');
+    logFallback(apiName, error.message, "mock");
     return fallbackData;
   }
-  
+
   // フォールバックデータがない場合はエラーを再スロー
   throw createApiError(
     ApiErrorCode.UNKNOWN_ERROR,
-    apiName + 'でエラーが発生し、フォールバックデータも利用できません',
+    apiName + "でエラーが発生し、フォールバックデータも利用できません",
     error
   );
 }

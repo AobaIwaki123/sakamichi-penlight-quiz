@@ -1,47 +1,44 @@
-import type { Member } from '@/types/Member';
-import type { PenlightColor } from '@/types/PenlightColor';
-import { 
-  createApiError,
-  ApiErrorCode
-} from './errorHandling';
+import type { Member } from "@/types/Member";
+import type { PenlightColor } from "@/types/PenlightColor";
+import { ApiErrorCode, createApiError } from "./errorHandling";
 
 /**
  * 坂道グループの種類
  */
-export type Group = 'hinatazaka' | 'sakurazaka';
+export type Group = "hinatazaka" | "sakurazaka";
 
 /**
  * BigQueryテーブル名の設定
  */
 export const TABLE_NAMES = {
   hinatazaka: {
-    member: 'hinatazaka_member_master',
-    penlight: 'hinatazaka_penlight'
+    member: "hinatazaka_member_master",
+    penlight: "hinatazaka_penlight",
   },
   sakurazaka: {
-    member: 'sakurazaka_member_master', 
-    penlight: 'sakurazaka_penlight'
-  }
+    member: "sakurazaka_member_master",
+    penlight: "sakurazaka_penlight",
+  },
 } as const;
 
 /**
  * BigQueryのデータセット・プロジェクト設定
  */
 export const BIGQUERY_CONFIG = {
-  projectId: 'sakamichipenlightquiz',
-  dataset: 'sakamichi',
-  location: 'US'
+  projectId: "sakamichipenlightquiz",
+  dataset: "sakamichi",
+  location: "US",
 } as const;
 
 /**
  * メンバーデータ取得用のSQLクエリを生成
- * 
+ *
  * @param group 対象グループ（hinatazaka | sakurazaka）
  * @returns SQLクエリ文字列
  */
 export function buildMemberQuery(group: Group): string {
   const tableName = TABLE_NAMES[group].member;
-  
+
   return `
     SELECT
       id,
@@ -63,13 +60,13 @@ export function buildMemberQuery(group: Group): string {
 
 /**
  * ペンライト色データ取得用のSQLクエリを生成
- * 
+ *
  * @param group 対象グループ（hinatazaka | sakurazaka）
  * @returns SQLクエリ文字列
  */
 export function buildPenlightQuery(group: Group): string {
   const tableName = TABLE_NAMES[group].penlight;
-  
+
   return `
     SELECT
       id,
@@ -85,7 +82,7 @@ export function buildPenlightQuery(group: Group): string {
 
 /**
  * データ検証：メンバーデータの必須フィールドをチェック
- * 
+ *
  * @param data 検証対象のデータ
  * @returns 検証済みのメンバーデータ
  * @throws ApiError 必須フィールドが不足している場合
@@ -94,41 +91,43 @@ export function validateMemberData(data: any[]): Member[] {
   if (!Array.isArray(data)) {
     throw createApiError(
       ApiErrorCode.DATA_VALIDATION_ERROR,
-      'メンバーデータが配列形式ではありません'
+      "メンバーデータが配列形式ではありません"
     );
   }
 
   return data.map((item, index) => {
-    const requiredFields = ['id', 'name', 'penlight1_id', 'penlight2_id'];
-    const missingFields = requiredFields.filter(field => item[field] === undefined || item[field] === null);
-    
+    const requiredFields = ["id", "name", "penlight1_id", "penlight2_id"];
+    const missingFields = requiredFields.filter(
+      (field) => item[field] === undefined || item[field] === null
+    );
+
     if (missingFields.length > 0) {
       throw createApiError(
         ApiErrorCode.DATA_VALIDATION_ERROR,
-        `メンバーデータ（インデックス: ${index}）に必須フィールドが不足しています: ${missingFields.join(', ')}`,
+        `メンバーデータ（インデックス: ${index}）に必須フィールドが不足しています: ${missingFields.join(", ")}`,
         undefined,
         { missingFields, item }
       );
     }
-    
+
     return {
       id: Number(item.id),
       name: String(item.name),
-      nickname: String(item.nickname || ''),
-      emoji: String(item.emoji || ''),
-      gen: String(item.gen || ''),
+      nickname: String(item.nickname || ""),
+      emoji: String(item.emoji || ""),
+      gen: String(item.gen || ""),
       graduated: Boolean(item.graduated),
       penlight1_id: Number(item.penlight1_id),
       penlight2_id: Number(item.penlight2_id),
-      type: String(item.type || ''),
-      url: String(item.url || '')
+      type: String(item.type || ""),
+      url: String(item.url || ""),
     } as Member;
   });
 }
 
 /**
  * データ検証：ペンライト色データの必須フィールドをチェック
- * 
+ *
  * @param data 検証対象のデータ
  * @returns 検証済みのペンライト色データ
  * @throws ApiError 必須フィールドが不足している場合
@@ -137,30 +136,30 @@ export function validatePenlightData(data: any[]): PenlightColor[] {
   if (!Array.isArray(data)) {
     throw createApiError(
       ApiErrorCode.DATA_VALIDATION_ERROR,
-      'ペンライト色データが配列形式ではありません'
+      "ペンライト色データが配列形式ではありません"
     );
   }
 
   return data.map((item, index) => {
-    const requiredFields = ['id', 'name_ja', 'name_en', 'color'];
-    const missingFields = requiredFields.filter(field => item[field] === undefined || item[field] === null);
-    
+    const requiredFields = ["id", "name_ja", "name_en", "color"];
+    const missingFields = requiredFields.filter(
+      (field) => item[field] === undefined || item[field] === null
+    );
+
     if (missingFields.length > 0) {
       throw createApiError(
         ApiErrorCode.DATA_VALIDATION_ERROR,
-        `ペンライト色データ（インデックス: ${index}）に必須フィールドが不足しています: ${missingFields.join(', ')}`,
+        `ペンライト色データ（インデックス: ${index}）に必須フィールドが不足しています: ${missingFields.join(", ")}`,
         undefined,
         { missingFields, item }
       );
     }
-    
+
     return {
       id: Number(item.id),
       name_ja: String(item.name_ja),
       name_en: String(item.name_en),
-      color: String(item.color)
+      color: String(item.color),
     } as PenlightColor;
   });
 }
-
-

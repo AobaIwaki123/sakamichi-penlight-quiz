@@ -1,8 +1,8 @@
-import { useCallback } from 'react';
-import { useColorStore } from '@/stores/useColorStore';
-import { usePenlightStore } from '@/stores/usePenlightStore';
-import { useSelectedMemberStore } from '@/stores/useSelectedMemberStore';
-import type { PenlightColor } from '@/types/PenlightColor';
+import { useCallback } from "react";
+import { useColorStore } from "@/stores/useColorStore";
+import { usePenlightStore } from "@/stores/usePenlightStore";
+import { useSelectedMemberStore } from "@/stores/useSelectedMemberStore";
+import type { PenlightColor } from "@/types/PenlightColor";
 
 /**
  * ペンライトカラーコントローラーの戻り値型定義
@@ -27,10 +27,10 @@ interface ColorControllerReturn {
 /**
  * ペンライトカラーコントローラーフック
  * 指定されたIDに対応するペンライト色の状態管理と操作を提供
- * 
+ *
  * @param id - ペンライトコントローラーの一意識別子（例: "penlight1", "penlight2"）
  * @returns ペンライト色の現在状態と操作関数
- * 
+ *
  * @example
  * ```tsx
  * const {
@@ -39,7 +39,7 @@ interface ColorControllerReturn {
  *   next,
  *   prev
  * } = useColorController('penlight1');
- * 
+ *
  * return (
  *   <div style={{ backgroundColor: color }}>
  *     <span>{nameJa}</span>
@@ -63,7 +63,9 @@ export function useColorController(id: string): ColorControllerReturn {
   // 次のペンライト色に切り替える関数（循環）
   const next = useCallback(() => {
     if (isLoading || penlightColors.length === 0) {
-      console.warn('データ読み込み中またはペンライトカラーデータが未取得のため操作をスキップ');
+      console.warn(
+        "データ読み込み中またはペンライトカラーデータが未取得のため操作をスキップ"
+      );
       return;
     }
     setIndex(id, (prevIndex) => (prevIndex + 1) % penlightColors.length);
@@ -72,11 +74,15 @@ export function useColorController(id: string): ColorControllerReturn {
   // 前のペンライト色に切り替える関数（循環）
   const prev = useCallback(() => {
     if (isLoading || penlightColors.length === 0) {
-      console.warn('データ読み込み中またはペンライトカラーデータが未取得のため操作をスキップ');
+      console.warn(
+        "データ読み込み中またはペンライトカラーデータが未取得のため操作をスキップ"
+      );
       return;
     }
-    setIndex(id, (prevIndex) =>
-      (prevIndex - 1 + penlightColors.length) % penlightColors.length
+    setIndex(
+      id,
+      (prevIndex) =>
+        (prevIndex - 1 + penlightColors.length) % penlightColors.length
     );
   }, [id, setIndex, penlightColors.length, isLoading]);
 
@@ -87,14 +93,18 @@ export function useColorController(id: string): ColorControllerReturn {
   if (isLoading || !currentColor || penlightColors.length === 0) {
     return {
       index: 0,
-      color: '#cccccc',
-      nameJa: isLoading ? 'ローディング中...' : '未取得',
-      nameEn: isLoading ? 'loading...' : 'not_loaded',
+      color: "#cccccc",
+      nameJa: isLoading ? "ローディング中..." : "未取得",
+      nameEn: isLoading ? "loading..." : "not_loaded",
       next: () => {
-        console.warn('データ読み込み中またはペンライトカラーデータが未取得のため操作をスキップ');
+        console.warn(
+          "データ読み込み中またはペンライトカラーデータが未取得のため操作をスキップ"
+        );
       },
       prev: () => {
-        console.warn('データ読み込み中またはペンライトカラーデータが未取得のため操作をスキップ');
+        console.warn(
+          "データ読み込み中またはペンライトカラーデータが未取得のため操作をスキップ"
+        );
       },
       allColors: [],
     };

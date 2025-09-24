@@ -1,5 +1,5 @@
-import { create } from 'zustand';
-import { usePenlightStore } from './usePenlightStore';
+import { create } from "zustand";
+import { usePenlightStore } from "./usePenlightStore";
 
 // ============================================================================
 // 型定義
@@ -60,7 +60,7 @@ export const useColorStore = create<ColorStore>((set, get) => ({
     set((state) => {
       const currentIndex = getCurrentIndex(state.colorMap, id);
       const newIndex = updater(currentIndex);
-      
+
       return {
         colorMap: {
           ...state.colorMap,
@@ -74,12 +74,12 @@ export const useColorStore = create<ColorStore>((set, get) => ({
     const index = getCurrentIndex(get().colorMap, id);
     const { penlightColors } = usePenlightStore.getState();
     const selectedColor = penlightColors[index];
-    
+
     // データ未取得時のフォールバック
     if (!selectedColor) {
       return createFallbackColorData(index);
     }
-    
+
     // 正常なカラーデータを返す
     return {
       index,
@@ -100,7 +100,10 @@ export const useColorStore = create<ColorStore>((set, get) => ({
  * @param id 対象のID
  * @returns 現在のインデックス（未設定の場合は0）
  */
-function getCurrentIndex(colorMap: Record<string, ColorInfo>, id: string): number {
+function getCurrentIndex(
+  colorMap: Record<string, ColorInfo>,
+  id: string
+): number {
   return colorMap[id]?.index ?? 0;
 }
 
@@ -112,8 +115,8 @@ function getCurrentIndex(colorMap: Record<string, ColorInfo>, id: string): numbe
 function createFallbackColorData(index: number): ColorDisplayData {
   return {
     index,
-    nameJa: '未取得',
-    nameEn: 'not_loaded',
-    color: '#cccccc',
+    nameJa: "未取得",
+    nameEn: "not_loaded",
+    color: "#cccccc",
   };
 }

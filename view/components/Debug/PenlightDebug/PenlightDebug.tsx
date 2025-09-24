@@ -1,8 +1,8 @@
-'use client';
+"use client";
 
-import { useState } from 'react';
-import { Button, Group, Text, Code, Collapse, Alert } from '@mantine/core';
-import { debugPenlightTable } from '@/api/bq/debugPenlight';
+import { Alert, Button, Code, Collapse, Group, Text } from "@mantine/core";
+import { useState } from "react";
+import { debugPenlightTable } from "@/api/bq/debugPenlight";
 
 /**
  * ペンライトテーブルデバッグ用コンポーネント
@@ -13,7 +13,7 @@ export const PenlightDebug = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [opened, setOpened] = useState(false);
 
-  const handleDebug = async (dataset: 'hinatazaka' | 'sakurazaka') => {
+  const handleDebug = async (dataset: "hinatazaka" | "sakurazaka") => {
     setIsLoading(true);
     try {
       console.log(`デバッグ開始: ${dataset}`);
@@ -21,11 +21,11 @@ export const PenlightDebug = () => {
       setDebugResult({ dataset, ...result });
       setOpened(true);
     } catch (error) {
-      console.error('デバッグエラー:', error);
+      console.error("デバッグエラー:", error);
       setDebugResult({
         dataset,
         exists: false,
-        error: error instanceof Error ? error.message : String(error)
+        error: error instanceof Error ? error.message : String(error),
       });
       setOpened(true);
     } finally {
@@ -34,28 +34,30 @@ export const PenlightDebug = () => {
   };
 
   // 本番環境では表示しない
-  if (process.env.NODE_ENV === 'production') {
+  if (process.env.NODE_ENV === "production") {
     return null;
   }
 
   return (
-    <div style={{ padding: '1rem', border: '1px dashed #ccc', margin: '1rem' }}>
-      <Text size="lg" fw={600} mb="md">ペンライトテーブルデバッグ</Text>
+    <div style={{ padding: "1rem", border: "1px dashed #ccc", margin: "1rem" }}>
+      <Text fw={600} mb="md" size="lg">
+        ペンライトテーブルデバッグ
+      </Text>
 
       <Group mb="md">
         <Button
-          onClick={() => handleDebug('hinatazaka')}
           loading={isLoading}
-          variant="outline"
+          onClick={() => handleDebug("hinatazaka")}
           size="sm"
+          variant="outline"
         >
           日向坂46テーブル確認
         </Button>
         <Button
-          onClick={() => handleDebug('sakurazaka')}
           loading={isLoading}
-          variant="outline"
+          onClick={() => handleDebug("sakurazaka")}
           size="sm"
+          variant="outline"
         >
           櫻坂46テーブル確認
         </Button>
@@ -65,31 +67,39 @@ export const PenlightDebug = () => {
         {debugResult && (
           <div>
             <Alert
-              color={debugResult.exists ? 'green' : 'red'}
-              title={`${debugResult.dataset} テーブル状況`}
+              color={debugResult.exists ? "green" : "red"}
               mb="md"
+              title={`${debugResult.dataset} テーブル状況`}
             >
-              {debugResult.exists ? 'テーブルが存在します' : 'テーブルが存在しません'}
+              {debugResult.exists
+                ? "テーブルが存在します"
+                : "テーブルが存在しません"}
             </Alert>
 
             {debugResult.exists && (
               <>
-                <Text size="sm" fw={500} mb="xs">データ件数: {debugResult.count}件</Text>
+                <Text fw={500} mb="xs" size="sm">
+                  データ件数: {debugResult.count}件
+                </Text>
 
                 {debugResult.schema && (
                   <div>
-                    <Text size="sm" fw={500} mb="xs">スキーマ:</Text>
+                    <Text fw={500} mb="xs" size="sm">
+                      スキーマ:
+                    </Text>
                     <Code block mb="md">
-                      {debugResult.schema.map((field: any) =>
-                        `${field.name}: ${field.type}`
-                      ).join('\n')}
+                      {debugResult.schema
+                        .map((field: any) => `${field.name}: ${field.type}`)
+                        .join("\n")}
                     </Code>
                   </div>
                 )}
 
                 {debugResult.sample && debugResult.sample.length > 0 && (
                   <div>
-                    <Text size="sm" fw={500} mb="xs">サンプルデータ:</Text>
+                    <Text fw={500} mb="xs" size="sm">
+                      サンプルデータ:
+                    </Text>
                     <Code block mb="md">
                       {JSON.stringify(debugResult.sample, null, 2)}
                     </Code>
@@ -100,7 +110,9 @@ export const PenlightDebug = () => {
 
             {debugResult.error && (
               <div>
-                <Text size="sm" fw={500} mb="xs" c="red">エラー:</Text>
+                <Text c="red" fw={500} mb="xs" size="sm">
+                  エラー:
+                </Text>
                 <Code block color="red">
                   {debugResult.error}
                 </Code>
@@ -110,7 +122,7 @@ export const PenlightDebug = () => {
         )}
       </Collapse>
 
-      <Text size="xs" c="dimmed" mt="md">
+      <Text c="dimmed" mt="md" size="xs">
         このコンポーネントは開発環境でのみ表示されます。
         <br />
         ブラウザのコンソールでもデバッグ情報を確認できます。

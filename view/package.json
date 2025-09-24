@@ -11,8 +11,9 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint",
     "test": "jest",
+    "lint": "ultracite lint",
+    "format": "ultracite format",
     "test:watch": "jest --watch"
   },
   "dependencies": {
@@ -31,6 +32,7 @@
     "zustand": "^5.0.3"
   },
   "devDependencies": {
+    "@biomejs/biome": "2.2.4",
     "@testing-library/jest-dom": "^6.8.0",
     "@testing-library/react": "^16.3.0",
     "@types/jest": "30.0.0",
@@ -45,6 +47,7 @@
     "postcss-preset-mantine": "1.18.0",
     "postcss-simple-vars": "^7.0.1",
     "ts-jest": "^29.4.4",
-    "typescript": "5.8.3"
+    "typescript": "5.8.3",
+    "ultracite": "5.4.4"
   }
 }

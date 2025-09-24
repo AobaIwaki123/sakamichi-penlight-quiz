@@ -1,7 +1,5 @@
-import { HeaderSimple } from './HeaderSimple/HeaderSimple';
+import { HeaderSimple } from "./HeaderSimple/HeaderSimple";
 
 export default function Header() {
-  return (
-    <HeaderSimple/>
-  );
+  return <HeaderSimple />;
 }

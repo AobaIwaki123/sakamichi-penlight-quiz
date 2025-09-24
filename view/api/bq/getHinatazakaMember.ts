@@ -1,31 +1,35 @@
 "use server";
 
-import type { Member } from '@/types/Member';
-import { hinatazakaMemberMock } from './mockData/hinatazakaMemberMock';
-import { executeQuery, checkTableExists, type QueryResult } from './common/bigqueryClient';
-import { 
-  getApiEnvironment, 
-  handleApiError, 
-  logApiStart, 
-  logApiComplete, 
-  logMockUsage,
+import type { Member } from "@/types/Member";
+import {
+  checkTableExists,
+  executeQuery,
+  type QueryResult,
+} from "./common/bigqueryClient";
+import {
+  ApiErrorCode,
   createApiError,
-  ApiErrorCode
-} from './common/errorHandling';
-import { 
-  buildMemberQuery, 
-  validateMemberData,
+  getApiEnvironment,
+  handleApiError,
+  logApiComplete,
+  logApiStart,
+  logMockUsage,
+} from "./common/errorHandling";
+import {
+  BIGQUERY_CONFIG,
+  buildMemberQuery,
   TABLE_NAMES,
-  BIGQUERY_CONFIG
-} from './common/queryUtils';
+  validateMemberData,
+} from "./common/queryUtils";
+import { hinatazakaMemberMock } from "./mockData/hinatazakaMemberMock";
 
 /**
  * BigQueryから日向坂46のメンバー情報を取得する関数
  * USE_MOCK環境変数がtrueの場合はモックデータを返し、falseの場合はBigQueryから取得する
- * 
+ *
  * @returns Promise<Member[]> 日向坂46メンバー情報の配列
  * @throws Error BigQuery接続エラーまたはクエリ実行エラー
- * 
+ *
  * @example
  * ```typescript
  * const members = await getHinatazakaMember();
@@ -33,10 +37,10 @@ import {
  * ```
  */
 export async function getHinatazakaMember(): Promise<Member[]> {
-  const group = 'hinatazaka';
-  const apiName = 'getHinatazakaMember';
+  const group = "hinatazaka";
+  const apiName = "getHinatazakaMember";
   const environment = getApiEnvironment();
-  
+
   logApiStart(apiName, { group });
 
   // モック環境の場合は即座にモックデータを返す
@@ -49,8 +53,11 @@ export async function getHinatazakaMember(): Promise<Member[]> {
   try {
     // テーブル存在確認
     const tableName = TABLE_NAMES[group].member;
-    const tableExists = await checkTableExists(BIGQUERY_CONFIG.dataset, tableName);
-    
+    const tableExists = await checkTableExists(
+      BIGQUERY_CONFIG.dataset,
+      tableName
+    );
+
     if (!tableExists) {
       throw createApiError(
         ApiErrorCode.TABLE_NOT_FOUND,
@@ -63,13 +70,12 @@ export async function getHinatazakaMember(): Promise<Member[]> {
     // BigQueryクエリ実行
     const query = buildMemberQuery(group);
     const result: QueryResult<any> = await executeQuery(query);
-    
+
     // データ検証
     const validatedData = validateMemberData(result.data);
-    
+
     logApiComplete(apiName, validatedData.length, result.executionTime);
     return validatedData;
-
   } catch (error) {
     return handleApiError(apiName, error as Error, hinatazakaMemberMock);
   }
