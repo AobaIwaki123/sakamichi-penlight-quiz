@@ -16,7 +16,7 @@ spec:
         - name: gcr-pull-secret
       containers:
         - name: penlight
-          image: gcr.io/my-docker-471807/penlight/prod-view-penlight:dev
+          image: gcr.io/my-docker-471807/penlight/prod-view-penlight:dev-cfe28c29
           volumeMounts:
             - name: gcp-sa-volume
               mountPath: /app/secret
