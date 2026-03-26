@@ -42,8 +42,9 @@ RUN aikido-pnpm install --frozen-lockfile
 COPY . .
 RUN aikido-pnpm run build
 
-# --- 本番ステージ（軽量かつ安全なDistrolessイメージ） ---
-FROM gcr.io/distroless/nodejs24-debian12:nonroot AS prod
+# --- 本番ステージ ---
+# FROM gcr.io/distroless/nodejs24-debian12:nonroot AS prod
+FROM dhi.io/node:${NODE_VERSION} AS prod
 
 # 本番環境変数
 ENV NODE_ENV=production

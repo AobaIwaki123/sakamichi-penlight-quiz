@@ -78,6 +78,11 @@ build:
 	@docker build --target prod -t penlight-view:latest ./view
 	@echo "✅ イメージビルドが完了しました: penlight-view:latest"
 
+build-time:
+	@echo "⏱️  ビルド時間を計測中..."
+	time docker build --no-cache --target prod -t penlight-view:latest ./view
+	@echo "✅ ビルド時間の計測が完了しました"
+
 ## 実行: ビルドしたイメージをローカルで実行（本番環境テスト用）
 run:
 	@echo "🚀 本番イメージをローカルで起動中..."
