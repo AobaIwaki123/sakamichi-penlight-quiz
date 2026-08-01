@@ -1,0 +1,30 @@
+name: Release Notes
+on:
+  workflow_dispatch:
+    inputs:
+      base-ref:
+        description: 'Previous release tag'
+        required: true
+      head-ref:
+        description: 'New release tag'
+        required: true
+
+jobs:
+  release-notes:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+
+      - name: Generate release notes
+        id: notes
+        uses: github/copilot-release-notes@main
+        with:
+          base-ref: ${{ inputs.base-ref }}
+          head-ref: ${{ inputs.head-ref }}
+        env:
+          COPILOT_GITHUB_TOKEN: ${{ secrets.COPILOT_GITHUB_TOKEN }}
+
+      - name: Print notes
+        run: echo "${{ steps.notes.outputs.release-notes }}"
